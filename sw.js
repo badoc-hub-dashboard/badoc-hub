@@ -1,9 +1,5 @@
 const CACHE = "badoc-hub-v15-pwa";
-const APP_SHELL = [
-  "./",
-  "./Badoc%20Hub%20V15.html",
-  "./manifest.webmanifest"
-];
+const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -24,12 +20,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
-
-  // Keep API/cloud requests live; only cache the local app shell.
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-
-  event.respondWith(
-    fetch(req).catch(() => caches.match(req))
-  );
+  event.respondWith(fetch(req).catch(() => caches.match(req)));
 });
