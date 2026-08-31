@@ -1,0 +1,12 @@
+{
+  "name": "Badoc Hub",
+  "short_name": "Badoc Hub",
+  "description": "Badoc Hub V15",
+  "start_url": "./Badoc%20Hub%20V15.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#071018",
+  "theme_color": "#071018",
+  "orientation": "any",
+  "icons": []
+}

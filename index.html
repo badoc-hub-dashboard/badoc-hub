@@ -1,0 +1,4706 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Badoc Hub</title>
+<style>
+:root{--bg:#06080b;--panel:#0e1116;--panel2:#141922;--line:#252b35;--text:#f5f7fa;--muted:#9299a6;--blue:#3da5ff;--red:#ff5c5c;--green:#55d187}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}button,input,select{font:inherit}
+.app{display:flex;min-height:100vh}.side{width:225px;background:#090909;border-right:1px solid var(--line);padding:22px 14px;position:fixed;inset:0 auto 0 0}.brand{font-size:19px;font-weight:800;padding:4px 10px 26px}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:500;margin-top:4px}
+.nav button{width:100%;text-align:left;background:none;border:0;color:#aaa;padding:11px 12px;border-radius:9px;cursor:pointer;margin:2px 0}.nav button.active,.nav button:hover{background:#101f2f;color:#fff;box-shadow:inset 2px 0 0 var(--blue)}.nav .ico{display:inline-block;width:23px}
+.main{margin-left:225px;width:calc(100% - 225px);padding:26px 30px 45px;max-width:1500px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}.title h1{margin:0;font-size:25px}.title p{margin:5px 0 0;color:var(--muted);font-size:12px}.userbox{color:#aaa;font-size:12px}.userbox b{color:#fff}
+.page{display:none}.page.active{display:block}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.kpi{background:linear-gradient(145deg,#131820,#0d1015);border:1px solid var(--line);border-radius:13px;padding:20px 21px;box-shadow:inset 0 1px 0 #ffffff08}.kpi .num{font-size:38px;line-height:1;font-weight:800;letter-spacing:-1px}.kpi .lab{margin-top:10px;font-weight:700;font-size:11px;letter-spacing:.08em}.kpi .desc{color:var(--muted);font-size:11px;margin-top:4px}
+.section{background:#0d0d0d;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:15px}.section h2{font-size:14px;margin:0 0 13px}.section h2:before{content:"";display:inline-block;width:4px;height:14px;background:var(--blue);border-radius:3px;margin-right:8px;vertical-align:-2px}.section h2 span{color:var(--muted);font-weight:500}
+.area-head{font-size:15px;font-weight:800;margin:3px 0 10px}.town-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}.town-column{display:flex;flex-direction:column;gap:14px}.town-card{overflow:hidden}.town-card{background:#131313;border:1px solid #222;border-radius:10px;padding:10px 12px}.town-row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:12px}.town-row.blank{height:10px;padding:0}.town-row .count{font-weight:800;font-variant-numeric:tabular-nums}.town-row .town{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar input,.toolbar select{background:#0d1116;border:1px solid #29313d;color:#fff;border-radius:8px;padding:9px 10px;outline:none}.toolbar input:focus,.toolbar select:focus{border-color:var(--blue);box-shadow:0 0 0 2px #3da5ff22}.toolbar input{min-width:230px}.btn{border:1px solid #303030;background:#171717;color:#fff;padding:9px 12px;border-radius:8px;cursor:pointer}.btn:hover{background:#202020}.btn.primary{background:#116bb2;border-color:#238fe2;box-shadow:0 0 0 1px #238fe220}.btn.danger{border-color:#592323;color:#ff8a8a}.uploadbox{border:1px dashed #333;border-radius:12px;padding:26px;text-align:center;background:#0c0c0c}.uploadbox input{display:none}.uploadbox label{display:inline-block;padding:11px 17px;background:#fff;color:#000;border-radius:8px;font-weight:700;cursor:pointer}.hint{color:var(--muted);font-size:12px;margin-top:10px}
+.tablewrap{overflow:auto;border:1px solid #222;border-radius:9px}.table{width:100%;border-collapse:collapse;min-width:850px}.table th,.table td{padding:8px 10px;border-bottom:1px solid #202020;text-align:left;font-size:12px}.table th{background:#151515;color:#bbb;position:sticky;top:0}.table td.num,.table th.num{text-align:right}.empty{padding:30px;text-align:center;color:var(--muted)}
+.badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:700}.badge.good{background:#12351f;color:#75e5a0}.badge.bad{background:#3a1515;color:#ff8888}
+.history{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.batch{background:#131313;border:1px solid #222;border-radius:10px;padding:13px}.batch b{display:block;margin-bottom:6px}.batch small{color:var(--muted)}.batch .actions{margin-top:10px;display:flex;gap:6px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.listbox{max-height:450px;overflow:auto}.town-edit{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1e1e1e}.town-edit span{font-size:12px}.town-edit button{background:none;border:0;color:#777;cursor:pointer}.town-edit button:hover{color:#f66}
+.mobilebar{display:none}
+@media(max-width:900px){.side{width:70px;padding:15px 9px}.brand{font-size:0;text-align:center}.brand:before{content:"B";font-size:20px}.brand small{display:none}.nav button{font-size:0;text-align:center}.nav .ico{font-size:17px;width:auto}.main{margin-left:70px;width:calc(100% - 70px);padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}.town-grid{grid-template-columns:1fr}.town-column{gap:9px}.settings-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px}.kpi .num{font-size:29px}.main{padding:14px}.top{margin-bottom:15px}.title h1{font-size:20px}.toolbar input{min-width:100%;}}
+
+/* ELECTRIC BLUE THEME */
+:root{
+  --bg:#05070a;
+  --panel:#0c1015;
+  --panel2:#111720;
+  --line:#202b38;
+  --text:#f5f8fc;
+  --muted:#8d99a8;
+  --blue:#168cff;
+  --red:#ff4d5e;
+  --green:#45d483;
+}
+body{background:#05070a;color:#f5f8fc}
+.side{background:#07090c;border-right-color:#1c2733}
+.nav button{color:#8f9baa}
+.nav button.active,.nav button:hover{
+  background:#0d2135;
+  color:#fff;
+  box-shadow:inset 3px 0 0 #168cff;
+}
+.kpi{
+  background:linear-gradient(145deg,#111923,#0a0e13);
+  border-color:#1d2a37;
+}
+.kpi:first-child,.kpi:nth-child(2),.kpi:nth-child(3){
+  box-shadow:inset 0 2px 0 #168cff;
+}
+.section{
+  background:#0a0e13;
+  border-color:#1d2732;
+}
+.section h2:before{
+  background:#168cff;
+}
+.town-card{
+  background:#10161e;
+  border-color:#202b37;
+}
+.town-card:hover{
+  border-color:#168cff;
+}
+.toolbar input,.toolbar select{
+  background:#0a0f15;
+  border-color:#25313e;
+}
+.toolbar input:focus,.toolbar select:focus{
+  border-color:#168cff;
+  box-shadow:0 0 0 2px #168cff22;
+}
+.btn.primary{
+  background:#0b69b7;
+  border-color:#168cff;
+}
+.tablewrap{border-color:#202b37}
+.table th{background:#111821}
+.badge.good{background:#10351f;color:#69e7a0}
+.badge.bad{background:#3b151a;color:#ff8792}
+
+
+.clickable-kpi{cursor:pointer}.clickable-kpi:hover{border-color:var(--blue);transform:translateY(-1px)}.clickable-kpi:focus{outline:2px solid var(--blue);outline-offset:2px}
+.kpi{transition:transform .15s ease,border-color .15s ease}
+
+#kpi .section{padding:12px 14px}
+#kpi .kpiGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border-left:1px solid var(--line);border-top:1px solid var(--line)}
+#kpi .kpi{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;padding:10px 12px;min-height:60px;background:#0b0f14;box-shadow:none}
+#kpi .kpi .num{font-size:22px;line-height:1.05}
+#kpi .kpi .lab{font-size:9px;margin-top:4px;color:var(--muted);letter-spacing:.04em}
+@media(max-width:900px){#kpi .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+#kpi .kpi-m1{margin-top:10px}
+
+.upload-section{max-width:520px}
+.upload-label{font-size:13px;font-weight:700;letter-spacing:.06em;color:#78849a;margin:2px 0 12px 4px}
+.upload-drop{position:relative;min-height:118px;padding:20px 14px;border:2px dashed #25283a;border-radius:12px;background:#07090e;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;box-sizing:border-box}
+.upload-drop:hover{border-color:#116bb2;background:#090d14}
+.upload-icon{font-size:31px;line-height:1;color:#777b87;margin-bottom:8px}
+.upload-main{font-size:16px;line-height:1.2;color:#aeb8cb}
+.upload-sub{font-size:13px;line-height:1.3;color:#69748a;margin-top:3px}
+.upload-click{position:absolute;inset:0;display:block!important;padding:0!important;background:transparent!important;color:transparent!important;border-radius:12px;cursor:pointer}
+.upload-actions{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.reset-zero{width:100%;justify-content:center;border-color:#5b1e2c!important;color:#ff3048!important;background:transparent!important;height:51px;font-size:15px;font-weight:700}
+.reset-zero:hover{background:#180b10!important;border-color:#8b2438!important}
+.reset-zero span{font-size:19px;margin-right:7px}
+.upload-drop.dragover{border-color:#238fe2;box-shadow:0 0 0 1px #238fe2}
+
+#linehaul .linehaul-tools{display:flex;gap:8px;align-items:center;margin:10px 0 12px}
+#linehaul .lh-upload{display:inline-flex;align-items:center;gap:7px;background:#0b69b7;border:1px solid #168cff;color:#fff;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+#linehaul .lh-upload input{display:none}
+#linehaul .lh-upload span{font-size:17px}
+#linehaul .lh-summary{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);margin-bottom:12px}
+#linehaul .lh-summary>div{padding:10px 12px;border-right:1px solid var(--line);background:#0b0f14}
+#linehaul .lh-summary>div:last-child{border-right:0}
+#linehaul .lh-summary b{display:block;font-size:21px;line-height:1.1}
+#linehaul .lh-summary span{display:block;margin-top:4px;font-size:9px;color:var(--muted);letter-spacing:.06em;font-weight:700}
+#linehaul .table td,#linehaul .table th{white-space:nowrap}
+@media(max-width:900px){#linehaul .lh-summary{grid-template-columns:repeat(3,1fr)}#linehaul .lh-summary>div:nth-child(3){border-right:0}}
+
+#linehaul .linehaul-tools{display:flex;gap:8px;align-items:center;margin:10px 0 12px}
+#linehaul .lh-upload{display:inline-flex;align-items:center;gap:7px;background:#0b69b7;border:1px solid #168cff;color:#fff;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+#linehaul .lh-upload input{display:none}
+#linehaul .lh-upload span{font-size:17px}
+#linehaul .lh-summary{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);margin-bottom:12px}
+#linehaul .lh-summary>div{padding:10px 12px;border-right:1px solid var(--line);background:#0b0f14}
+#linehaul .lh-summary>div:last-child{border-right:0}
+#linehaul .lh-summary b{display:block;font-size:21px;line-height:1.1}
+#linehaul .lh-summary span{display:block;margin-top:4px;font-size:9px;color:var(--muted);letter-spacing:.06em;font-weight:700}
+@media(max-width:900px){#linehaul .lh-summary{grid-template-columns:repeat(3,1fr)}#linehaul .lh-summary>div:nth-child(3){border-right:0}}
+
+#linehaul .lh-town td{border-top:2px solid #202b37;background:#0e141b}
+#linehaul .lh-detail td{background:#0a0f15;color:#b6c0ce}
+#linehaul .lh-detail.lh-first td{border-top:1px solid #1c2733}
+
+#linehaul .lh-dashboard{margin:10px 0 14px}
+#linehaul .lh-dash-title{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}
+#linehaul .lh-town-section{border:1px solid var(--line);border-radius:10px;background:#080c11;padding:14px 16px;margin-bottom:14px}
+#linehaul .lh-section-title{font-size:15px;font-weight:800;color:#edf2f8;margin:0 0 11px;padding-left:10px;border-left:4px solid #1593ff;line-height:1.1}
+#linehaul .lh-town-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+#linehaul .lh-town-card{border:1px solid #202b38;border-radius:9px;background:#10161e;padding:9px 11px}
+#linehaul .lh-town-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:23px;font-size:12px}
+#linehaul .lh-town-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#linehaul .lh-town-row b{font-size:12px;min-width:28px;text-align:right}
+@media(max-width:900px){#linehaul .lh-town-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#linehaul .lh-town-grid{grid-template-columns:1fr}}
+#linehaul .lh-kpi-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:10px 0 18px}
+#linehaul .lh-kpi-card{min-height:88px;border:1px solid #263342;border-radius:10px;background:#0d131a;padding:12px 14px;box-sizing:border-box}
+#linehaul .lh-kpi-card:nth-child(-n+3){border-top:2px solid #1593ff}
+#linehaul .lh-kpi-value{font-size:30px;font-weight:900;line-height:1;color:#f4f7fb}
+#linehaul .lh-kpi-label{font-size:10px;font-weight:900;margin-top:8px;color:#f4f7fb}
+#linehaul .lh-kpi-note{font-size:9px;color:#8b9bb0;margin-top:4px}
+@media(max-width:900px){#linehaul .lh-kpi-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#linehaul .lh-kpi-cards{grid-template-columns:1fr}}
+#linehaul .lh-task-town-section{margin:10px 0 16px;border:1px solid #263342;border-radius:10px;background:#0d131a;padding:12px 14px}
+#linehaul .lh-task-town-title{font-size:14px;font-weight:900;margin-bottom:10px}
+#linehaul .lh-task-town-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+#linehaul .lh-task-town-heading{font-size:11px;font-weight:900;margin-bottom:5px}
+#linehaul .lh-task-town-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1b2530;font-size:11px}
+#linehaul .lh-task-town-row b{font-size:11px}
+#linehaul .lh-task-town-empty{font-size:11px;color:#8b9bb0}
+@media(max-width:700px){#linehaul .lh-task-town-columns{grid-template-columns:1fr}}
+
+#linehaul .lh-task-block{margin:14px 0 22px}
+#linehaul .lh-task-block-header{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:8px;border:1px solid #263342;border-radius:10px;background:#0d131a;font-size:11px}
+#linehaul .lh-task-block-header strong{font-size:13px}
+#linehaul .lh-task-block .lh-task-town-section{margin-bottom:10px}
+#linehaul .lh-task-block .lh-task-town-section:last-child{margin-bottom:0}
+
+#linehaul .lh-task-block{margin:14px 0 24px}
+#linehaul .lh-task-block-header{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--line);border-radius:10px;
+  background:#080c11;
+}
+#linehaul .lh-task-block-header strong{font-size:14px;color:#edf2f8}
+#linehaul .lh-task-town-section{
+  margin:0 0 10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#080c11;
+  padding:14px 16px;
+}
+#linehaul .lh-task-town-section:last-child{margin-bottom:0}
+#linehaul .lh-task-town-section .lh-section-title{
+  font-size:15px;font-weight:800;color:#edf2f8;
+  margin:0 0 11px;padding-left:10px;
+  border-left:4px solid #1593ff;line-height:1.1;
+}
+#linehaul .lh-task-town-section .lh-town-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;
+}
+#linehaul .lh-task-town-section .lh-town-card{
+  border:1px solid #202b38;border-radius:9px;
+  background:#10161e;padding:9px 11px;
+}
+#linehaul .lh-task-town-section .lh-town-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;min-height:23px;font-size:12px;
+}
+#linehaul .lh-task-town-section .lh-town-row span{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#linehaul .lh-task-town-section .lh-town-row b{
+  font-size:12px;min-width:28px;text-align:right;
+}
+@media(max-width:900px){
+  #linehaul .lh-task-town-section .lh-town-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  #linehaul .lh-task-town-section .lh-town-grid{grid-template-columns:1fr}
+}
+
+#linehaul .lh-task-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 10px}
+#linehaul .lh-task-kpi{min-height:78px;border:1px solid #263342;border-radius:10px;background:#0d131a;padding:12px 14px;box-sizing:border-box}
+#linehaul .lh-task-kpi:first-child{border-top:2px solid #1593ff}
+#linehaul .lh-task-kpi-value{font-size:27px;font-weight:900;line-height:1;color:#f4f7fb}
+#linehaul .lh-task-kpi-label{font-size:10px;font-weight:900;margin-top:8px;color:#f4f7fb}
+@media(max-width:900px){#linehaul .lh-task-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#linehaul .lh-task-kpis{grid-template-columns:1fr}}
+
+#linehaul .lh-task-toggle{cursor:pointer;user-select:none}
+#linehaul .lh-task-toggle em{margin-left:auto;font-style:normal;font-size:9px;color:#8b9bb0}
+#linehaul .lh-task-chevron{width:14px;font-size:10px}
+#linehaul .lh-task-block.collapsed .lh-task-block-header{margin-bottom:0;border-radius:10px}
+#linehaul .lh-task-block.collapsed .lh-task-kpis,
+#linehaul .lh-task-block.collapsed .lh-task-town-section{display:none}
+
+/* Readability pass: larger text + stronger contrast */
+body{font-size:15px}
+#linehaul{color:#f5f7fa}
+#linehaul .hint,
+#linehaul .lh-task-block-header em{color:#b8c4d1;font-size:12px}
+#linehaul .lh-upload,
+#linehaul .btn{font-size:14px}
+#linehaul .lh-kpi-value{font-size:34px;color:#ffffff}
+#linehaul .lh-kpi-label{font-size:12px;color:#f5f7fa}
+#linehaul .lh-task-block-header{font-size:13px;color:#dfe7ef;background:#111a24;border-color:#3a4a5c}
+#linehaul .lh-task-block-header strong{font-size:15px;color:#ffffff}
+#linehaul .lh-task-kpi-value{font-size:30px;color:#ffffff}
+#linehaul .lh-task-kpi-label{font-size:12px;color:#f5f7fa}
+#linehaul .lh-section-title{font-size:17px;color:#ffffff}
+#linehaul .lh-town-row{font-size:13px;color:#e7edf3}
+#linehaul .lh-town-row b{font-size:13px;color:#ffffff}
+#linehaul .lh-town-card{border-color:#344454;background:#121b25}
+#linehaul .lh-task-town-section{border-color:#344454;background:#0d151e}
+#linehaul .lh-dash-title{font-size:17px;color:#ffffff}
+#linehaul .table{font-size:13px}
+#linehaul .table th{font-size:12px;color:#ffffff}
+#linehaul .table td{font-size:13px;color:#e4ebf2}
+
+#linehaul .lh-doid-card{cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+#linehaul .lh-doid-card:hover{border-color:#1593ff;transform:translateY(-1px)}
+#linehaul .lh-doid-panel{margin:10px 0 14px;border:1px solid #344454;border-radius:10px;background:#0d151e;padding:14px 16px}
+#linehaul .lh-doid-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:#fff;font-size:15px}
+#linehaul .lh-doid-item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:9px 10px;border-bottom:1px solid #293746;font-size:14px;color:#e7edf3}
+#linehaul .lh-doid-item:last-child{border-bottom:0}
+#linehaul .lh-doid-tn{font-weight:800;color:#fff;letter-spacing:.2px}
+#linehaul .lh-doid-count{color:#b8c4d1}
+#linehaul .lh-doid-empty{font-size:13px;color:#b8c4d1;padding:8px 0}
+
+#linehaul .lh-doid-detail{border:1px solid #344454;border-radius:9px;background:#121b25;padding:12px;margin:8px 0}
+#linehaul .lh-doid-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+#linehaul .lh-doid-fields>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+#linehaul .lh-doid-fields span{font-size:10px;color:#b8c4d1}
+#linehaul .lh-doid-fields b{font-size:13px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#linehaul .lh-doid-task{margin-top:9px;font-size:11px;color:#b8c4d1}
+@media(max-width:900px){#linehaul .lh-doid-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#linehaul .lh-doid-fields{grid-template-columns:1fr}}
+
+/* KPI sheet-style layout */
+.kpi-sheet{background:#0b1016;border:1px solid #2f3c4b;border-radius:12px;overflow:hidden}
+.kpi-sheet-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #2f3c4b;background:#101821}
+.kpi-sheet-sub{font-size:13px;color:#aebdca}.kpi-sheet-head h2{margin:5px 0 0;font-size:22px;color:#fff}
+.kpi-sheet-score{text-align:right}.kpi-sheet-score span{display:block;font-size:11px;font-weight:800;color:#b9c6d2}.kpi-sheet-score strong{display:block;font-size:32px;color:#fff;margin-top:4px}
+.kpi-meta{display:grid;grid-template-columns:1fr 1.5fr 1.2fr .7fr 1.5fr;border-bottom:1px solid #2f3c4b}
+.kpi-meta div{padding:11px 13px;border-right:1px solid #263340}.kpi-meta div:last-child{border-right:0}
+.kpi-meta span{display:block;font-size:10px;color:#91a2b2;text-transform:uppercase;font-weight:800}.kpi-meta b{display:block;margin-top:4px;font-size:13px;color:#f2f6fa}
+.kpi-category{border-bottom:1px solid #2f3c4b}.kpi-category-title{padding:11px 14px;background:#151f29;color:#fff;font-size:13px;font-weight:900;letter-spacing:.3px;border-bottom:1px solid #2f3c4b}
+.kpi-metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.kpi-metric{min-height:108px;padding:13px;border-right:1px solid #263340;border-bottom:1px solid #263340;background:#0d141c}
+.kpi-metric:nth-child(4n){border-right:0}.kpi-metric h3{font-size:12px;line-height:1.25;color:#dfe7ee;margin:0 0 10px}
+.kpi-values{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}.kpi-values b{font-size:21px;color:#fff;width:100%}.kpi-values span{font-size:10px;color:#9eafbf}
+.kpi-m1-sheet .kpi-metric{min-height:75px}.kpi-m1-sheet .kpi-values b{font-size:19px}
+@media(max-width:1000px){.kpi-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-metric:nth-child(4n){border-right:1px solid #263340}.kpi-metric:nth-child(2n){border-right:0}.kpi-meta{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kpi-metric-grid,.kpi-meta{grid-template-columns:1fr}.kpi-sheet-head{align-items:flex-start;gap:15px;flex-direction:column}.kpi-sheet-score{text-align:left}}
+
+/* KPI visual polish */
+#kpi{padding-bottom:30px}
+#kpi .kpi-sheet{
+  border:1px solid #334455;border-radius:16px;
+  background:#0a1017;box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+#kpi .kpi-sheet-head{
+  padding:22px 24px;
+  background:linear-gradient(135deg,#111d2a,#0d151e);
+  border-bottom:1px solid #334455;
+}
+#kpi .kpi-sheet-sub{font-size:12px;letter-spacing:.7px;text-transform:uppercase;color:#9fb1c2}
+#kpi .kpi-sheet-head h2{font-size:25px;letter-spacing:.2px}
+#kpi .kpi-sheet-score{
+  min-width:170px;padding:10px 15px;border-radius:12px;
+  background:#172331;border:1px solid #405467;
+}
+#kpi .kpi-sheet-score strong{font-size:36px;line-height:1.1}
+#kpi .kpi-meta{background:#0e1720}
+#kpi .kpi-meta div{padding:13px 15px;border-color:#2b3a49}
+#kpi .kpi-meta span{font-size:9px;letter-spacing:.7px}
+#kpi .kpi-meta b{font-size:14px}
+#kpi .kpi-category{border-color:#334455}
+#kpi .kpi-category-title{
+  padding:13px 16px;
+  background:linear-gradient(90deg,#182533,#111a23);
+  color:#f7fafc;font-size:12px;letter-spacing:1px;
+  text-transform:uppercase;
+}
+#kpi .kpi-metric-grid{gap:10px;padding:10px;background:#091018}
+#kpi .kpi-metric{
+  min-height:118px;padding:15px;border:1px solid #2c3b4a!important;
+  border-radius:11px;background:linear-gradient(145deg,#111b25,#0d151d);
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+#kpi .kpi-metric:hover{
+  transform:translateY(-2px);border-color:#52708a!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.2);
+}
+#kpi .kpi-metric h3{font-size:12px;color:#b9c9d7;min-height:31px}
+#kpi .kpi-values{gap:5px 9px}
+#kpi .kpi-values b{font-size:25px;line-height:1.1}
+#kpi .kpi-values span{
+  padding:3px 6px;border-radius:5px;background:#17232e;
+  color:#9fb0bf;font-size:9px;
+}
+#kpi .kpi-m1-sheet .kpi-metric{min-height:82px}
+#kpi .kpi-m1-sheet .kpi-metric h3{min-height:auto;margin-bottom:8px}
+#kpi .kpi-m1-sheet .kpi-values b{font-size:22px}
+#kpi .kpi-m1-sheet .kpi-category-title{background:linear-gradient(90deg,#1c2835,#151d27)}
+@media(max-width:1000px){
+  #kpi .kpi-metric-grid{gap:8px;padding:8px}
+}
+
+/* Full KPI color system */
+#kpi .kpi-sheet-head{
+  background:linear-gradient(135deg,#142b3d,#172238 55%,#202344);
+}
+#kpi .kpi-sheet-score{
+  background:linear-gradient(135deg,#164e63,#14532d);
+  border-color:#3b8f78;
+}
+#kpi .kpi-meta div:nth-child(1){background:#132b3a}
+#kpi .kpi-meta div:nth-child(2){background:#20213d}
+#kpi .kpi-meta div:nth-child(3){background:#25351f}
+#kpi .kpi-meta div:nth-child(4){background:#3a2e18}
+#kpi .kpi-meta div:nth-child(5){background:#33233a}
+
+#kpi .kpi-category:nth-of-type(1) .kpi-category-title{
+  background:linear-gradient(90deg,#164e63,#155e75);border-left:4px solid #38bdf8;
+}
+#kpi .kpi-category:nth-of-type(2) .kpi-category-title{
+  background:linear-gradient(90deg,#312e81,#4338ca);border-left:4px solid #818cf8;
+}
+#kpi .kpi-category:nth-of-type(3) .kpi-category-title{
+  background:linear-gradient(90deg,#14532d,#166534);border-left:4px solid #4ade80;
+}
+#kpi .kpi-category:nth-of-type(4) .kpi-category-title{
+  background:linear-gradient(90deg,#78350f,#92400e);border-left:4px solid #fbbf24;
+}
+#kpi .kpi-category:nth-of-type(5) .kpi-category-title{
+  background:linear-gradient(90deg,#581c87,#701a75);border-left:4px solid #e879f9;
+}
+
+#kpi .kpi-metric-grid{background:#080d13}
+#kpi .kpi-category:nth-of-type(1) .kpi-metric{background:linear-gradient(145deg,#102936,#0d1c25)}
+#kpi .kpi-category:nth-of-type(2) .kpi-metric{background:linear-gradient(145deg,#1c1d3b,#11152a)}
+#kpi .kpi-category:nth-of-type(3) .kpi-metric{background:linear-gradient(145deg,#112c1d,#0d1e16)}
+#kpi .kpi-category:nth-of-type(4) .kpi-metric{background:linear-gradient(145deg,#34220e,#21170b)}
+#kpi .kpi-category:nth-of-type(5) .kpi-metric{background:linear-gradient(145deg,#2b1638,#1b1025)}
+
+#kpi .kpi-category:nth-of-type(1) .kpi-values b{color:#67d5ff}
+#kpi .kpi-category:nth-of-type(2) .kpi-values b{color:#a5b4fc}
+#kpi .kpi-category:nth-of-type(3) .kpi-values b{color:#86efac}
+#kpi .kpi-category:nth-of-type(4) .kpi-values b{color:#fcd34d}
+#kpi .kpi-category:nth-of-type(5) .kpi-values b{color:#f0abfc}
+
+#kpi .kpi-values span{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06)}
+#kpi .kpi-metric:hover{box-shadow:0 8px 22px rgba(0,0,0,.3)}
+
+/* Detailed, color-coded M-1 */
+#kpi .kpi-m1-header{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;background:#101923;border-bottom:1px solid #334455}
+#kpi .kpi-m1-header span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9fb0bf}
+#kpi .kpi-m1-header b{display:block;font-size:17px;color:#fff;margin-top:4px}
+#kpi .kpi-m1-header>div:last-child{text-align:right;background:#38224a;border:1px solid #8b5bb1;padding:9px 14px;border-radius:10px}
+#kpi .kpi-m1-header strong{display:block;font-size:27px;color:#f0abfc;margin-top:2px}
+#kpi .kpi-m1-meta{border-bottom:1px solid #334455}
+#kpi .kpi-m1-category{border-top:1px solid #263340}
+#kpi .kpi-m1-category-title{padding:10px 14px;font-size:11px;font-weight:900;letter-spacing:1px;color:#fff;border-bottom:1px solid #334455}
+#kpi .kpi-m1-category-title.cost{background:linear-gradient(90deg,#164e63,#155e75);border-left:4px solid #38bdf8}
+#kpi .kpi-m1-category-title.lead{background:linear-gradient(90deg,#312e81,#4338ca);border-left:4px solid #818cf8}
+#kpi .kpi-m1-category-title.experience{background:linear-gradient(90deg,#14532d,#166534);border-left:4px solid #4ade80}
+#kpi .kpi-m1-category-title.compliance{background:linear-gradient(90deg,#78350f,#92400e);border-left:4px solid #fbbf24}
+#kpi .kpi-m1-category .kpi-metric-grid{padding:9px}
+#kpi .kpi-m1-category:nth-of-type(1) .kpi-metric{background:linear-gradient(145deg,#102936,#0d1c25)}
+#kpi .kpi-m1-category:nth-of-type(2) .kpi-metric{background:linear-gradient(145deg,#1c1d3b,#11152a)}
+#kpi .kpi-m1-category:nth-of-type(3) .kpi-metric{background:linear-gradient(145deg,#112c1d,#0d1e16)}
+#kpi .kpi-m1-category:nth-of-type(4) .kpi-metric{background:linear-gradient(145deg,#34220e,#21170b)}
+
+/* M-1 collapsible, collapsed by default */
+#kpi .kpi-m1-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+#kpi .kpi-m1-toggle:hover{filter:brightness(1.12)}
+#kpi .kpi-m1-toggle em{font-style:normal;font-size:10px;color:#e9c7ff;letter-spacing:.4px}
+#kpi .kpi-m1-sheet.m1-collapsed .kpi-m1-body{display:none}
+#kpi .kpi-m1-sheet.m1-open .kpi-m1-body{display:block}
+
+/* Global pleasing color pass */
+:root{
+  --blue:#38bdf8;--cyan:#22d3ee;--green:#4ade80;--amber:#fbbf24;
+  --purple:#a78bfa;--pink:#f472b6;--red:#fb7185;--teal:#2dd4bf;
+}
+body{background:radial-gradient(circle at 80% 0%,#102338 0%,#05070a 38%);background-attachment:fixed}
+.side{background:linear-gradient(180deg,#08111b,#07090d);border-right:1px solid #203448}
+.brand{color:#eaf7ff}.brand small{color:#6f8aa0}
+.nav button{transition:all .18s ease}
+.nav button:nth-child(1).active,.nav button:nth-child(1):hover{background:#102a3d;box-shadow:inset 3px 0 #38bdf8}
+.nav button:nth-child(2).active,.nav button:nth-child(2):hover{background:#102b32;box-shadow:inset 3px 0 #2dd4bf}
+.nav button:nth-child(3).active,.nav button:nth-child(3):hover{background:#292114;box-shadow:inset 3px 0 #fbbf24}
+.nav button:nth-child(4).active,.nav button:nth-child(4):hover{background:#211c32;box-shadow:inset 3px 0 #a78bfa}
+.nav button:nth-child(5).active,.nav button:nth-child(5):hover{background:#321b23;box-shadow:inset 3px 0 #fb7185}
+.nav button:nth-child(6).active,.nav button:nth-child(6):hover{background:#271c38;box-shadow:inset 3px 0 #c084fc}
+.nav button:nth-child(7).active,.nav button:nth-child(7):hover{background:#182b27;box-shadow:inset 3px 0 #4ade80}
+
+.kpi{border-color:#25384a}
+.kpi:nth-child(1){box-shadow:inset 0 2px #38bdf8,0 8px 20px #0004}
+.kpi:nth-child(2){box-shadow:inset 0 2px #4ade80,0 8px 20px #0004}
+.kpi:nth-child(3){box-shadow:inset 0 2px #fbbf24,0 8px 20px #0004}
+.kpi:nth-child(4){box-shadow:inset 0 2px #fb7185,0 8px 20px #0004}
+.kpi:nth-child(1) .num{color:#67d5ff}.kpi:nth-child(2) .num{color:#86efac}
+.kpi:nth-child(3) .num{color:#fcd34d}.kpi:nth-child(4) .num{color:#fb8fa0}
+
+.section{background:linear-gradient(145deg,#0c131b,#080d13);border-color:#223346}
+.section h2:before{background:linear-gradient(#38bdf8,#818cf8)}
+.town-card{box-shadow:0 5px 16px #0003}
+.town-card:nth-child(3n+1){border-left:3px solid #38bdf8}
+.town-card:nth-child(3n+2){border-left:3px solid #4ade80}
+.town-card:nth-child(3n){border-left:3px solid #fbbf24}
+.town-row .count{color:#eaf7ff}
+
+.btn{border-color:#304456;background:#121c26}
+.btn:hover{background:#1a2a38;border-color:#4a6a82}
+.btn.primary{background:linear-gradient(135deg,#0968b5,#168cff);border-color:#38bdf8}
+.btn.danger{border-color:#7f2638;color:#ff9aaa}
+
+#linehaul .lh-summary>div:nth-child(1){border-top:2px solid #38bdf8}
+#linehaul .lh-summary>div:nth-child(2){border-top:2px solid #4ade80}
+#linehaul .lh-summary>div:nth-child(3){border-top:2px solid #fbbf24}
+#linehaul .lh-summary>div:nth-child(4){border-top:2px solid #a78bfa}
+#linehaul .lh-summary>div:nth-child(5){border-top:2px solid #fb7185}
+#linehaul .lh-kpi-card:nth-child(1){border-top:2px solid #38bdf8;background:linear-gradient(145deg,#102736,#0c151d)}
+#linehaul .lh-kpi-card:nth-child(2){border-top:2px solid #4ade80;background:linear-gradient(145deg,#10281d,#0c1712)}
+#linehaul .lh-kpi-card:nth-child(3){border-top:2px solid #fbbf24;background:linear-gradient(145deg,#2a2110,#17120a)}
+#linehaul .lh-kpi-card:nth-child(4){border-top:2px solid #c084fc;background:linear-gradient(145deg,#241735,#15101f)}
+#linehaul .lh-kpi-card:nth-child(1) .lh-kpi-value{color:#67d5ff}
+#linehaul .lh-kpi-card:nth-child(2) .lh-kpi-value{color:#86efac}
+#linehaul .lh-kpi-card:nth-child(3) .lh-kpi-value{color:#fcd34d}
+#linehaul .lh-kpi-card:nth-child(4) .lh-kpi-value{color:#e9b7ff}
+#linehaul .lh-task-block:nth-child(4n+1) .lh-task-block-header{border-left:4px solid #38bdf8}
+#linehaul .lh-task-block:nth-child(4n+2) .lh-task-block-header{border-left:4px solid #4ade80}
+#linehaul .lh-task-block:nth-child(4n+3) .lh-task-block-header{border-left:4px solid #fbbf24}
+#linehaul .lh-task-block:nth-child(4n) .lh-task-block-header{border-left:4px solid #a78bfa}
+#linehaul .lh-task-town-section{box-shadow:0 4px 14px #0002}
+
+#kpi .kpi-sheet{box-shadow:0 14px 40px #0005}
+#kpi .kpi-sheet-head{background:linear-gradient(135deg,#102b40,#192449 55%,#291b3d)}
+#kpi .kpi-sheet-score{background:linear-gradient(135deg,#075985,#166534);border-color:#4ade80;box-shadow:0 6px 18px #0004}
+#kpi .kpi-sheet-score strong{color:#bbf7d0}
+#kpi .kpi-meta div:nth-child(1){background:#102b3d}
+#kpi .kpi-meta div:nth-child(2){background:#211f43}
+#kpi .kpi-meta div:nth-child(3){background:#173521}
+#kpi .kpi-meta div:nth-child(4){background:#3a2b13}
+#kpi .kpi-meta div:nth-child(5){background:#342039}
+#kpi .kpi-category:nth-of-type(1) .kpi-category-title{background:linear-gradient(90deg,#075985,#0e7490);border-left:4px solid #38bdf8}
+#kpi .kpi-category:nth-of-type(2) .kpi-category-title{background:linear-gradient(90deg,#3730a3,#4f46e5);border-left:4px solid #a5b4fc}
+#kpi .kpi-category:nth-of-type(3) .kpi-category-title{background:linear-gradient(90deg,#166534,#15803d);border-left:4px solid #4ade80}
+#kpi .kpi-category:nth-of-type(4) .kpi-category-title{background:linear-gradient(90deg,#92400e,#b45309);border-left:4px solid #fbbf24}
+#kpi .kpi-metric{box-shadow:0 4px 12px #0002}
+#kpi .kpi-metric:hover{box-shadow:0 8px 20px #0004}
+#kpi .kpi-values span{border-color:#ffffff12}
+#kpi .kpi-m1-header{background:linear-gradient(90deg,#111d2c,#21192e)}
+#kpi .kpi-m1-header>div:last-child{background:linear-gradient(135deg,#4c1d95,#831843);border-color:#d8b4fe}
+#kpi .kpi-m1-category-title.cost{background:linear-gradient(90deg,#075985,#0e7490)}
+#kpi .kpi-m1-category-title.lead{background:linear-gradient(90deg,#3730a3,#4f46e5)}
+#kpi .kpi-m1-category-title.experience{background:linear-gradient(90deg,#166534,#15803d)}
+#kpi .kpi-m1-category-title.compliance{background:linear-gradient(90deg,#92400e,#b45309)}
+#kpi .kpi-m1-sheet{border-color:#5b4270}
+#kpi .kpi-m1-toggle em{color:#e9d5ff}
+
+.table th{background:linear-gradient(90deg,#142131,#17202c);color:#dbeafe}
+.table tr:hover td{background:#111d29}
+.badge.good{background:#123d28;color:#86efac;border:1px solid #236b45}
+.badge.bad{background:#451923;color:#fda4af;border:1px solid #8b3040}
+
+/* AMOLED BLACK + ELECTRIC BLUE THEME */
+:root{
+  --electric-blue:#00A8FF;
+  --electric-blue-bright:#19C2FF;
+  --electric-blue-deep:#006BFF;
+  --amoled:#000000;
+  --surface:#050505;
+  --surface-2:#090909;
+  --surface-3:#0D0D0D;
+  --border:#18232B;
+  --text:#F5F9FC;
+  --muted:#8B98A3;
+}
+html,body{background:#000!important;color:var(--text)}
+body{
+  background:
+    radial-gradient(circle at 75% -10%,rgba(0,168,255,.09),transparent 28%),
+    #000!important;
+  background-attachment:fixed;
+}
+.side{
+  background:#000!important;
+  border-right:1px solid #12212B!important;
+  box-shadow:8px 0 30px rgba(0,168,255,.035);
+}
+.brand{color:#F5F9FC!important}
+.brand small{color:#667783!important}
+.nav button{color:#AEBBC5!important;border-color:transparent!important}
+.nav button:hover{
+  color:#EAF8FF!important;
+  background:rgba(0,168,255,.08)!important;
+  box-shadow:inset 3px 0 var(--electric-blue)!important;
+}
+.nav button.active{
+  color:#fff!important;
+  background:linear-gradient(90deg,rgba(0,168,255,.16),rgba(0,168,255,.035))!important;
+  box-shadow:inset 3px 0 var(--electric-blue),0 0 18px rgba(0,168,255,.07)!important;
+}
+.nav button .ico{color:var(--electric-blue)!important}
+
+.main,.page{background:transparent!important}
+.section,.kpi-sheet{
+  background:#050505!important;
+  border-color:#17242D!important;
+  box-shadow:0 12px 35px rgba(0,0,0,.7)!important;
+}
+.section h2{color:#EAF8FF!important}
+.section h2:before{background:var(--electric-blue)!important;box-shadow:0 0 10px rgba(0,168,255,.6)}
+.kpi{
+  background:linear-gradient(145deg,#070707,#030303)!important;
+  border-color:#17242D!important;
+}
+.kpi:nth-child(1),.kpi:nth-child(2),.kpi:nth-child(3),.kpi:nth-child(4){
+  box-shadow:inset 0 2px var(--electric-blue),0 8px 22px rgba(0,0,0,.65)!important;
+}
+.kpi .num{color:#19C2FF!important;text-shadow:0 0 14px rgba(0,168,255,.22)}
+
+.btn{
+  background:#080808!important;
+  border-color:#1B303C!important;
+  color:#D9EAF2!important;
+}
+.btn:hover{
+  background:#0B1820!important;
+  border-color:var(--electric-blue)!important;
+  box-shadow:0 0 12px rgba(0,168,255,.13);
+}
+.btn.primary{
+  background:linear-gradient(135deg,#006BFF,#00A8FF)!important;
+  border-color:#19C2FF!important;
+  color:#fff!important;
+  box-shadow:0 0 16px rgba(0,168,255,.18);
+}
+
+.town-card,.lh-task-block,.lh-kpi-card{
+  background:#070707!important;
+  border-color:#17242D!important;
+}
+.town-card:nth-child(3n+1),
+.town-card:nth-child(3n+2),
+.town-card:nth-child(3n){
+  border-left-color:var(--electric-blue)!important;
+}
+.table{background:#030303!important}
+.table th{
+  background:#081018!important;
+  color:#CFEFFF!important;
+  border-color:#17242D!important;
+}
+.table td{border-color:#101A20!important}
+.table tr:hover td{background:#07131A!important}
+
+#linehaul .lh-task-block-header{
+  border-left-color:var(--electric-blue)!important;
+  background:linear-gradient(90deg,rgba(0,168,255,.09),#070707)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1),
+#linehaul .lh-kpi-card:nth-child(2),
+#linehaul .lh-kpi-card:nth-child(3),
+#linehaul .lh-kpi-card:nth-child(4){
+  border-top-color:var(--electric-blue)!important;
+  background:linear-gradient(145deg,#081017,#040404)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(2) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(3) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(4) .lh-kpi-value{
+  color:var(--electric-blue-bright)!important;
+  text-shadow:0 0 12px rgba(0,168,255,.2);
+}
+
+#kpi .kpi-sheet-head{
+  background:linear-gradient(135deg,#05090D,#07131B 60%,#050505)!important;
+  border-color:#17242D!important;
+}
+#kpi .kpi-sheet-score{
+  background:linear-gradient(135deg,#003B66,#006BFF)!important;
+  border-color:#19C2FF!important;
+  box-shadow:0 0 22px rgba(0,168,255,.2)!important;
+}
+#kpi .kpi-sheet-score strong{color:#E8FAFF!important;text-shadow:0 0 16px rgba(25,194,255,.4)}
+#kpi .kpi-meta div{
+  background:#050505!important;
+  border-color:#17242D!important;
+}
+#kpi .kpi-category-title,
+#kpi .kpi-m1-category-title{
+  background:linear-gradient(90deg,#071923,#05090D)!important;
+  border-left:4px solid var(--electric-blue)!important;
+  color:#EAF8FF!important;
+  box-shadow:inset 0 -1px #17242D;
+}
+#kpi .kpi-metric{
+  background:linear-gradient(145deg,#0A0A0A,#050505)!important;
+  border-color:#17242D!important;
+}
+#kpi .kpi-metric:hover{
+  border-color:#007FC2!important;
+  box-shadow:0 0 18px rgba(0,168,255,.1)!important;
+}
+#kpi .kpi-values b{
+  color:var(--electric-blue-bright)!important;
+  text-shadow:0 0 10px rgba(0,168,255,.15);
+}
+#kpi .kpi-values span{
+  background:#0A1116!important;
+  border-color:#17303D!important;
+  color:#8FA8B7!important;
+}
+#kpi .kpi-m1-header{
+  background:linear-gradient(90deg,#05090D,#08151E)!important;
+  border-color:#17242D!important;
+}
+#kpi .kpi-m1-header>div:last-child{
+  background:linear-gradient(135deg,#003B66,#006BFF)!important;
+  border-color:#19C2FF!important;
+}
+#kpi .kpi-m1-header strong{color:#E8FAFF!important}
+#kpi .kpi-m1-sheet{border-color:#16465D!important}
+#kpi .kpi-m1-toggle em{color:#70D8FF!important}
+
+.badge.good{background:#062B3A!important;color:#6FDBFF!important;border-color:#0B6C8E!important}
+.badge.bad{background:#2A090F!important;color:#FF9AA9!important;border-color:#75202D!important}
+input,select,textarea{
+  background:#050505!important;color:#F5F9FC!important;
+  border-color:#1B303C!important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--electric-blue)!important;
+  box-shadow:0 0 0 2px rgba(0,168,255,.1)!important;
+}
+
+/* Lighter AMOLED + Electric Blue Gradient Upgrade */
+:root{
+  --electric-blue:#18B8FF;
+  --electric-blue-light:#4DD4FF;
+  --electric-blue-deep:#0878FF;
+  --amoled-bg:#05070A;
+  --surface:#0A0D11;
+  --surface-2:#0E1217;
+  --surface-3:#121820;
+  --border:#22303B;
+  --text:#F4F9FC;
+  --muted:#94A5B2;
+}
+html,body{
+  background:#05070A!important;
+  color:var(--text);
+}
+body{
+  background:
+    radial-gradient(circle at 78% -8%,rgba(24,184,255,.13),transparent 27%),
+    radial-gradient(circle at 5% 100%,rgba(8,120,255,.07),transparent 30%),
+    #05070A!important;
+  background-attachment:fixed;
+}
+.side{
+  background:linear-gradient(180deg,#070A0E 0%,#05070A 55%,#080C11 100%)!important;
+  border-right:1px solid #1D2C37!important;
+}
+.nav button{
+  color:#B7C4CD!important;
+  border-color:transparent!important;
+  transition:.18s ease;
+}
+.nav button:hover{
+  color:#F2FBFF!important;
+  background:linear-gradient(90deg,rgba(24,184,255,.13),rgba(24,184,255,.025))!important;
+  box-shadow:inset 3px 0 var(--electric-blue),0 0 18px rgba(24,184,255,.05)!important;
+}
+.nav button.active{
+  color:#fff!important;
+  background:linear-gradient(90deg,rgba(8,120,255,.25),rgba(24,184,255,.08),transparent)!important;
+  box-shadow:inset 3px 0 var(--electric-blue-light),0 0 20px rgba(24,184,255,.08)!important;
+}
+.nav button .ico{color:var(--electric-blue-light)!important}
+
+.section,.kpi,.kpi-sheet{
+  background:linear-gradient(145deg,#0B0F14,#080B0F)!important;
+  border-color:#22313D!important;
+}
+.section{box-shadow:0 12px 35px rgba(0,0,0,.42)!important}
+.kpi{
+  border-top:2px solid var(--electric-blue)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.4),0 0 14px rgba(24,184,255,.035)!important;
+}
+.kpi .num{
+  color:var(--electric-blue-light)!important;
+  text-shadow:0 0 14px rgba(24,184,255,.25);
+}
+.section h2:before{
+  background:linear-gradient(180deg,var(--electric-blue-light),var(--electric-blue-deep))!important;
+  box-shadow:0 0 10px rgba(24,184,255,.55);
+}
+
+.btn{
+  background:#0D1217!important;
+  border-color:#263A47!important;
+}
+.btn:hover{
+  background:linear-gradient(135deg,#0D202B,#102331)!important;
+  border-color:var(--electric-blue)!important;
+  box-shadow:0 0 14px rgba(24,184,255,.12);
+}
+.btn.primary{
+  background:linear-gradient(135deg,#0878FF 0%,#00A8FF 52%,#4DD4FF 100%)!important;
+  border-color:#4DD4FF!important;
+  box-shadow:0 0 18px rgba(24,184,255,.2);
+}
+
+.town-card,.lh-task-block,.lh-kpi-card{
+  background:linear-gradient(145deg,#0C1116,#080C10)!important;
+  border-color:#22313D!important;
+}
+.town-card:nth-child(3n+1),
+.town-card:nth-child(3n+2),
+.town-card:nth-child(3n){
+  border-left-color:var(--electric-blue)!important;
+}
+
+.table{background:#080B0F!important}
+.table th{
+  background:linear-gradient(90deg,#101A22,#0D151C)!important;
+  color:#DDF6FF!important;
+  border-color:#22313D!important;
+}
+.table tr:hover td{background:#0E1B23!important}
+
+#linehaul .lh-task-block-header{
+  border-left-color:var(--electric-blue)!important;
+  background:linear-gradient(90deg,rgba(24,184,255,.13),rgba(24,184,255,.025),#0A0D11)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1),
+#linehaul .lh-kpi-card:nth-child(2),
+#linehaul .lh-kpi-card:nth-child(3),
+#linehaul .lh-kpi-card:nth-child(4){
+  border-top-color:var(--electric-blue)!important;
+  background:linear-gradient(145deg,#0E1820,#090D12)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(2) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(3) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(4) .lh-kpi-value{
+  color:var(--electric-blue-light)!important;
+  text-shadow:0 0 12px rgba(24,184,255,.2);
+}
+
+#kpi .kpi-sheet-head{
+  background:linear-gradient(135deg,#0B141C,#0C1B27 58%,#10141B)!important;
+  border-color:#243744!important;
+}
+#kpi .kpi-sheet-score{
+  background:linear-gradient(135deg,#075985 0%,#0878FF 50%,#18B8FF 100%)!important;
+  border-color:#4DD4FF!important;
+  box-shadow:0 0 24px rgba(24,184,255,.2)!important;
+}
+#kpi .kpi-sheet-score strong{
+  color:#F0FCFF!important;
+  text-shadow:0 0 15px rgba(77,212,255,.45);
+}
+#kpi .kpi-meta div{
+  background:#0A0E13!important;
+  border-color:#22313D!important;
+}
+#kpi .kpi-category-title,
+#kpi .kpi-m1-category-title{
+  background:linear-gradient(90deg,#0A202B,#0D151B,#090C10)!important;
+  border-left:4px solid transparent!important;
+  border-image:linear-gradient(180deg,#4DD4FF,#0878FF) 1!important;
+  color:#EAF9FF!important;
+}
+#kpi .kpi-metric{
+  background:linear-gradient(145deg,#0F141A,#090C10)!important;
+  border-color:#22313D!important;
+}
+#kpi .kpi-metric:hover{
+  border-color:#168FBD!important;
+  box-shadow:0 0 20px rgba(24,184,255,.11)!important;
+}
+#kpi .kpi-values b{
+  color:var(--electric-blue-light)!important;
+  text-shadow:0 0 10px rgba(24,184,255,.18);
+}
+#kpi .kpi-values span{
+  background:#101820!important;
+  border-color:#203B49!important;
+  color:#9FB3BF!important;
+}
+#kpi .kpi-m1-header{
+  background:linear-gradient(90deg,#0B1117,#101B24,#0D1017)!important;
+}
+#kpi .kpi-m1-header>div:last-child{
+  background:linear-gradient(135deg,#075985,#0878FF,#18B8FF)!important;
+  border-color:#4DD4FF!important;
+}
+#kpi .kpi-m1-header strong{color:#F0FCFF!important}
+#kpi .kpi-m1-sheet{border-color:#24536A!important}
+#kpi .kpi-m1-toggle em{color:#79DDFF!important}
+
+input,select,textarea{
+  background:#0A0E13!important;
+  color:#F4F9FC!important;
+  border-color:#263A47!important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--electric-blue)!important;
+  box-shadow:0 0 0 2px rgba(24,184,255,.12),0 0 14px rgba(24,184,255,.08)!important;
+}
+
+/* Premium accent: Arctic Blue — electric blue with a subtle cyan-violet depth */
+:root{
+  --accent-1:#1677FF;
+  --accent-2:#00B8FF;
+  --accent-3:#62E6FF;
+  --accent-soft:rgba(0,184,255,.12);
+  --accent-glow:rgba(22,119,255,.22);
+}
+body{
+  background:
+    radial-gradient(circle at 78% -8%,rgba(0,184,255,.105),transparent 25%),
+    radial-gradient(circle at 15% 105%,rgba(22,119,255,.055),transparent 28%),
+    #05070A!important;
+}
+.side{
+  box-shadow:8px 0 35px rgba(0,184,255,.035);
+}
+.nav button:hover{
+  background:linear-gradient(90deg,rgba(0,184,255,.13),rgba(22,119,255,.035),transparent)!important;
+  box-shadow:inset 3px 0 var(--accent-2),0 0 20px rgba(0,184,255,.06)!important;
+}
+.nav button.active{
+  background:linear-gradient(100deg,rgba(22,119,255,.22),rgba(0,184,255,.08),transparent)!important;
+  box-shadow:inset 3px 0 var(--accent-3),0 0 22px rgba(0,184,255,.09)!important;
+}
+.nav button .ico{color:var(--accent-3)!important}
+
+.section h2:before{
+  background:linear-gradient(180deg,var(--accent-3),var(--accent-1))!important;
+  box-shadow:0 0 12px rgba(0,184,255,.65);
+}
+.kpi{
+  border-top:2px solid transparent!important;
+  border-image:linear-gradient(90deg,var(--accent-1),var(--accent-2),var(--accent-3)) 1!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 16px rgba(0,184,255,.045)!important;
+}
+.kpi .num{
+  background:linear-gradient(90deg,var(--accent-3),var(--accent-2),#8ADFFF);
+  -webkit-background-clip:text;background-clip:text;color:transparent!important;
+  text-shadow:none;
+}
+.btn.primary{
+  background:linear-gradient(110deg,#1268F2 0%,#1687FF 35%,#00B8FF 72%,#62E6FF 100%)!important;
+  border-color:#62E6FF!important;
+  box-shadow:0 0 20px rgba(0,184,255,.22);
+}
+.btn.primary:hover{
+  filter:brightness(1.08);
+  box-shadow:0 0 25px rgba(0,184,255,.3);
+}
+.btn:hover{
+  border-color:#20BFFF!important;
+  box-shadow:0 0 15px rgba(0,184,255,.13);
+}
+
+.town-card:nth-child(3n+1),
+.town-card:nth-child(3n+2),
+.town-card:nth-child(3n){
+  border-left-color:var(--accent-2)!important;
+}
+.table th{
+  background:linear-gradient(100deg,#0C1B25,#0C141C)!important;
+  border-top:1px solid #17465B!important;
+}
+.table tr:hover td{background:rgba(0,184,255,.055)!important}
+
+#linehaul .lh-task-block-header{
+  border-left-color:var(--accent-2)!important;
+  background:linear-gradient(100deg,rgba(0,184,255,.12),rgba(22,119,255,.035),#080B0F)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1),
+#linehaul .lh-kpi-card:nth-child(2),
+#linehaul .lh-kpi-card:nth-child(3),
+#linehaul .lh-kpi-card:nth-child(4){
+  border-top:2px solid transparent!important;
+  border-image:linear-gradient(90deg,var(--accent-1),var(--accent-2)) 1!important;
+  background:linear-gradient(145deg,#0E1820,#090D12)!important;
+}
+#linehaul .lh-kpi-card:nth-child(1) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(2) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(3) .lh-kpi-value,
+#linehaul .lh-kpi-card:nth-child(4) .lh-kpi-value{
+  color:var(--accent-3)!important;
+  text-shadow:0 0 13px rgba(0,184,255,.2);
+}
+
+#kpi .kpi-sheet-head{
+  background:linear-gradient(125deg,#0A1219,#0A1B25 55%,#0A1017)!important;
+}
+#kpi .kpi-sheet-score{
+  background:linear-gradient(125deg,#0757B8,#0878FF 42%,#00B8FF 78%,#4DE0FF)!important;
+  border-color:#62E6FF!important;
+  box-shadow:0 0 26px rgba(0,184,255,.22)!important;
+}
+#kpi .kpi-category-title,
+#kpi .kpi-m1-category-title{
+  background:linear-gradient(100deg,#0A202A,#0B171E,#090D11)!important;
+  border-image:linear-gradient(180deg,var(--accent-3),var(--accent-1)) 1!important;
+}
+#kpi .kpi-metric:hover{
+  border-color:#168DB8!important;
+  box-shadow:0 0 22px rgba(0,184,255,.12)!important;
+}
+#kpi .kpi-values b{
+  background:linear-gradient(90deg,var(--accent-3),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent!important;
+  text-shadow:none;
+}
+#kpi .kpi-values span{
+  background:#0D171D!important;
+  border-color:#1B4050!important;
+}
+#kpi .kpi-m1-header{
+  background:linear-gradient(100deg,#0A1117,#0B1B25,#0C1016)!important;
+}
+#kpi .kpi-m1-header>div:last-child{
+  background:linear-gradient(125deg,#0757B8,#0878FF,#00B8FF,#4DE0FF)!important;
+  border-color:#62E6FF!important;
+}
+#kpi .kpi-m1-sheet{border-color:#20576D!important}
+#kpi .kpi-m1-toggle em{color:#62E6FF!important}
+
+input:focus,select:focus,textarea:focus{
+  border-color:#18BFFF!important;
+  box-shadow:0 0 0 2px rgba(0,184,255,.12),0 0 17px rgba(0,184,255,.1)!important;
+}
+
+#linehaul .lh-doid-card{
+  cursor:pointer!important;
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+}
+#linehaul .lh-doid-card:hover{
+  border-color:#4DD4FF!important;
+  box-shadow:0 0 18px rgba(0,184,255,.15)!important;
+  transform:translateY(-1px);
+}
+
+.side-count{
+  margin-left:auto;min-width:24px;height:21px;padding:0 7px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;font-size:11px;font-weight:900;
+  color:#fff;background:#151A1F;
+  box-shadow:none;
+}
+
+.global-search-wrap{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;
+  border:1px solid #263A47;border-radius:13px;
+  background:linear-gradient(135deg,#0D141A,#080C10);
+}
+.global-search-icon{font-size:24px;color:#62E6FF}
+#globalSearchInput{
+  flex:1;background:transparent!important;border:0!important;outline:0!important;
+  box-shadow:none!important;color:#F4F9FC!important;font-size:15px;
+}
+#globalSearchInput::placeholder{color:#71818C}
+.search-info{font-size:12px;color:#8FA4B1;margin:7px 2px 14px}
+#globalSearchResults{overflow:auto}
+#globalSearchResults .search-count{
+  display:inline-block;padding:6px 10px;border-radius:8px;
+  background:#0C202B;border:1px solid #1B5268;color:#62E6FF;font-weight:800;margin-bottom:10px;
+}
+#globalSearchResults table{width:100%;min-width:900px}
+#globalSearchResults td:first-child{color:#62E6FF;font-weight:800}
+
+/* ===== MOBILE + AMOLED GLASS UI ===== */
+.mobile-bottom-nav{display:none}
+
+:root{
+  --amoled-bg:#05080b;
+  --glass-bg:rgba(15,22,28,.82);
+  --glass-border:rgba(72,205,255,.18);
+  --electric:#55dcff;
+}
+
+body{
+  background:
+    radial-gradient(circle at 15% 0%,rgba(24,135,175,.08),transparent 32%),
+    radial-gradient(circle at 90% 10%,rgba(42,88,155,.07),transparent 30%),
+    var(--amoled-bg);
+}
+
+.section,.card,.panel,.stat-card,.kpi-card{
+  background:linear-gradient(145deg,rgba(19,27,33,.94),rgba(7,11,15,.97))!important;
+  border:1px solid var(--glass-border)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.025)!important;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+
+.btn,.nav button,.toolbar input,.toolbar select{
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.btn:hover,.nav button:hover{
+  box-shadow:0 0 16px rgba(45,205,255,.13);
+}
+.btn:active,.nav button:active{transform:scale(.98)}
+
+@media(max-width:700px){
+  .side{display:none!important}
+  .main{
+    margin-left:0!important;width:100%!important;
+    padding:12px 10px 86px!important;
+  }
+
+  .top{
+    gap:8px!important;
+    margin-bottom:12px!important;
+  }
+  .title h1{font-size:19px!important}
+  .title p{font-size:10px!important}
+  .userbox{font-size:10px!important}
+
+  .section,.card,.panel,.stat-card,.kpi-card{
+    border-radius:14px!important;
+  }
+
+  .toolbar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+  }
+  .toolbar input{
+    grid-column:1/-1!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  .toolbar select,.toolbar .btn{
+    width:100%!important;
+    min-width:0!important;
+    font-size:11px!important;
+    padding:9px 7px!important;
+  }
+
+  .tablewrap{
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .table{
+    min-width:760px!important;
+  }
+  .table th,.table td{
+    padding:7px 8px!important;
+    font-size:11px!important;
+  }
+
+  .mobile-bottom-nav{
+    position:fixed;
+    left:8px;right:8px;bottom:8px;
+    z-index:99999;
+    display:flex;
+    align-items:stretch;
+    gap:4px;
+    padding:7px 5px;
+    background:rgba(5,9,12,.94);
+    border:1px solid rgba(75,211,255,.22);
+    border-radius:17px;
+    box-shadow:0 10px 34px rgba(0,0,0,.72),0 0 22px rgba(35,190,255,.08);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+
+  .mobile-bottom-nav button{
+    flex:1;
+    min-width:0;
+    border:0;
+    background:transparent;
+    color:#82939d;
+    border-radius:12px;
+    padding:7px 2px 6px;
+    font-size:9px;
+    line-height:1.15;
+  }
+  .mobile-bottom-nav .mobile-ico{
+    display:block;
+    font-size:18px;
+    margin-bottom:3px;
+  }
+  .mobile-bottom-nav button.active{
+    color:#69e5ff;
+    background:linear-gradient(135deg,rgba(20,101,130,.45),rgba(10,37,51,.58));
+    box-shadow:inset 0 0 15px rgba(35,205,255,.08),0 0 12px rgba(35,205,255,.06);
+  }
+}
+
+@media(max-width:430px){
+  .main{padding-left:7px!important;padding-right:7px!important}
+  .toolbar{grid-template-columns:1fr!important}
+  .toolbar input,.toolbar select,.toolbar .btn{grid-column:auto!important}
+  .mobile-bottom-nav{left:5px;right:5px;bottom:5px}
+  .mobile-bottom-nav button{font-size:8px;padding-left:1px;padding-right:1px}
+  .mobile-bottom-nav .mobile-ico{font-size:17px}
+}
+
+/* Dashboard V1 — Shared Upload + AMOLED Glass polish */
+.shared-upload-status{
+  margin-top:12px;padding:12px 14px;border:1px solid #223b49;border-radius:11px;
+  background:linear-gradient(135deg,rgba(12,31,42,.78),rgba(7,11,15,.9));
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.shared-upload-status .status-left{display:flex;align-items:center;gap:9px}
+.shared-upload-status .dot{width:8px;height:8px;border-radius:50%;background:#18b8ff;box-shadow:0 0 10px #18b8ff}
+.shared-upload-status b{font-size:12px;color:#eaf8ff}
+.shared-upload-status small{color:#8fa8b7}
+.upload-history-card{
+  margin-top:10px;padding:13px 14px;border:1px solid #1d303b;border-radius:11px;
+  background:linear-gradient(145deg,#0b1116,#070a0d);
+}
+.upload-history-card .upload-history-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.upload-history-card .upload-file{font-weight:800;color:#f2f9fc}
+.upload-history-card .upload-meta{font-size:11px;color:#8fa0ad;margin-top:4px}
+.upload-history-card .upload-count{font-size:18px;font-weight:900;color:#4dd4ff}
+
+/* AMOLED + Glass visual pass */
+:root{
+  --glass-bg:rgba(12,17,22,.82);
+  --glass-border:rgba(77,212,255,.16);
+  --glass-highlight:rgba(255,255,255,.035);
+}
+.section,.kpi,.town-card,.lh-task-block,.lh-kpi-card,.kpi-sheet,.kpi-metric{
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.section{
+  background:linear-gradient(145deg,rgba(12,18,24,.9),rgba(5,8,11,.96))!important;
+  border-color:var(--glass-border)!important;
+  box-shadow:0 14px 36px rgba(0,0,0,.55),inset 0 1px 0 var(--glass-highlight)!important;
+}
+.kpi{
+  background:linear-gradient(145deg,rgba(14,22,29,.92),rgba(5,8,11,.98))!important;
+  border-color:rgba(77,212,255,.14)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.5),inset 0 1px 0 var(--glass-highlight)!important;
+}
+.town-card,.lh-task-block,.lh-kpi-card,.kpi-metric{
+  box-shadow:0 8px 22px rgba(0,0,0,.38),inset 0 1px 0 var(--glass-highlight)!important;
+}
+.btn.primary{
+  background:linear-gradient(135deg,#0878ff 0%,#00a8ff 55%,#4dd4ff 100%)!important;
+}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* Shared connection — configure these ONCE before sharing the file. */
+window.BADOC_SHARED_CONFIG = {
+  url: "https://qxmfkpctbaiahgerrkuo.supabase.co",
+  key: "sb_publishable_hpKmEjEVlUvY6SxN-4aEYQ_Ih3yyjsQ"
+};
+</script>
+<style id="v1-4-kpi-model">
+#kpiLiveSheet .kpi-category-title{padding:12px 14px;background:linear-gradient(90deg,#071923,#05090D)!important;border-left:4px solid var(--electric-blue)!important;color:#EAF8FF!important;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+#kpiLiveSheet .kpi-metric{min-height:112px}
+#kpiLiveSheet .kpi-values{gap:5px 8px}
+#kpiLiveSheet .kpi-values span{display:inline-block;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.05);border:1px solid #17303D;color:#8FA8B7;font-size:9px}
+#kpiLiveSheet .kpi-m1-body{display:none}
+#kpiLiveSheet .kpi-m1-sheet.m1-open .kpi-m1-body{display:block}
+#kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa}
+@media(max-width:800px){#kpiLiveSheet .kpi-meta{grid-template-columns:1fr 1fr}#kpiLiveSheet .kpi-metric-grid{grid-template-columns:1fr!important}}
+</style><style id="v1-7-kpi-connection">
+#kpiLiveSheet #kpiStatus{margin-top:12px;font-weight:700}
+#kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa}
+</style><style id="v1-10-kpi-apps-script">
+#kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa;line-height:1.5}
+#kpiLiveSheet #kpiStatus{margin-top:12px;font-weight:800;letter-spacing:.2px}
+</style><style id="v1-12-kpi-months">
+.kpi-month-section{margin-top:18px}
+.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.kpi-month-content{margin-top:10px}
+</style><style id="v1-13-kpi-refresh">
+.kpi-month-section{margin-top:18px}
+.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.kpi-month-content{margin-top:10px}
+</style><style id="v1-16-kpi">
+.kpi-month-section{margin-top:18px}
+.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.kpi-month-content{margin-top:10px}
+</style>
+<script id="v2-config">
+window.DASHBOARD_V2 = {
+  version: "2.0",
+  kpi: {
+    sheetId: "11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70",
+    gid: "0",
+    refreshMinutes: 5,
+    currentLabel: "CURRENT KPI",
+    previousLabel: "M-1"
+  },
+  linehaul: {
+    matchKey: "SPX TN → Order ID",
+    townsFromMatchedOrders: true
+  }
+};
+</script>
+
+<style id="v2-foundation">
+.v2-source-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:800;letter-spacing:.25px;
+  opacity:.8;margin-left:8px;
+}
+.v2-source-dot{
+  width:7px;height:7px;border-radius:50%;display:inline-block;
+}
+</style>
+
+<style id="v2-kpi-visuals">
+.kpi-month-section{margin-top:18px}
+.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.kpi-month-content{margin-top:10px}
+.v2-kpi-card{padding:14px}
+.v2-kpi-card .kpi-actual{font-size:28px;font-weight:950;line-height:1.15;margin:4px 0 12px}
+.v2-kpi-card .kpi-target-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.v2-kpi-card .kpi-target-row>div{padding:8px;border-radius:8px;background:rgba(255,255,255,.045);min-width:0}
+.v2-kpi-card .kpi-target-row span{display:block;font-size:10px;opacity:.65;line-height:1.2;margin-bottom:4px}
+.v2-kpi-card .kpi-target-row strong{display:block;font-size:12px;overflow-wrap:anywhere}
+.kpi-m1-details{margin-top:18px;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.kpi-m1-details>summary{cursor:pointer;list-style:none;font-weight:900;padding:14px;background:rgba(255,255,255,.06)}
+.kpi-m1-details>summary::-webkit-details-marker{display:none}
+.kpi-m1-details>summary:before{content:"＋";margin-right:8px}
+.kpi-m1-details[open]>summary:before{content:"−"}
+.kpi-m1-inner{padding:0 12px 12px}
+@media(max-width:600px){
+  .v2-kpi-card .kpi-target-row{grid-template-columns:1fr 1fr}
+  .v2-kpi-card .kpi-target-row>div:last-child{grid-column:1/-1}
+  .v2-kpi-card .kpi-actual{font-size:25px}
+}
+</style>
+<style id="v2-2-kpi">
+.v2-kpi-card .kpi-target-row strong{white-space:normal}
+</style><style id="v2-3-kpi">
+.v2-kpi-card .kpi-target-row strong{white-space:normal}
+</style><style id="v2-4-kpi">
+.v2-kpi-card .kpi-target-row strong{white-space:normal}
+</style>
+<style id="v3-kpi-health">
+.v3-health-summary{
+  margin:14px 0 18px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+}
+.v3-health-head{
+  font-size:12px;
+  font-weight:950;
+  letter-spacing:.8px;
+  margin-bottom:10px;
+  opacity:.85;
+}
+.v3-health-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.v3-health-grid>div{
+  min-width:0;
+  padding:10px 8px;
+  border-radius:9px;
+  background:rgba(255,255,255,.045);
+  text-align:center;
+}
+.v3-health-grid strong{
+  display:block;
+  font-size:22px;
+  line-height:1.1;
+  font-weight:950;
+}
+.v3-health-grid span{
+  display:block;
+  margin-top:4px;
+  font-size:10px;
+  opacity:.65;
+  line-height:1.2;
+}
+@media(max-width:600px){
+  .v3-health-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+
+<style id="v3-2-kpi-visuals">
+/* KPI V3 visual refresh */
+.kpi-v3-hero{
+  display:grid;
+  grid-template-columns:minmax(220px,1.15fr) repeat(3,minmax(110px,.6fr));
+  gap:12px;
+  margin:0 0 16px;
+}
+.kpi-v3-score,.kpi-v3-stat{
+  border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.14);
+}
+.kpi-v3-score .eyebrow,.kpi-v3-stat span{
+  display:block;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  opacity:.62;
+}
+.kpi-v3-score .score{
+  font-size:clamp(34px,5vw,56px);
+  line-height:1;
+  font-weight:950;
+  margin:7px 0 4px;
+}
+.kpi-v3-score .grade{
+  font-size:15px;
+  font-weight:900;
+}
+.kpi-v3-stat strong{
+  display:block;
+  font-size:21px;
+  font-weight:950;
+  margin-top:8px;
+}
+.v3-kpi-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:12px;
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.v3-kpi-card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(0,0,0,.14);
+}
+.v3-kpi-card .kpi-actual{
+  font-size:28px;
+  font-weight:950;
+  line-height:1.1;
+  margin:5px 0 12px;
+}
+.v3-kpi-card .kpi-target-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.v3-kpi-card .kpi-target-row>div{
+  padding:8px;
+  border-radius:8px;
+  background:rgba(255,255,255,.045);
+}
+.v3-kpi-card .kpi-target-row span{
+  display:block;
+  font-size:9px;
+  line-height:1.2;
+  opacity:.6;
+  margin-bottom:4px;
+}
+.v3-kpi-card .kpi-target-row strong{
+  display:block;
+  font-size:12px;
+  overflow-wrap:anywhere;
+}
+.v3-kpi-card:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:3px;
+  background:currentColor;
+  opacity:.5;
+}
+.kpi-v3-section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin:20px 0 8px;
+}
+.kpi-v3-section-title h2{
+  margin:0;
+  font-size:13px;
+  letter-spacing:.65px;
+  font-weight:950;
+}
+.kpi-v3-section-title small{
+  font-size:10px;
+  opacity:.55;
+}
+.kpi-v3-health{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:14px;
+}
+.kpi-v3-health>div{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  padding:10px;
+  background:rgba(255,255,255,.035);
+  text-align:center;
+}
+.kpi-v3-health strong{display:block;font-size:21px;font-weight:950}
+.kpi-v3-health span{font-size:9px;opacity:.6}
+.kpi-v3-m1{
+  margin-top:18px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  overflow:hidden;
+}
+.kpi-v3-m1>summary{
+  cursor:pointer;
+  list-style:none;
+  padding:14px 15px;
+  font-size:12px;
+  font-weight:950;
+  background:rgba(255,255,255,.05);
+}
+.kpi-v3-m1>summary::-webkit-details-marker{display:none}
+.kpi-v3-m1>summary:before{content:"＋";margin-right:8px}
+.kpi-v3-m1[open]>summary:before{content:"−"}
+@media(max-width:800px){
+  .kpi-v3-hero{grid-template-columns:1fr 1fr}
+  .kpi-v3-score{grid-column:1/-1}
+}
+@media(max-width:600px){
+  .kpi-v3-health{grid-template-columns:1fr 1fr}
+  .v3-kpi-card .kpi-target-row{grid-template-columns:1fr 1fr}
+  .v3-kpi-card .kpi-target-row>div:last-child{grid-column:1/-1}
+}
+</style>
+
+<style id="v3-glass-gradient-theme">
+:root{
+  --app-bg:#0B0F14;
+  --app-bg-2:#0E141C;
+  --panel:#111720;
+  --panel-glass:rgba(20,28,38,.62);
+  --panel-glass-strong:rgba(18,26,36,.78);
+  --glass-border:rgba(255,255,255,.095);
+  --glass-highlight:rgba(255,255,255,.055);
+  --blue:#1683FF;
+  --blue-soft:#4DA3FF;
+  --blue-glow:rgba(22,131,255,.22);
+}
+
+/* Deep charcoal foundation */
+html,body{
+  background:
+    radial-gradient(900px 600px at 82% -10%,rgba(22,131,255,.13),transparent 58%),
+    radial-gradient(700px 500px at -10% 35%,rgba(53,90,140,.08),transparent 60%),
+    linear-gradient(145deg,var(--app-bg),var(--app-bg-2) 55%,#0A0F15);
+  background-attachment:fixed;
+}
+
+/* Apple-inspired glass: translucent, layered, softly bordered */
+.sidebar,
+header,
+nav,
+.card,
+.panel,
+.modal,
+.kpi-metric,
+.kpi-category,
+.kpi-month-section,
+.kpi-v3-score,
+.kpi-v3-stat,
+.v3-health-summary,
+.v3-health-grid>div,
+.kpi-v3-health>div,
+.kpi-v3-m1,
+.kpi-m1-details,
+.table-wrap,
+.search-box,
+.filter-bar{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.012) 42%,rgba(22,131,255,.025)),
+    var(--panel-glass);
+  border-color:var(--glass-border);
+  box-shadow:
+    0 16px 45px rgba(0,0,0,.20),
+    inset 0 1px 0 var(--glass-highlight);
+  -webkit-backdrop-filter:blur(18px) saturate(135%);
+  backdrop-filter:blur(18px) saturate(135%);
+}
+
+/* Slightly stronger separation for primary surfaces */
+.sidebar{
+  background:
+    linear-gradient(180deg,rgba(18,27,38,.86),rgba(8,13,19,.88)),
+    rgba(10,15,22,.82);
+  box-shadow:
+    12px 0 40px rgba(0,0,0,.22),
+    inset -1px 0 rgba(255,255,255,.05);
+}
+
+/* Soft blue ambient glow behind primary dashboard surfaces */
+.kpi-v3-score,
+.kpi-v3-hero,
+.hero,
+.dashboard-hero{
+  position:relative;
+  overflow:hidden;
+}
+.kpi-v3-score:before,
+.kpi-v3-hero:before,
+.hero:before,
+.dashboard-hero:before{
+  content:"";
+  position:absolute;
+  width:260px;height:260px;
+  right:-100px;top:-130px;
+  background:radial-gradient(circle,rgba(22,131,255,.20),transparent 68%);
+  pointer-events:none;
+}
+
+/* Electric-blue accent treatment */
+button.primary,
+.btn.primary,
+.active,
+.nav-item.active,
+.tab.active{
+  box-shadow:
+    0 0 0 1px rgba(22,131,255,.20),
+    0 8px 24px rgba(22,131,255,.16);
+}
+
+/* Glassy inputs */
+input,select,textarea{
+  background:rgba(8,13,19,.52)!important;
+  border-color:rgba(255,255,255,.09)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(22,131,255,.65)!important;
+  box-shadow:
+    0 0 0 3px rgba(22,131,255,.10),
+    0 0 24px rgba(22,131,255,.08);
+}
+
+/* More depth on KPI cards */
+.v3-kpi-card{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018) 45%,rgba(22,131,255,.028)),
+    rgba(17,23,32,.68);
+  border-color:rgba(255,255,255,.085);
+  box-shadow:
+    0 12px 32px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.055);
+}
+.v3-kpi-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(22,131,255,.30);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.22),
+    0 0 28px rgba(22,131,255,.08),
+    inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* Subtle glass highlight on headings */
+.kpi-month-title,
+.kpi-category-title{
+  background:
+    linear-gradient(90deg,rgba(22,131,255,.09),rgba(255,255,255,.025),transparent);
+  border-color:rgba(255,255,255,.07);
+}
+
+/* Smooth interaction */
+button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease;
+}
+
+/* Mobile: reduce blur to keep scrolling smooth */
+@media(max-width:700px){
+  .sidebar,
+  header,
+  nav,
+  .card,
+  .panel,
+  .modal,
+  .kpi-metric,
+  .kpi-category,
+  .kpi-month-section{
+    -webkit-backdrop-filter:blur(12px) saturate(125%);
+    backdrop-filter:blur(12px) saturate(125%);
+  }
+}
+</style>
+
+<style id="v3-4-dashboard-cards">
+/* Premium operations cards */
+.dashboard-card,
+.stat-card,
+.summary-card,
+.metric-card,
+.kpi-card{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(420px 180px at 100% 0%,rgba(22,131,255,.12),transparent 62%),
+    linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018) 48%,rgba(22,131,255,.025)),
+    rgba(17,23,32,.68);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.065);
+  backdrop-filter:blur(18px) saturate(135%);
+  -webkit-backdrop-filter:blur(18px) saturate(135%);
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+
+.dashboard-card:before,
+.stat-card:before,
+.summary-card:before,
+.metric-card:before,
+.kpi-card:before{
+  content:"";
+  position:absolute;
+  left:-30px;top:-55px;
+  width:170px;height:120px;
+  background:radial-gradient(circle,rgba(77,163,255,.10),transparent 68%);
+  pointer-events:none;
+  z-index:-1;
+}
+
+.dashboard-card:hover,
+.stat-card:hover,
+.summary-card:hover,
+.metric-card:hover,
+.kpi-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(22,131,255,.32);
+  box-shadow:
+    0 24px 55px rgba(0,0,0,.25),
+    0 0 32px rgba(22,131,255,.07),
+    inset 0 1px 0 rgba(255,255,255,.085);
+}
+
+/* Card typography */
+.dashboard-card h2,
+.dashboard-card h3,
+.stat-card h2,
+.stat-card h3,
+.summary-card h2,
+.summary-card h3{
+  position:relative;
+  margin-top:0;
+  letter-spacing:.1px;
+}
+
+.dashboard-card .value,
+.stat-card .value,
+.summary-card .value,
+.metric-card .value{
+  font-size:clamp(25px,3vw,38px);
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.7px;
+}
+
+.dashboard-card .label,
+.stat-card .label,
+.summary-card .label,
+.metric-card .label{
+  font-size:10px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  opacity:.58;
+}
+
+/* Blue status/accent line */
+.dashboard-card.accent,
+.stat-card.accent,
+.summary-card.accent{
+  border-color:rgba(22,131,255,.20);
+}
+.dashboard-card.accent:after,
+.stat-card.accent:after,
+.summary-card.accent:after{
+  content:"";
+  position:absolute;
+  left:16px;right:16px;bottom:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,#1683FF,transparent);
+  opacity:.75;
+}
+
+/* Count cards: make the number feel intentional */
+.dashboard-card .count,
+.stat-card .count,
+.summary-card .count{
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 24px rgba(22,131,255,.16);
+}
+
+/* Keep grids from feeling cramped */
+.dashboard-cards,
+.stats-grid,
+.summary-grid,
+.card-grid{
+  gap:14px;
+}
+
+@media(max-width:700px){
+  .dashboard-card,
+  .stat-card,
+  .summary-card,
+  .metric-card,
+  .kpi-card{
+    border-radius:14px;
+    backdrop-filter:blur(12px) saturate(125%);
+    -webkit-backdrop-filter:blur(12px) saturate(125%);
+  }
+  .dashboard-cards,
+  .stats-grid,
+  .summary-grid,
+  .card-grid{
+    gap:10px;
+  }
+}
+</style>
+
+<style id="v3-5-clean-card-surfaces">
+/* V8.1 — remove the "double border / rounded inner line" look.
+   One card = one border, one radius, one glass surface. */
+.kpis .kpi{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  box-sizing:border-box!important;
+  border:1px solid rgba(77,212,255,.18)!important;
+  border-top:1px solid rgba(77,212,255,.18)!important;
+  border-radius:16px!important;
+  background:
+    radial-gradient(380px 160px at 100% 0%,rgba(22,131,255,.10),transparent 64%),
+    linear-gradient(145deg,rgba(20,29,39,.78),rgba(9,14,20,.82))!important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.055)!important;
+  backdrop-filter:blur(16px) saturate(130%)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(130%)!important;
+}
+.kpis .kpi:before,
+.kpis .kpi:after{
+  content:none!important;
+  display:none!important;
+}
+.kpis .kpi:hover{
+  transform:translateY(-2px)!important;
+  border-color:rgba(77,212,255,.34)!important;
+  box-shadow:
+    0 20px 42px rgba(0,0,0,.30),
+    0 0 24px rgba(22,131,255,.07),
+    inset 0 1px 0 rgba(255,255,255,.065)!important;
+}
+.kpis .kpi .num{
+  position:relative;
+  z-index:1;
+}
+.kpis .kpi .lab,
+.kpis .kpi .desc{
+  position:relative;
+  z-index:1;
+}
+
+/* Town cards: clean single glass outline, with one subtle blue rail. */
+.town-card{
+  position:relative!important;
+  box-sizing:border-box!important;
+  border:1px solid rgba(77,212,255,.14)!important;
+  border-left:2px solid rgba(0,168,255,.72)!important;
+  border-radius:13px!important;
+  background:
+    linear-gradient(145deg,rgba(16,24,32,.76),rgba(8,13,18,.84))!important;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.04)!important;
+  backdrop-filter:blur(14px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(125%)!important;
+}
+.town-card:before,
+.town-card:after{
+  content:none!important;
+  display:none!important;
+}
+@media(max-width:600px){
+  .kpis .kpi{
+    border-radius:14px!important;
+  }
+  .town-card{
+    border-radius:12px!important;
+  }
+}
+</style>
+
+<style id="v3-5-1-clean-header">
+/* Dashboard header cleanup */
+#fileName,
+#fileInfo,
+#uploadFileName,
+#csvFileName,
+.file-name,
+.file-info,
+.upload-file-name,
+.upload-status{
+  display:none!important;
+}
+
+/* Hide the "Signed in as ..." block; app remains login-free. */
+#signedInAs,
+#signedIn,
+.signed-in,
+.user-signed-in,
+.user-info{
+  display:none!important;
+}
+</style>
+
+<style id="v3-5-2-header-clean">
+.userbox{display:none!important}
+#batchLabel{font-size:11px;opacity:.58}
+</style>
+
+<style id="v3-5-3-hide-batch-label">
+#batchLabel{display:none!important}
+</style>
+
+<style id="v3-5-6-top-sync">
+.top{position:relative}
+.top-sync-status{
+  display:flex;align-items:center;gap:7px;margin-left:auto;
+  padding:7px 10px;border:1px solid rgba(255,255,255,.09);
+  border-radius:999px;background:rgba(13,20,28,.70);
+  box-shadow:0 8px 24px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.045);
+  backdrop-filter:blur(15px) saturate(130%);
+  -webkit-backdrop-filter:blur(15px) saturate(130%);
+  font-size:10px;font-weight:850;white-space:nowrap;
+}
+.top-sync-dot{width:7px;height:7px;min-width:7px;border-radius:50%;background:#1683ff;box-shadow:0 0 10px rgba(22,131,255,.45)}
+.top-sync-status.connected .top-sync-dot{background:#32e875;box-shadow:0 0 10px rgba(50,232,117,.45)}
+.top-sync-status.error .top-sync-dot{background:#ff5b65;box-shadow:0 0 10px rgba(255,91,101,.4)}
+.top-sync-status.connecting .top-sync-dot{animation:v356syncpulse 1s ease-in-out infinite}
+@keyframes v356syncpulse{50%{opacity:.3;transform:scale(.72)}}
+@media(max-width:600px){.top-sync-status{padding:6px 8px;font-size:9px}}
+</style>
+
+<style id="v3-5-7-header-info">
+.top-header-info{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  margin-left:auto;
+}
+.top-date-time,
+.top-weather{
+  padding:7px 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:999px;
+  background:rgba(13,20,28,.58);
+  color:rgba(225,239,250,.78);
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap;
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+  backdrop-filter:blur(14px) saturate(130%);
+  -webkit-backdrop-filter:blur(14px) saturate(130%);
+}
+.top-weather{max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.top-sync-status{
+  margin-left:0!important;
+}
+@media(max-width:760px){
+  .top-header-info{gap:5px}
+  .top-date-time,.top-weather,.top-sync-status{padding:6px 7px;font-size:8px}
+  .top-weather{max-width:90px}
+}
+@media(max-width:560px){
+  .top-header-info{flex-wrap:wrap}
+  .top-weather{display:none}
+}
+</style>
+
+<style id="v3-5-9-location">
+.top-location{
+  padding:7px 9px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:999px;
+  background:rgba(13,20,28,.58);
+  color:rgba(225,239,250,.78);
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap;
+  max-width:125px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  box-shadow:inset 0 1px rgba(255,255,255,.035);
+  backdrop-filter:blur(14px) saturate(130%);
+  -webkit-backdrop-filter:blur(14px) saturate(130%);
+}
+@media(max-width:760px){
+  .top-location{padding:6px 7px;font-size:8px;max-width:95px}
+}
+@media(max-width:560px){
+  .top-location{display:none}
+}
+</style>
+
+<style id="v4-4-5-mobile-polish">
+/* =========================
+   V4.4 MOBILE EXPERIENCE
+   ========================= */
+.mobile-bottom-nav{
+  display:none;
+}
+
+@media (max-width:760px){
+  body{
+    padding-bottom:72px!important;
+    overflow-x:hidden;
+  }
+
+  /* Hide desktop sidebar navigation on phones. */
+  .sidebar{
+    display:none!important;
+  }
+
+  .app,.shell,.layout,.main-layout{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  main,.main,.content,.page-content{
+    width:100%!important;
+    min-width:0!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+
+  .top{
+    min-height:52px!important;
+    padding:8px 2px!important;
+    gap:8px!important;
+  }
+
+  .top .title h1{
+    font-size:19px!important;
+    line-height:1.05!important;
+  }
+
+  .top .title p{
+    display:none!important;
+  }
+
+  .top-header-info{
+    gap:4px!important;
+  }
+
+  .top-date-time{
+    font-size:8px!important;
+  }
+
+  .top-weather{
+    max-width:86px!important;
+    font-size:8px!important;
+  }
+
+  .top-location{
+    display:none!important;
+  }
+
+  .top-sync-status{
+    padding:6px 7px!important;
+    font-size:8px!important;
+  }
+
+  /* Convert wide grids into phone-friendly cards. */
+  .kpis,.dashboard-cards,.stats-grid,.summary-grid,.card-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  .kpis .kpi,
+  .dashboard-card,.stat-card,.summary-card,.metric-card,.kpi-card{
+    min-width:0!important;
+    border-radius:13px!important;
+  }
+
+  .kpis .kpi{
+    padding:12px!important;
+  }
+
+  .kpis .kpi .num{
+    font-size:25px!important;
+  }
+
+  /* Tables become horizontally scrollable rather than breaking the page. */
+  .table-wrap{
+    width:100%!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  table{
+    min-width:620px;
+  }
+
+  /* Large town/routing layouts collapse to one column. */
+  .town-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  /* Bottom mobile navigation */
+  .mobile-bottom-nav{
+    position:fixed;
+    left:8px;
+    right:8px;
+    bottom:8px;
+    z-index:9998;
+    display:grid!important;
+    grid-template-columns:repeat(4,1fr);
+    gap:3px;
+    padding:6px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:18px;
+    background:
+      linear-gradient(145deg,rgba(24,34,46,.82),rgba(8,13,18,.88)),
+      rgba(10,15,22,.78);
+    box-shadow:
+      0 18px 50px rgba(0,0,0,.42),
+      inset 0 1px rgba(255,255,255,.07);
+    backdrop-filter:blur(22px) saturate(140%);
+    -webkit-backdrop-filter:blur(22px) saturate(140%);
+  }
+
+  .mobile-bottom-nav button{
+    min-height:48px;
+    border:0;
+    border-radius:13px;
+    background:transparent;
+    color:rgba(232,241,250,.62);
+    font-size:9px;
+    font-weight:900;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+  }
+
+  .mobile-bottom-nav button .nav-icon{
+    font-size:16px;
+    line-height:1;
+  }
+
+  .mobile-bottom-nav button.active{
+    color:#fff;
+    background:linear-gradient(145deg,rgba(22,131,255,.18),rgba(22,131,255,.055));
+    box-shadow:inset 0 1px rgba(255,255,255,.055);
+  }
+
+  /* Make primary actions thumb-friendly. */
+  button,.btn,input,select{
+    min-height:40px;
+  }
+}
+
+/* =========================
+   V8 FINAL POLISH
+   ========================= */
+:root{
+  --v4-blue:#1683FF;
+  --v4-border:rgba(255,255,255,.09);
+  --v4-glass:rgba(17,24,33,.68);
+}
+
+*{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(77,163,255,.35) transparent;
+}
+
+::selection{
+  background:rgba(22,131,255,.28);
+}
+
+button,.btn{
+  -webkit-tap-highlight-color:transparent;
+}
+
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid rgba(22,131,255,.65);
+  outline-offset:2px;
+}
+
+/* Consistent glass depth across major surfaces. */
+.card,.panel,.kpi,.kpi-card,.stat-card,.summary-card,
+.table-wrap,.modal,.settings-card{
+  box-shadow:
+    0 14px 38px rgba(0,0,0,.18),
+    inset 0 1px rgba(255,255,255,.045);
+}
+
+/* Subtle shine that does not create an extra border/box. */
+.card:hover,.panel:hover,.kpi:hover,.kpi-card:hover,
+.stat-card:hover,.summary-card:hover{
+  border-color:rgba(22,131,255,.24);
+}
+
+/* Better empty/loading states when classes already exist. */
+.loading,.empty-state,.no-data{
+  border:1px dashed rgba(255,255,255,.10);
+  border-radius:14px;
+  background:rgba(255,255,255,.018);
+}
+
+/* Respect reduced motion. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+
+<style id="v4-5-1-single-row-nav">
+@media(max-width:760px){
+  .mobile-bottom-nav{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:2px!important;
+    padding:5px!important;
+    align-items:stretch!important;
+  }
+  .mobile-bottom-nav button{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:4px 2px!important;
+    gap:2px!important;
+    white-space:nowrap!important;
+  }
+  .mobile-bottom-nav button .nav-icon{
+    font-size:15px!important;
+  }
+  .mobile-bottom-nav button span:last-child{
+    font-size:8px!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+</style>
+
+<style id="v4-5-2-animations">
+/* =========================
+   V8 MOTION SYSTEM
+   ========================= */
+
+/* Smooth page entrance */
+@keyframes v452PageIn{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+main,.main,.content,.page-content{
+  animation:v452PageIn .38s cubic-bezier(.2,.75,.25,1) both;
+}
+
+/* Dashboard cards gently rise into place */
+@keyframes v452CardIn{
+  from{opacity:0;transform:translateY(12px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.kpi,.kpi-card,.dashboard-card,.stat-card,.summary-card,
+.card,.panel{
+  animation:v452CardIn .42s cubic-bezier(.2,.75,.25,1) both;
+}
+.kpi:nth-child(2),.kpi-card:nth-child(2){animation-delay:.045s}
+.kpi:nth-child(3),.kpi-card:nth-child(3){animation-delay:.09s}
+.kpi:nth-child(4),.kpi-card:nth-child(4){animation-delay:.135s}
+
+/* Soft blue glow on hover/touch */
+.kpi,.kpi-card,.dashboard-card,.stat-card,.summary-card,.card,.panel{
+  transition:
+    transform .22s cubic-bezier(.2,.75,.25,1),
+    border-color .22s ease,
+    box-shadow .22s ease;
+}
+@media (hover:hover){
+  .kpi:hover,.kpi-card:hover,.dashboard-card:hover,
+  .stat-card:hover,.summary-card:hover,.card:hover,.panel:hover{
+    transform:translateY(-2px);
+    box-shadow:
+      0 18px 42px rgba(0,0,0,.22),
+      0 0 22px rgba(22,131,255,.055),
+      inset 0 1px rgba(255,255,255,.05);
+  }
+}
+
+/* Button press feedback */
+button,.btn{
+  transition:
+    transform .14s ease,
+    filter .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
+}
+button:active,.btn:active{
+  transform:scale(.965);
+  filter:brightness(1.08);
+}
+
+/* Navigation active indicator */
+.mobile-bottom-nav button{
+  transition:
+    transform .2s cubic-bezier(.2,.75,.25,1),
+    background .2s ease,
+    color .2s ease;
+}
+.mobile-bottom-nav button.active{
+  animation:v452NavIn .28s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes v452NavIn{
+  from{transform:scale(.94)}
+  to{transform:scale(1)}
+}
+
+/* Sync indicator motion */
+.top-sync-status.connecting .top-sync-dot{
+  animation:v452SyncPulse 1.15s ease-in-out infinite;
+}
+@keyframes v452SyncPulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.38;transform:scale(.72)}
+}
+.top-sync-status.connected .top-sync-dot{
+  animation:v452SyncReady .5s ease-out both;
+}
+@keyframes v452SyncReady{
+  0%{transform:scale(.65);box-shadow:0 0 0 0 rgba(50,232,117,.5)}
+  70%{transform:scale(1.12);box-shadow:0 0 0 5px rgba(50,232,117,0)}
+  100%{transform:scale(1);box-shadow:0 0 10px rgba(50,232,117,.45)}
+}
+
+/* Subtle section heading accent */
+.section-title,.panel-title{
+  transition:transform .2s ease;
+}
+
+/* Smooth scrolling */
+html{
+  scroll-behavior:smooth;
+}
+
+/* Never animate for users who request reduced motion */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  main,.main,.content,.page-content,
+  .kpi,.kpi-card,.dashboard-card,.stat-card,.summary-card,
+  .card,.panel,.mobile-bottom-nav button.active,
+  .top-sync-status .top-sync-dot{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+</style>
+
+<style id="v4-5-3-android-nav-active">
+/* Android: make the pressed/current bottom-nav item clearly illuminated. */
+@media(max-width:760px){
+  .mobile-bottom-nav button.active{
+    position:relative!important;
+    color:#ffffff!important;
+    background:
+      linear-gradient(180deg,rgba(22,131,255,.28),rgba(22,131,255,.12))!important;
+    border:1px solid rgba(22,166,255,.28)!important;
+    box-shadow:
+      0 0 18px rgba(22,131,255,.18),
+      inset 0 1px 0 rgba(255,255,255,.10),
+      inset 0 -8px 18px rgba(0,80,180,.08)!important;
+    text-shadow:0 0 10px rgba(90,190,255,.30);
+  }
+
+  .mobile-bottom-nav button.active::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:3px;
+    width:20px;
+    height:2px;
+    transform:translateX(-50%);
+    border-radius:999px;
+    background:#18bfff;
+    box-shadow:0 0 8px rgba(24,191,255,.85);
+  }
+
+  .mobile-bottom-nav button.active .nav-icon{
+    filter:drop-shadow(0 0 6px rgba(24,191,255,.65));
+    transform:translateY(-1px);
+  }
+
+  .mobile-bottom-nav button:active{
+    background:rgba(22,131,255,.22)!important;
+  }
+}
+</style>
+
+<style id="v5-2-filter-compatibility-fixed">
+#records .records-filter-toolbar select{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  -webkit-appearance:auto;
+  appearance:auto;
+}
+</style>
+
+<style id="v5-2-2-parcel-filter-touch">
+#records .records-filter-toolbar{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.25fr) minmax(150px,1fr) minmax(165px,1fr) minmax(130px,.8fr) auto!important;
+  gap:8px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  align-items:center!important;
+}
+#records .records-filter-toolbar input,
+#records .records-filter-toolbar select,
+#records .records-filter-toolbar button{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:44px!important;
+  min-height:44px!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  border-radius:11px!important;
+}
+#records .records-filter-toolbar select{
+  padding-left:12px!important;
+  padding-right:30px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  cursor:pointer!important;
+  -webkit-tap-highlight-color:rgba(24,191,255,.12);
+}
+#records .records-filter-toolbar input{
+  padding-left:13px!important;
+}
+#records .records-filter-toolbar button{
+  padding:0 14px!important;
+  white-space:nowrap!important;
+}
+
+/* Tablet */
+@media(max-width:1050px){
+  #records .records-filter-toolbar{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important;
+  }
+  #records .records-filter-toolbar input{
+    grid-column:1/-1!important;
+  }
+  #records .records-filter-toolbar #exportValid{
+    grid-column:1/-1!important;
+  }
+}
+
+/* Android phone: two clean rows, no overlap/cutoff. */
+@media(max-width:600px){
+  #records .records-filter-toolbar{
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+    padding:7px!important;
+  }
+  #records .records-filter-toolbar input{
+    grid-column:1/-1!important;
+  }
+  #records .records-filter-toolbar select{
+    width:100%!important;
+  }
+  #records .records-filter-toolbar #exportValid{
+    grid-column:1/-1!important;
+  }
+}
+</style>
+
+<style id="v6-m1-summary-card">
+.kpi-m1-summary-card{margin:0 0 12px;border:1px solid rgba(34,190,255,.22);border-radius:18px;overflow:hidden;background:#071019;box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.045)}
+.kpi-m1-summary-head{padding:26px 24px 30px;min-height:205px;box-sizing:border-box;background:radial-gradient(520px 230px at 20% 105%,rgba(15,137,255,.14),transparent 68%),linear-gradient(145deg,#101f2b,#071119 72%)}
+.kpi-m1-summary-kicker{color:#9aaebd;font-size:14px;font-weight:700;letter-spacing:.055em}.kpi-m1-summary-month{margin-top:8px;color:#fff;font-size:31px;line-height:1.12;font-weight:950}
+.kpi-m1-summary-score{margin-top:24px;width:min(390px,100%);padding:17px 22px 20px;box-sizing:border-box;border:1px solid rgba(20,220,255,.9);border-radius:17px;background:linear-gradient(120deg,#167cf2,#0dc9e8);box-shadow:0 0 30px rgba(0,190,255,.22),inset 0 1px rgba(255,255,255,.3)}
+.kpi-m1-summary-score span{display:block;color:rgba(255,255,255,.78);font-size:13px;font-weight:900}.kpi-m1-summary-score strong{display:block;margin-top:5px;color:#fff;font-size:43px;line-height:1;font-weight:950}
+.kpi-m1-summary-meta{display:grid;grid-template-columns:1fr 1.25fr 1.15fr .7fr 1.35fr;background:#070d14;border-top:1px solid rgba(255,255,255,.1)}
+.kpi-m1-summary-meta>div{min-width:0;padding:17px 18px;border-right:1px solid rgba(255,255,255,.1)}.kpi-m1-summary-meta>div:last-child{border-right:0}
+.kpi-m1-summary-meta span{display:block;color:#91a6b6;font-size:10px;font-weight:900;letter-spacing:.06em}.kpi-m1-summary-meta b{display:block;margin-top:6px;color:#f4f7fa;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
+@media(max-width:800px){.kpi-m1-summary-meta{grid-template-columns:1fr 1fr}.kpi-m1-summary-meta>div:nth-child(2n){border-right:0}}
+@media(max-width:600px){.kpi-m1-summary-head{padding:22px 20px 25px}.kpi-m1-summary-month{font-size:26px}.kpi-m1-summary-meta{grid-template-columns:1fr}.kpi-m1-summary-meta>div{border-right:0}}
+</style><style id="m1-default-collapsed">
+#m1Body.m1-collapsed{display:none!important}
+</style><style id="m1-collapsed-score-style">
+.m1-collapsed-score{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:.82em;white-space:nowrap}
+.m1-collapsed-score strong{font-size:1.05em}
+@media(max-width:520px){.m1-collapsed-score{font-size:.74em;gap:4px}}
+</style><style id="m1-collapsed-real-score">
+.m1-summary-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:12px}
+.m1-summary-title{font-weight:700}
+.m1-summary-score{margin-left:auto;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.m1-summary-score small{font-size:.65em;opacity:.7;font-weight:700}
+.m1-summary-score strong{font-size:1.15em}
+@media(max-width:520px){
+  .m1-summary-toggle{gap:7px}
+  .m1-summary-score{gap:4px}
+  .m1-summary-score small{font-size:.56em}
+  .m1-summary-score strong{font-size:1em}
+}
+</style>
+<style id="parcel-records-sticky-pagination">
+#records .parcel-records-wrap{
+  max-height:min(68vh,760px);
+  overflow:auto!important;
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+  border-radius:12px;
+}
+#records .parcel-records-table thead th{
+  position:sticky!important;
+  top:0!important;
+  z-index:5!important;
+  background:#0b1620!important;
+  box-shadow:0 1px 0 rgba(24,191,255,.16);
+}
+#records .parcel-pagination{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;margin-top:10px;padding:10px 12px;
+  border:1px solid rgba(24,191,255,.14);border-radius:12px;
+  background:rgba(7,16,25,.86);
+}
+#records .parcel-page-info,#records .parcel-page-count{font-size:11px;color:#91a5b4;white-space:nowrap}
+#records .parcel-page-controls{display:flex;align-items:center;gap:5px}
+#records .parcel-page-btn{
+  min-width:34px;height:34px;padding:0 9px;border-radius:9px;
+  border:1px solid rgba(24,191,255,.18);background:#0c1721;color:#dbeaf2;
+  cursor:pointer;font-weight:800;
+}
+#records .parcel-page-btn:hover:not(:disabled){border-color:rgba(24,191,255,.55);background:#102230}
+#records .parcel-page-btn.active{background:#118fe8;border-color:#2ac9ff;color:#fff}
+#records .parcel-page-btn:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:600px){
+  #records .parcel-records-wrap{max-height:60vh}
+  #records .parcel-pagination{justify-content:center}
+  #records .parcel-page-info,#records .parcel-page-count{width:100%;text-align:center}
+}
+</style>
+
+<style id="v10-packed-excluded">
+#linehaul .lh-task-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){#linehaul .lh-task-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#linehaul .lh-task-kpis{grid-template-columns:1fr}}
+</style>
+
+<style id="v10-packed-in-total-note">
+.lh-task-kpi-note{margin-top:7px;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:#00bfff}
+</style>
+
+
+
+
+
+
+<style id="parcel-multi-filter-style">
+.records-filter-toolbar.parcel-filter-upgraded{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(170px,1fr)) auto auto;gap:8px;align-items:center}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]{min-height:44px;max-height:44px;overflow:hidden;padding:7px 10px}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]:focus{max-height:190px;overflow:auto}
+.record-filter-hint{font-size:12px;opacity:.65;margin:7px 2px 10px}
+@media(max-width:900px){.records-filter-toolbar.parcel-filter-upgraded{grid-template-columns:1fr 1fr}.records-filter-toolbar.parcel-filter-upgraded input{grid-column:1/-1}}
+</style>
+<style id="parcel-multi-filter-visibility-fix">
+/* Native multi-select options were inheriting the app's light/transparent
+   text styling. Give the dropdown a readable solid menu. */
+.records-filter-toolbar.parcel-filter-upgraded select[multiple],
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option{
+  color:#111827 !important;
+  background:#ffffff !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]{
+  color:#e5e7eb !important;
+  background:#0b1118 !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option:checked{
+  color:#ffffff !important;
+  background:#1677d2 !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option:disabled{
+  color:#6b7280 !important;
+}
+</style>
+<style id="parcel-filter-label-style">
+.records-filter-toolbar.parcel-filter-upgraded{
+  align-items:end;
+}
+.parcel-filter-field{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  min-width:0;
+}
+.parcel-filter-field>label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.02em;
+  opacity:.8;
+  padding-left:2px;
+}
+.parcel-filter-action{
+  align-self:end;
+}
+@media(max-width:900px){
+  .parcel-filter-field{width:100%}
+}
+</style><style id="parcel-filter-label-repair">
+.parcel-filter-field>label{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  color:inherit !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:1.2 !important;
+  margin:0 0 5px 2px !important;
+}
+</style><style id="parcel-filter-dark-dropdown">
+/* Dark native multi-select menus */
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]{
+  color-scheme:dark !important;
+  color:#e8f1f8 !important;
+  background:#0b141d !important;
+  border-color:rgba(0,190,255,.28) !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option{
+  color:#e8f1f8 !important;
+  background:#0b141d !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option:checked{
+  color:#ffffff !important;
+  background:#147bd1 !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple] option:hover{
+  color:#ffffff !important;
+  background:#163044 !important;
+}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#071018">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Badoc Hub">
+<meta name="application-name" content="Badoc Hub">
+
+</head>
+<body data-app-version="6.0" data-app-version="5.0">
+
+
+<div class="app">
+<aside class="side">
+  <div class="brand">BADOC HUB<small></small></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard"><span class="ico">▦</span> Dashboard</button>
+    <button data-page="upload"><span class="ico">↑</span> Upload Exported</button>
+    <button data-page="linehaul"><span class="ico">⇄</span> Linehaul Task</button>
+    <button data-page="records"><span class="ico">▤</span> Parcel Records</button>
+    <button data-page="misrouted"><span class="ico">!</span> Misrouted <span id="misroutedSideCount" class="side-count">0</span></button>
+    <button data-page="kpi"><span class="ico">▣</span> KPI</button><button data-page="settings"><span class="ico">⚙</span> Settings</button>
+  </nav>
+</aside>
+<main class="main">
+  <div class="top">
+  <div class="title"><h1 id="pageTitle">Dashboard</h1><p id="batchLabel"></p></div>
+  <div class="top-header-info">
+    <div id="topDateTime" class="top-date-time" aria-live="polite">--</div>
+    <div id="topWeather" class="top-weather" aria-live="polite">☁ Weather…</div>
+    <div id="topLocation" class="top-location" aria-live="polite">📍 Locating…</div>
+    
+
+<div id="sharedStatus" class="top-sync-status connecting" aria-live="polite">
+      <span class="top-sync-dot"></span><span class="top-sync-text">Connecting…</span>
+    </div>
+  </div>
+</div>
+
+  <section id="dashboard" class="page active">
+    <div class="kpis">
+      <div class="kpi"><div class="num" id="total">0</div><div class="lab">TOTAL VOLUME</div><div class="desc"></div></div>
+      <div class="kpi"><div class="num" id="badocTotal">0</div><div class="lab">BADOC</div><div class="desc"></div></div>
+      <div class="kpi"><div class="num" id="piniliTotal">0</div><div class="lab">PINILI</div><div class="desc"></div></div>
+      <div class="kpi clickable-kpi" id="misroutedKpi" role="button" tabindex="0" title="Open Misrouted parcels"><div class="num" id="misTotal">0</div><div class="lab">MISROUTED</div><div class="desc"></div></div>
+    </div>
+    <div class="section"><h2>BADOC</h2><div id="badocGrid" class="town-grid"></div></div>
+    <div class="section"><h2>PINILI</h2><div id="piniliGrid" class="town-grid"></div></div>
+  </section>
+
+  <section id="upload" class="page">
+  <div class="section upload-section">
+    <div class="upload-label">DATA SOURCE</div>
+    <div class="uploadbox upload-drop" id="uploadDrop">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-main">Drop Exported File Here</div>
+      <div class="upload-sub">or click to browse</div>
+      <label for="csvFile" class="upload-click"></label>
+      <input id="csvFile" type="file" accept=".csv,text/csv">
+    </div>
+    <div class="toolbar upload-actions">
+      <button class="btn danger reset-zero" id="clearCurrentUpload"></span> Clear</button>
+      <button class="btn" id="undoUpload">Undo last upload</button>
+    </div>
+  </div>
+</section>
+
+  <section id="records" class="page"><div class="section">
+    <h2>Parcel Records <span id="recordMeta"></span></h2>
+    
+<div class="toolbar records-filter-toolbar parcel-filter-upgraded">
+  <div class="parcel-filter-field parcel-search-field">
+    <label for="recordSearch">Search</label>
+    <input id="recordSearch" type="search" placeholder="Tracking, Order ID, town…" autocomplete="off">
+  </div>
+  <div class="parcel-filter-field">
+    <label for="recordTown">Town</label>
+    <select id="recordTown" aria-label="Filter by town" multiple size="1"><option value="">Town Name</option></select>
+  </div>
+  <div class="parcel-filter-field">
+    <label for="recordStation">Current Station</label>
+    <select id="recordStation" aria-label="Filter by current station" multiple size="1"><option value="">Current Station</option></select>
+  </div>
+  <div class="parcel-filter-field">
+    <label for="recordStatus">Status</label>
+    <select id="recordStatus" aria-label="Filter by status" multiple size="1"><option value="">Status</option></select>
+  </div>
+  <button class="btn parcel-filter-action" id="clearRecordFilters" type="button">Clear Filters</button>
+  <button class="btn parcel-filter-action" id="exportValid" type="button">Export valid CSV</button>
+</div>
+<div id="recordFilterHint" class="record-filter-hint">Select multiple values in a filter.</div>
+<div id="recordTable"></div>
+  </div></section>
+<section id="misrouted" class="page"><div class="section">
+    <h2>Misrouted Parcels <span></span></h2>
+    <div class="toolbar"><input id="misSearch" placeholder="Search town or tracking number..."><button class="btn" id="exportMis">Export misrouted CSV</button></div>
+    <div id="misTable"></div>
+  </div></section>
+
+  <section id="history" class="page"><div class="section"><h2>Upload History</h2><div id="historyGrid" class="history"></div></div></section>
+
+  <section id="towns" class="page"><div class="section">
+    <h2>Town Management</h2><div class="hint" style="margin-bottom:12px">Admin only. Towns are kept in the exact order shown on your reference sheet. Removing a town makes matching parcels misrouted.</div>
+    <div class="settings-grid"><div class="section"><h2>BADOC</h2><div id="badocEdit" class="listbox"></div><button class="btn primary" id="addBadoc">Add Badoc town</button></div>
+    <div class="section"><h2>PINILI</h2><div id="piniliEdit" class="listbox"></div><button class="btn primary" id="addPinili">Add Pinili town</button></div></div>
+  </div></section>
+
+  
+
+<section id="linehaul" class="page">
+  <div class="section">
+    <div class="collapseHead">
+      <h2 style="margin:0">Linehaul Tasks</h2>
+      <span class="hint" id="linehaulStatus">0 tasks</span>
+    </div>
+    <div class="linehaul-tools">
+      <label class="lh-upload"><span> Upload Exported TO List
+        <input id="linehaulCsvFile" type="file" accept=".csv,text/csv">
+      </label>
+      <button class="btn" id="clearLinehaul">Clear</button>
+    </div>
+    <div class="lh-kpi-cards">
+      <div class="lh-kpi-card"><div class="lh-kpi-value" id="lhKpiTotal">0</div><div class="lh-kpi-label">INCOMING VOLUME</div></div>
+      
+      
+      <button type="button" class="lh-kpi-card lh-doid-card" id="lhDoidCard"><div class="lh-kpi-value" id="lhKpiDoid">0</div><div class="lh-kpi-label">DOID</div></button>
+    </div>
+    <div id="lhDoidPanel" class="lh-doid-panel" style="display:none">
+      <div class="lh-doid-panel-head">
+        <strong>DUPLICATE SPX TN</strong>
+        <button type="button" class="btn" id="lhDoidClose">Close</button>
+      </div>
+      <div id="lhDoidList"></div>
+    </div>
+    <div class="lh-dashboard">
+      <div id="linehaulTownDashboard"></div><div id="linehaulTaskTownDashboard"></div>
+    </div>
+
+    <div class="tablewrap" id="linehaulTaskDetails" style="display:none">
+      <table class="table" id="linehaulTable">
+        <thead><tr>
+          <th>LINEHAUL TASK ID</th><th>SPX TN</th><th>TOWN</th><th>TO NUMBER</th><th>STATUS</th>
+        </tr></thead>
+        <tbody id="linehaulBody"><tr><td colspan="7" class="empty">No linehaul tasks yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="kpi" class="page">
+  <div class="kpi-sheet" id="kpiLiveSheet">
+    <div class="kpi-sheet-head">
+      <div><div class="kpi-sheet-sub" id="kpiMonthLabel"></div><h2 id="kpiMonth">Loading…</h2></div>
+      <div class="kpi-sheet-score"><span>OVERALL SCORE</span><strong id="sheetScore">—</strong></div>
+    </div>
+    <div class="kpi-meta" id="kpiMeta">
+      <div><span>Region</span><b id="kpiRegion">—</b></div>
+      <div><span>Subregion</span><b id="kpiSubregion">—</b></div>
+      <div><span>Current Station</span><b id="kpiStation">—</b></div>
+      <div><span>Grade</span><b id="kpiGrade">—</b></div>
+      <div><span>Remarks</span><b id="kpiRemarks">—</b></div>
+    </div>
+    <div id="kpiCategories"></div>
+    <div class="kpi-category kpi-m1-sheet" id="kpiM1Wrap" style="display:none">
+      <div class="kpi-category-title kpi-m1-toggle" id="m1Toggle" role="button" tabindex="0" aria-expanded="false">
+        <span id="m1ToggleLabel">M-1</span><em>▸ COLLAPSED</em>
+      </div>
+      <div class="kpi-m1-body" id="m1Body" class="m1-collapsed"></div>
+    </div>
+    <div class="hint" id="kpiStatus">GOOGLE SHEET • LOADING</div>
+  </div>
+</section>
+
+<section id="settings" class="page">
+<style id="cloud-test-style">
+#cloudTestCard{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid rgba(0,180,255,.22);border-radius:9px;background:rgba(10,25,38,.7);font-size:11px}
+#cloudTestBtn{border:0;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:11px}
+#cloudTestResult{opacity:.8;word-break:break-word}
+</style>
+<div id="cloudTestCard">
+  <button id="cloudTestBtn" type="button">Test Cloud Connection</button>
+  <span id="cloudTestResult">Not tested</span>
+</div>
+
+<div class="section shared-storage-panel">
+  <h2>☁ Shared Files</h2>
+  <p class="hint">Shared storage is built into this version. No setup or login is required for other users.</p>
+  
+</div>
+<div class="section">
+    <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all local data</button></div>
+    <div class="hint">Clear all local data removes uploaded files/data from both Upload Exported and Linehaul Task. Town/station settings are kept.</div>
+  </div></section>
+</main>
+</div>
+
+
+<script>
+const DEFAULTS={
+badoc:[
+["TUROD"],["LABUT"],["CARAITAN"],[""],["PALTIT"],["LUBIGAN"],["BATO"],[""],
+["AR-ARUSIP"],["ALAY-NANGBABAAN (ALAY 15-B)"],["NAGREBCAN"],["BALBALDEZ"],[""],
+["SAUD"],["PAGSANAHAN NORTE"],["PAGSANAHAN SUR"],[""],["LA VIRGEN MILAGROSA (PAGUETPET)"],["MORONG"],["SANTA CRUZ NORTE"],["SANTA CRUZ SUR"],[""],
+["ALOGOOG"],["LACUBEN"],["ARING"],[""],["CANAAN (POB.)"],["GARRETA (POB.)"],[""],
+["GABUT NORTE"],["GABUT SUR"],["NAPU"],["MABUSAG NORTE"],["MABUSAG SUR"],["PARANG"],["PASUC"]
+],
+pinili:[
+["UGUIS"],["CAMANGA"],["MADUPAYAS"],["LILIPUTEN"],["LUMBAAN-BICBICA"],["SACRITAN"],[""],["AGLIPAY"],["SANTO TOMAS"],["CABAROAN"],["BUANGA"],[""],
+["PURITAC"],["DALAYAP"],["NAGTRIGOAN"],["UPON"],[""],["VALBUENA (POB.)"],["PAGDILAO (POB.)"],[""],["SALANAP"],["BARBAR"],["BUNGRO"],["PUGAOAN"],[""],
+["APATUT-LUBONG"],["DARAT"],["CAPANGDANAN"],["GULPENG"],[""],["BADIO"],["BULBULALA"],["PUZOL"],["TARTARABANG"]
+]};
+let towns=DEFAULTS;
+let batches=[];
+let current=null, role="Admin", undoBatch=null;
+const $=id=>document.getElementById(id);
+
+// Large parcel uploads are stored in IndexedDB instead of localStorage.
+const DB_NAME="ParcelRoutingDashboardCleanStartV2", DB_VERSION=1, STORE="batches";
+let dbReady=null;
+function openDB(){
+  if(dbReady) return dbReady;
+  dbReady=new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+  return dbReady;
+}
+async function loadBatches(){
+  try{
+    const db=await openDB();
+    batches=await new Promise((resolve,reject)=>{
+      const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
+      r.onsuccess=()=>resolve((r.result||[]).filter(b=>b && b.name && Array.isArray(b.rows)).sort((a,b)=>b.time-a.time));
+      r.onerror=()=>reject(r.error);
+    });
+    current=batches[0]||null;
+  }catch(e){console.error(e); batches=[]; current=null;}
+}
+async function saveBatches(){
+  const db=await openDB();
+  const tx=db.transaction(STORE,"readwrite"), st=tx.objectStore(STORE);
+  await new Promise((resolve,reject)=>{
+    st.clear();
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+    // The store uses an auto-increment key. Do not supply an undefined key.
+    batches.forEach(b=>{
+      const copy={name:b.name,time:b.time,rows:b.rows,valid:b.valid,mis:b.mis};
+      st.add(copy);
+    });
+  });
+}
+function saveTownSettings(){localStorage.setItem("pr_towns",JSON.stringify(towns))}
+function norm(s){return String(s??"").trim().replace(/\s+/g," ").toUpperCase()}
+function flat(list){return list.filter(x=>x[0]).map(x=>x[0])}
+function allowedMap(){let m={};flat(towns.badoc).forEach(x=>m[norm(x)]="Badoc");flat(towns.pinili).forEach(x=>m[norm(x)]="Pinili");return m}
+function parseCSV(text){
+ let rows=[],row=[],cell="",q=false;
+ for(let i=0;i<text.length;i++){let c=text[i],n=text[i+1];
+  if(q){if(c=='"'&&n=='"'){cell+='"';i++}else if(c=='"')q=false;else cell+=c}
+  else{if(c=='"'){q=true}else if(c==","){row.push(cell);cell=""}else if(c=="\n"){row.push(cell);rows.push(row);row=[];cell=""}else if(c!="\r"){cell+=c}}
+ }
+ row.push(cell); if(row.length>1||row[0]!="")rows.push(row);
+ let headers=(rows.shift()||[]).map(x=>x.trim());
+ return rows.filter(r=>r.some(x=>String(x).trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
+}
+function classify(rows){
+ const map=allowedMap(), valid=[],mis=[];
+ for(const r of rows){
+  if(norm(r["Destination Station"])!=="BADOC HUB") continue;
+  const cs=norm(r["Current Station"]);
+  if(!["BADOC HUB","SOC 6","CAGAYAN DC"].includes(cs)) continue;
+  const town=norm(r["Town Name"]); if(map[town]) valid.push({...r,_area:map[town]}); else mis.push({...r,_area:"Misrouted"});
+ }
+ return {valid,mis};
+}
+function counts(rows){let c={};rows.forEach(r=>c[norm(r["Town Name"])]=(c[norm(r["Town Name"])]||0)+1);return c}
+function splitTownGroups(list){
+ const groups=[], current=[];
+ list.forEach(x=>{
+   if(x[0]) current.push(x[0]);
+   else if(current.length){ groups.push(current.splice(0)); }
+ });
+ if(current.length) groups.push(current);
+ return groups;
+}
+function renderTownGrid(id,list,rows){
+ const c=counts(rows), el=$(id); el.innerHTML="";
+ const groups=splitTownGroups(list);
+ // Preserve the exact spreadsheet-style arrangement: three vertical columns.
+ const layout = id==="badocGrid"
+   ? [[0,1,2],[3,4,5],[6,7,8]]
+   : [[0,1],[2,3,4],[5,6]];
+ const columns=layout.map(indices=>indices.map(i=>groups[i]).filter(Boolean));
+ columns.forEach(column=>{
+   const col=document.createElement("div");
+   col.className="town-column";
+   column.forEach(group=>{
+     const card=document.createElement("div");
+     card.className="town-card";
+     group.forEach(name=>{
+       const r=document.createElement("div");
+       r.className="town-row";
+       r.innerHTML=`<span class="town">${esc(name)}</span><span class="count">${c[norm(name)]||0}</span>`;
+       card.appendChild(r);
+     });
+     col.appendChild(card);
+   });
+   el.appendChild(col);
+ });
+}
+function fillTownFilter(){
+  const el=$("recordTown");
+  if(!el)return;
+  const currentValue=el.value||"";
+  const names=[...(towns?.badoc||[]),...(towns?.pinili||[])];
+  const unique=[...new Set(names.map(x=>String(x||"").trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b));
+  el.innerHTML='<option value="">Town Name</option>'+
+    unique.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  if(unique.includes(currentValue))el.value=currentValue;
+}
+
+function fillStatusFilter(){
+  const el=$("recordStatus");
+  if(!el)return;
+  const currentValue=el.value||"";
+  const rows=(current&&Array.isArray(current.valid))?current.valid:[];
+  const statuses=[...new Set(rows.map(x=>String(x?.status??"").trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b));
+  el.innerHTML='<option value="">Status</option>'+
+    statuses.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  if(statuses.includes(currentValue))el.value=currentValue;
+}
+
+function render(){
+ const v=current?.valid||[],m=current?.mis||[]; $("total").textContent=v.length;$("badocTotal").textContent=v.filter(x=>x._area==="Badoc").length;$("piniliTotal").textContent=v.filter(x=>x._area==="Pinili").length;$("misTotal").textContent=m.length; const ms=$("misroutedSideCount"); if(ms)ms.textContent=m.length;
+ renderTownGrid("badocGrid",towns.badoc,v.filter(x=>x._area==="Badoc"));renderTownGrid("piniliGrid",towns.pinili,v.filter(x=>x._area==="Pinili"));
+ $("batchLabel").textContent="";
+ renderRecords();renderMis();renderHistory();renderTownEdits()
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function renderHistory(){
+  const list=document.getElementById("historyGrid");
+  if(!list)return;
+  const items=Array.isArray(batches)?batches:[];
+  if(!items.length){
+    list.innerHTML='<div class="hint" style="padding:10px 2px">No uploads yet.</div>';
+    return;
+  }
+  list.innerHTML=items.map(x=>{
+    const file=esc(x?.name||"Exported file");
+    const by=esc(x?.uploadedBy||"Unknown");
+    const when=x?.time?new Date(x.time).toLocaleString():"";
+    return `<details class="upload-history-item">
+      <summary class="upload-history-summary">
+        <span class="upload-history-file">📄 ${file}</span>
+        <span class="upload-history-time">${esc(when)}</span>
+      </summary>
+      <div class="upload-history-detail"><b>Uploaded by:</b> ${by}</div>
+    </details>`;
+  }).join("");
+}
+
+function selectedValues(id){
+  const el=$(id); if(!el)return [];
+  return [...el.selectedOptions].map(o=>String(o.value||"").trim()).filter(Boolean);
+}
+function recordMatches(rows,q,filters,ignore){
+  return rows.filter(r=>{
+    if(q){
+      const searchable=[
+        r["SLS Tracking Number"],r["Order ID"],r["Town Name"],r["SPX TN"],
+        r["SPX TN/Tracking Number"],r["Tracking Number"],r["Current Station"],
+        r["Destination Station"],r["Status"],r["Zone"]
+      ].map(norm);
+      if(!searchable.some(x=>x.includes(q)))return false;
+    }
+    if(ignore!=="town"&&filters.town.length&&!filters.town.includes(String(r["Town Name"]??"").trim()))return false;
+    if(ignore!=="station"&&filters.station.length&&!filters.station.includes(String(r["Current Station"]??"").trim()))return false;
+    if(ignore!=="status"&&filters.status.length&&!filters.status.includes(String(r["Status"]??"").trim()))return false;
+    return true;
+  });
+}
+function refreshRecordFilterCounts(){
+  const rows=(current&&Array.isArray(current.valid))?current.valid:[];
+  const q=norm($("recordSearch")?.value||"");
+  const filters={town:selectedValues("recordTown"),station:selectedValues("recordStation"),status:selectedValues("recordStatus")};
+  const build=(id,key,ignore)=>{
+    const el=$(id); if(!el)return;
+    const selected=new Set(selectedValues(id));
+    const base=recordMatches(rows,q,filters,ignore);
+    const counts=new Map();
+    base.forEach(r=>{const v=String(r?.[key]??"").trim();if(v)counts.set(v,(counts.get(v)||0)+1)});
+    el.innerHTML="";
+    [...counts.keys()].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
+      const o=document.createElement("option");
+      o.value=v;o.textContent=v+" ("+counts.get(v).toLocaleString()+")";o.selected=selected.has(v);el.appendChild(o);
+    });
+  };
+  build("recordTown","Town Name","town");
+  build("recordStation","Current Station","station");
+  build("recordStatus","Status","status");
+  const n=filters.town.length+filters.station.length+filters.status.length;
+  const hint=$("recordFilterHint");
+  if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
+}
+function renderRecords(){
+  refreshRecordFilterCounts();
+  const allRows=Array.isArray(current?.valid)?current.valid:[];
+  const q=norm($("recordSearch")?.value||"");
+  const filters={town:selectedValues("recordTown"),station:selectedValues("recordStation"),status:selectedValues("recordStatus")};
+  const filtered=recordMatches(allRows,q,filters,null);
+  window.__parcelRecordAllCount=allRows.length;
+  window.__parcelRecordFiltered=filtered;
+  window.__parcelRecordPage=1;
+  $("recordMeta").textContent=`· ${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`;
+  renderRecordPage();
+}
+function renderRecordPage(){
+  const rows=Array.isArray(window.__parcelRecordFiltered)
+    ?window.__parcelRecordFiltered:[];
+  const pageSize=100;
+  const totalPages=Math.max(1,Math.ceil(rows.length/pageSize));
+  const page=Math.max(1,Math.min(Number(window.__parcelRecordPage)||1,totalPages));
+  window.__parcelRecordPage=page;
+
+  const start=(page-1)*pageSize;
+  const shown=rows.slice(start,start+pageSize);
+  const cols=[
+    "SLS Tracking Number","Order ID","Town Name","Current Station",
+    "Destination Station","Status","Zone"
+  ];
+
+  if(!rows.length){
+    $("recordTable").innerHTML=
+      '<div class="empty">No matching records to show.</div>';
+    return;
+  }
+
+  const first=start+1;
+  const last=Math.min(start+shown.length,rows.length);
+  const pageButtons=[];
+  const lo=Math.max(1,page-2),hi=Math.min(totalPages,page+2);
+
+  for(let i=lo;i<=hi;i++){
+    pageButtons.push(
+      `<button type="button" class="parcel-page-btn ${i===page?"active":""}" data-page="${i}">${i}</button>`
+    );
+  }
+
+  $("recordTable").innerHTML=
+    `<div class="tablewrap parcel-records-wrap">
+      <table class="table parcel-records-table">
+        <thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead>
+        <tbody>${shown.map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>
+    <div class="parcel-pagination" aria-label="Parcel record pagination">
+      <div class="parcel-page-info">
+        Showing <strong>${first.toLocaleString()}–${last.toLocaleString()}</strong>
+        of <strong>${rows.length.toLocaleString()}</strong> matching
+      </div>
+      <div class="parcel-page-controls">
+        <button type="button" class="parcel-page-btn" data-page="${page-1}" ${page<=1?"disabled":""}>‹</button>
+        ${pageButtons.join("")}
+        <button type="button" class="parcel-page-btn" data-page="${page+1}" ${page>=totalPages?"disabled":""}>›</button>
+      </div>
+      <div class="parcel-page-count">
+        Page <strong>${page}</strong> of <strong>${totalPages}</strong> · 100 per page
+      </div>
+    </div>`;
+
+  $("recordTable").querySelectorAll(".parcel-page-btn").forEach(btn=>{
+    btn.onclick=()=>{
+      const p=Number(btn.dataset.page);
+      if(!Number.isInteger(p)||p<1||p>totalPages)return;
+      window.__parcelRecordPage=p;
+      renderRecordPage();
+      const wrap=$("records")?.querySelector(".parcel-records-wrap");
+      if(wrap)wrap.scrollTop=0;
+    };
+  });
+}
+function renderMis(){
+ let v=current?.mis||[],q=norm($("misSearch").value);v=v.filter(r=>!q||norm(r["Town Name"]).includes(q)||norm(r["SLS Tracking Number"]).includes(q));
+ $("misTable").innerHTML=table(v,true)
+}
+function table(rows,isMis){
+ if(!rows.length)return `<div class="empty">No records to show.</div>`;
+ let cols=["SLS Tracking Number","Order ID","Town Name","Current Station","Destination Station","Status","Zone"];
+ return `<div class="tablewrap"><table class="table"><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.slice(0,2000).map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>${rows.length>2000?`<div class="hint">Showing first 2,000 rows.</div>`:""}`
+}
+function renderTownEdits(){
+ [["badoc","badocEdit"],["pinili","piniliEdit"]].forEach(([key,id])=>{$(id).innerHTML=towns[key].map((x,i)=>x[0]?`<div class="town-edit"><span>${esc(x[0])}</span><button onclick="removeTown('${key}',${i})">Remove</button></div>`:`<div class="town-edit"><span style="color:#555">— spacing —</span><button onclick="removeTown('${key}',${i})">Remove</button></div>`).join("")})
+}
+function addTown(key){let n=prompt("Town name:");if(n&&n.trim()){towns[key].push([n.trim().toUpperCase()]);saveTownSettings();render()}}
+function removeTown(key,i){if(role!=="Admin")return alert("Admin only.");if(confirm("Remove this town/spacing row?")){towns[key].splice(i,1);saveTownSettings();render()}}
+function loadBatch(i){current=batches[i];render();showPage("dashboard")}
+async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(confirm("Delete this upload permanently from this browser?")){batches.splice(i,1);current=batches[0]||null;saveTownSettings();render()}}
+function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
+$("csvFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=async()=>{try{let rows=parseCSV(rd.result),z=classify(rows);current={name:f.name,time:Date.now(),rows,valid:z.valid,mis:z.mis};batches=[current,...batches.filter(b=>b.name!==f.name)];saveTownSettings();await saveBatches();render();showPage("dashboard")}catch(err){alert("Could not read this CSV: "+err.message)}};rd.readAsText(f)});
+
+$("clearCurrentUpload").onclick=async()=>{
+  if(!current){alert("There is no current upload to clear.");return;}
+  const idx=batches.findIndex(b=>b===current || (b.name===current.name && b.time===current.time));
+  if(idx<0){alert("Current upload was not found.");return;}
+  undoBatch={batch:current,index:idx};
+  batches.splice(idx,1);
+  current=batches[0]||null;
+  await saveBatches();
+  render();
+  showPage("upload");
+};
+$("undoUpload").onclick=async()=>{
+  if(!undoBatch){alert("Nothing to undo.");return;}
+  const exists=batches.some(b=>b.name===undoBatch.batch.name && b.time===undoBatch.batch.time);
+  if(!exists)batches.splice(Math.min(undoBatch.index,batches.length),0,undoBatch.batch);
+  current=undoBatch.batch;
+  await saveBatches();
+  undoBatch=null;
+  render();
+  showPage("dashboard");
+};
+
+$("misroutedKpi").onclick=()=>showPage("misrouted");
+$("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showPage("misrouted")}};
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
+  const e=$(id); if(!e)return;
+  e.addEventListener("input",()=>{window.__parcelRecordPage=1;renderRecords()});
+  e.addEventListener("change",()=>{window.__parcelRecordPage=1;renderRecords()});
+});
+$("clearRecordFilters").onclick=()=>{
+  $("recordSearch").value="";
+  ["recordTown","recordStation","recordStatus"].forEach(id=>{
+    const e=$(id);if(e)[...e.options].forEach(o=>o.selected=false);
+  });
+  window.__parcelRecordPage=1;renderRecords();
+};
+$("misSearch").addEventListener("input",renderMis);
+$("exportValid").onclick=()=>current&&download("valid-parcels.csv",csv(current.valid));$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
+$("addBadoc").onclick=()=>addTown("badoc");$("addPinili").onclick=()=>addTown("pinili");
+$("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({towns,batches},null,2),"application/json");
+$("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
+$("clearData").onclick=async()=>{if(confirm("Clear all local data?\\n\\nThis will remove uploaded files/data from Upload Exported AND Linehaul Task. Your town/station settings will be kept.")){try{const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"))});batches=[];current=null;/* Linehaul Task uses localStorage, not the parcel IndexedDB store. */["badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1","badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1","badoc_linehaul_export_unique_v1"].forEach(k=>localStorage.removeItem(k));if(typeof linehaulTasks!=="undefined")linehaulTasks=[];const lhFile=document.getElementById("linehaulCsvFile");if(lhFile)lhFile.value="";const lhBody=document.getElementById("linehaulBody");if(lhBody)lhBody.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';const lhStatus=document.getElementById("linehaulStatus");if(lhStatus)lhStatus.textContent="0 tasks";const lhTotal=document.getElementById("lhKpiTotal");if(lhTotal)lhTotal.textContent="0";const lhDoid=document.getElementById("lhKpiDoid");if(lhDoid)lhDoid.textContent="0";if(typeof renderLinehaul==="function")renderLinehaul();render();alert("All uploaded files/data cleared from Upload Exported and Linehaul Task.")}catch(err){console.error("Clear local data failed:",err);alert("Could not clear all uploaded data.")}}}; loadBatches().then(render);
+
+/*
+ V1.10 KPI CONNECTION
+ Set KPI_API_URL to the deployed Google Apps Script Web App URL.
+ Example: https://script.google.com/macros/s/DEPLOYMENT_ID/exec
+ The Apps Script should return JSON for the active sheet.
+*/
+function kpiCsv(text){
+  const out=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+    if(c==='"'){if(q&&n==='"'){cell+='"';i++}else q=!q}
+    else if(c===','&&!q){row.push(cell);cell=""}
+    else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);cell="";if(row.some(x=>x.trim()))out.push(row);row=[]}
+    else cell+=c;
+  }
+  if(cell!==""||row.length){row.push(cell);out.push(row)}
+  return out;
+}
+function kn(v){return String(v??"").trim().toLowerCase().replace(/\s+/g," ")}
+function kv(id,v){const e=$(id);if(e)e.textContent=(v===undefined||v==="")?"—":v}
+
+async function loadLiveKPI(){
+  const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
+  const GID="0";
+  const REFRESH_MS=5*60*1000;
+
+  const status=t=>{const e=$("kpiStatus");if(e)e.textContent=t};
+  const setText=(id,v)=>{const e=$(id);if(e)e.textContent=(v==null||String(v).trim()==="")?"—":String(v).trim()};
+  const norm=v=>String(v??"").trim().toLowerCase().replace(/\s+/g," ");
+
+  const groups=[
+    ["COST METRICS",["Fleet Productivity (Points)","Backroom Productivity","3WH MTD Headcount","4WH MTD Headcount","4WH Bulky %"]],
+    ["LEAD TIME METRICS",["Clear Floor Rate (FM + LM (ex. Sunday) + RTS + NSS)","Clear Floor Rate (CFR1 - Early Dispatch)","Clear Floor Rate (LM - Sunday)","Success Rate (LM + RTS + NSS)","Loss Rate"]],
+    ["BUYER & SELLER EXPERIENCE METRICS",["FM No Successful Pickup","FM Partial Pickup","LM POD Tier Performance","LM Onhold Validation"]],
+    ["HUB COMPLIANCE & FRAUD METRICS",["Hub Compliance Score","Feeder Fraud","Linehaul Arrival Points","Hub BSC Additional Points"]]
+  ];
+
+  const aliases={
+    "Fleet Productivity (Points)":["Fleet Productivity (Points)","Fleet Productivity"],
+    "Clear Floor Rate (FM + LM (ex. Sunday) + RTS + NSS)":["Clear Floor Rate (FM + LM (ex. Sunday) + RTS + NSS)","Clear Floor Rate (FM + LM"],
+    "Success Rate (LM + RTS + NSS)":["Success Rate (LM + RTS + NSS)"]
+  };
+
+  const col=(row,label)=>{
+    const want=norm(label);
+    let i=row.findIndex(v=>norm(v)===want);
+    if(i<0)i=row.findIndex(v=>norm(v).includes(want)||want.includes(norm(v)));
+    return i;
+  };
+
+  const metricCol=(row,name)=>{
+    for(const x of (aliases[name]||[name])){
+      const i=col(row,x);
+      if(i>=0)return i;
+    }
+    return -1;
+  };
+
+  const readGoogle=()=>new Promise((resolve,reject)=>{
+    const cb="__badocKpiV24_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const script=document.createElement("script");
+    let finished=false;
+    const timer=setTimeout(()=>finish(new Error("Google KPI request timed out.")),15000);
+
+    function finish(err,data){
+      if(finished)return;
+      finished=true;
+      clearTimeout(timer);
+      try{delete window[cb]}catch(_){}
+      script.remove();
+      err?reject(err):resolve(data);
+    }
+
+    window[cb]=payload=>{
+      try{
+        if(!payload||payload.status!=="ok"||!payload.table){
+          throw new Error((payload?.errors||[]).map(x=>x.message||x.reason||"").filter(Boolean).join("; ")||"Google did not return KPI data.");
+        }
+        const rows=[(payload.table.cols||[]).map(c=>c.label||"")];
+        (payload.table.rows||[]).forEach(r=>{
+          rows.push((r.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:"")):""));
+        });
+        finish(null,rows);
+      }catch(err){finish(err)}
+    };
+
+    script.onerror=()=>finish(new Error("Google KPI endpoint could not be reached."));
+    script.src=
+      "https://docs.google.com/spreadsheets/d/"+SHEET_ID+
+      "/gviz/tq?gid="+encodeURIComponent(GID)+
+      "&headers=1"+
+      "&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+
+      "&tq="+encodeURIComponent("select *")+
+      "&_ts="+Date.now();
+    document.head.appendChild(script);
+  });
+
+  const findHeader=rows=>rows.findIndex(r=>{
+    const x=r.map(norm);
+    return x.includes("region")&&x.includes("subregion")&&x.includes("current station")&&x.includes("score");
+  });
+
+  /*
+   * Exact structure from the imported KPI CSV:
+   * Row 5 contains the metric names and then a fixed block:
+   *
+   * Metric | Actual | Target B+ | Target A+ | Weight | ...
+   *
+   * Therefore we DO NOT search for "Target..." globally.
+   * We find the metric name's exact column and read the cells immediately
+   * beside it. This prevents one metric from stealing another metric's
+   * target/weight.
+   */
+  const getMetricValue=(rows,dataIndex,metricHeaderIndex,name)=>{
+    const metricRow=rows[metricHeaderIndex]||[];
+    const data=rows[dataIndex]||[];
+    const start=metricCol(metricRow,name);
+    if(start<0)return {actual:"",target:"",targetB:"",targetA:"",weight:""};
+    const simpleMetrics=['Loss Rate','FM No Successful Pickup','FM Partial Pickup','LM POD Tier Performance','LM Onhold Validation','Hub Compliance Score','Feeder Fraud','Linehaul Arrival Points','Hub BSC Additional Points'];
+    if(simpleMetrics.includes(name)){
+      return {actual:data[start]??"",target:data[start+1]??"",targetB:"",targetA:"",weight:data[start+2]??""};
+    }
+    return {actual:data[start]??"",target:"",targetB:data[start+1]??"",targetA:data[start+2]??"",weight:data[start+3]??""};
+  };
+
+  const monthFromRow=row=>{
+    const m=String(row.join(" ")).match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/i);
+    return m?m[0]:"";
+  };
+
+  const monthForRow=(rows,index)=>{
+    for(let i=index;i>=0;i--){
+      const m=monthFromRow(rows[i]);
+      if(m)return m;
+    }
+    return "";
+  };
+
+  const numeric=v=>{
+    const n=parseFloat(String(v??"").replace(/[%,$,]/g,""));
+    return Number.isFinite(n)?n:null;
+  };
+
+  const makeHealthSummary=(rows,mh,bi)=>{
+    const metrics=rows[mh]||[], data=rows[bi]||[];
+    let on=0,near=0,below=0,total=0;
+
+    groups.forEach(([,names])=>{
+      names.forEach(name=>{
+        const st=metricCol(metrics,name);
+        if(st<0)return;
+
+        const actual=numeric(data[st]);
+        const b=numeric(data[st+1]);
+        const a=numeric(data[st+2]);
+        if(actual===null)return;
+
+        total++;
+        if(b===null){
+          return;
+        }
+
+        // KPI blocks in the supplied sheet use B+ as the minimum target and
+        // A+ as the higher target. For metrics where lower is better, the
+        // sheet's displayed targets are still preserved; health is therefore
+        // intentionally a simple proximity indicator rather than a universal
+        // "higher is better" assumption.
+        if(a!==null && actual>=a) on++;
+        else if(actual>=b) near++;
+        else below++;
+      });
+    });
+
+    return {on,near,below,total};
+  };
+
+  const renderHealthSummary=(container,summary)=>{
+    const box=document.createElement("div");
+    box.className="kpi-v3-health";
+    box.innerHTML=
+      `<div><strong>${summary.on}</strong><span>At / Above A+</span></div>`+
+      `<div><strong>${summary.near}</strong><span>At / Above B+</span></div>`+
+      `<div><strong>${summary.below}</strong><span>Below B+</span></div>`+
+      `<div><strong>${summary.total}</strong><span>Tracked</span></div>`;
+    container.appendChild(box);
+  };
+
+  const renderMonth=(container,title,rows,h,mh,bi,summary)=>{
+    const headers=rows[h]||[];
+    const data=rows[bi]||[];
+    const scoreColLocal=col(headers,"Score");
+
+    const section=document.createElement("section");
+    section.className="kpi-month-section";
+    section.innerHTML=
+      `<div class="kpi-month-title">${esc(title)}</div>`+
+      `<div class="kpi-month-content"></div>`;
+    const content=section.querySelector(".kpi-month-content");
+
+    if(summary){
+      setText("kpiMonth",title);
+      setText("sheetScore",data[scoreColLocal]);
+      setText("kpiRegion",data[col(headers,"Region")]);
+      setText("kpiSubregion",data[col(headers,"Subregion")]);
+      setText("kpiStation",data[col(headers,"Current Station")]);
+      setText("kpiGrade",data[col(headers,"Grade")]);
+      setText("kpiRemarks",data[col(headers,"Remarks")]);
+    }
+
+    groups.forEach(([group,names])=>{
+      const cat=document.createElement("div");
+      cat.className="kpi-category";
+      cat.innerHTML=
+        `<div class="kpi-category-title">${esc(group)}</div>`+
+        `<div class="kpi-metric-grid"></div>`;
+      const grid=cat.querySelector(".kpi-metric-grid");
+
+      names.forEach(name=>{
+        const v=getMetricValue(rows,bi,mh,name); const card=document.createElement("div"); card.className="kpi-metric v3-kpi-card";
+      const simpleMetrics=['Loss Rate','FM No Successful Pickup','FM Partial Pickup','LM POD Tier Performance','LM Onhold Validation','Hub Compliance Score','Feeder Fraud','Linehaul Arrival Points','Hub BSC Additional Points']; const simple=simpleMetrics.includes(name);
+      card.innerHTML= `<h3>${esc(name)}</h3>`+
+        `<div class="kpi-actual">${esc(v.actual||"—")}</div>`+
+        `<div class="kpi-target-row">`+
+        (simple
+          ? `<div><span>Target</span><strong>${esc(v.target||"—")}</strong></div>`
+          : `<div><span>Target to hit B+</span><strong>${esc(v.targetB||"—")}</strong></div>`+
+            `<div><span>Target to hit A+</span><strong>${esc(v.targetA||"—")}</strong></div>`) +
+        `<div><span>Weight</span><strong>${esc(v.weight||"—")}</strong></div>`+
+        `</div>`; grid.appendChild(card);
+      });
+
+      content.appendChild(cat);
+    });
+
+    container.appendChild(section);
+  };
+
+
+  const dataForV3Hero=id=>{
+    const e=$(id);
+    return e?e.textContent:"";
+  };
+
+  const showError=msg=>{
+    status("GOOGLE SHEET • UNAVAILABLE");
+    const c=$("kpiCategories");
+    if(c)c.innerHTML=
+      `<div class="kpi-data-error">${esc(msg)}<br>`+
+      `<button type="button" class="btn primary" id="kpiRetryBtn" style="margin-top:12px">↻ Retry KPI</button></div>`;
+    $("kpiRetryBtn")?.addEventListener("click",loadLiveKPI);
+  };
+
+  const run=async()=>{
+    status("GOOGLE SHEET • CONNECTING");
+    try{
+      const rows=await readGoogle();
+      if(!rows||rows.length<2)throw new Error("Google KPI sheet returned no data.");
+
+      const h=findHeader(rows);
+      if(h<0)throw new Error("KPI header row not found.");
+
+      // The imported CSV has the metric header directly above the Badoc data.
+      // Find the row containing both requested metric names.
+      let mh=-1;
+      for(let i=0;i<rows.length;i++){
+        const x=rows[i].map(norm);
+        if(x.some(v=>v.includes("fleet productivity"))&&x.some(v=>v.includes("backroom productivity"))){
+          mh=i;break;
+        }
+      }
+      if(mh<0)throw new Error("KPI metric header row not found.");
+
+      // IMPORTANT: select the KPI row by the actual "Current Station"
+      // column, not by searching every cell for "Badoc Hub". This prevents
+      // another cell (remarks, destination, notes, etc.) from being mistaken
+      // for the station row and changing the Overall Score.
+      const stationCol=col(rows[h],"Current Station");
+      const scoreCol=col(rows[h],"Score");
+      if(stationCol<0)throw new Error("Current Station column not found.");
+      if(scoreCol<0)throw new Error("Score column not found.");
+
+      const badocs=[];
+      for(let i=h+1;i<rows.length;i++){
+        if(norm(rows[i]?.[stationCol])==="badoc hub")badocs.push(i);
+      }
+      if(!badocs.length)throw new Error("Badoc Hub row not found.");
+
+      // Prefer the row for the current calendar month. If the sheet does not
+      // expose a month on that row, fall back to the latest dated Badoc row.
+      const now=new Date();
+      const wantedMonth=now.toLocaleString("en-US",{month:"long",year:"numeric"});
+      const dated=badocs.map(index=>({
+        index,
+        month:monthForRow(rows,index),
+        score:rows[index]?.[scoreCol]??""
+      }));
+
+      const currentMonthRows=dated.filter(x=>norm(x.month)===norm(wantedMonth));
+      const pool=currentMonthRows.length?currentMonthRows:dated;
+
+      pool.sort((a,b)=>{
+        const da=Date.parse(a.month+" 1"),db=Date.parse(b.month+" 1");
+        if(!isNaN(da)&&!isNaN(db)){
+          if(db!==da)return db-da;
+        }
+        return b.index-a.index;
+      });
+
+      const current=pool[0];
+      const previousPool=dated
+        .filter(x=>x.index!==current.index)
+        .sort((a,b)=>{
+          const da=Date.parse(a.month+" 1"),db=Date.parse(b.month+" 1");
+          if(!isNaN(da)&&!isNaN(db)){
+            if(db!==da)return db-da;
+          }
+          return b.index-a.index;
+        });
+      const previous=previousPool[0];
+      const container=$("kpiCategories");
+      container.innerHTML="";
+
+      renderMonth(
+        container,
+        current.month?"CURRENT KPI • "+current.month:"CURRENT KPI",
+        rows,h,mh,current.index,true
+      );
+
+      if(previous){
+        const details=document.createElement("details");
+        details.className="kpi-v3-m1";
+        // Collapsed by default: no .open assignment.
+        const summary=document.createElement("summary");
+        summary.className="m1-summary-toggle";
+        details.appendChild(summary);
+
+        const inner=document.createElement("div");
+        inner.className="kpi-m1-inner";
+
+        // Summary card reads directly from the M-1 row already returned
+        // from the Google Sheet. Existing KPI rendering remains unchanged.
+        const m1Headers=rows[h]||[];
+        const m1Data=rows[previous.index]||[];
+        const exact=label=>m1Headers.findIndex(v=>norm(v)===norm(label));
+        const val=label=>{const i=exact(label);return i>=0?(m1Data[i]??""):"";};
+
+        summary.innerHTML=`<span class="m1-summary-title">M-1 • ${esc(previous.month||"")}</span>
+          <span class="m1-summary-score"><small>OVERALL SCORE</small><strong>${esc(val("Score")||"—")}</strong></span>`;
+
+        const card=document.createElement("div");
+        card.className="kpi-m1-summary-card";
+        card.innerHTML=`<div class="kpi-m1-summary-head">
+          <div class="kpi-m1-summary-kicker">SHOWING SCORE FOR THE MONTH OF:</div>
+          <div class="kpi-m1-summary-month">${esc(previous.month||"M-1")}</div>
+          <div class="kpi-m1-summary-score"><span>OVERALL SCORE</span><strong>${esc(val("Score")||"—")}</strong></div>
+        </div>
+        <div class="kpi-m1-summary-meta">
+          <div><span>REGION</span><b>${esc(val("Region")||"—")}</b></div>
+          <div><span>SUBREGION</span><b>${esc(val("Subregion")||"—")}</b></div>
+          <div><span>CURRENT STATION</span><b>${esc(val("Current Station")||"—")}</b></div>
+          <div><span>GRADE</span><b>${esc(val("Grade")||"—")}</b></div>
+          <div><span>REMARKS</span><b>${esc(val("Remarks")||"—")}</b></div>
+        </div>`;
+        inner.appendChild(card);
+        details.appendChild(inner);
+        container.appendChild(details);
+        renderMonth(inner,previous.month?"M-1 • "+previous.month:"M-1",rows,h,mh,previous.index,false); }
+
+      status("GOOGLE SHEET • LIVE • AUTO REFRESH 5 MIN");
+    }catch(err){
+      console.warn("V3.0 KPI load failed:",err);
+      showError(err?.message||"Unable to read the public KPI sheet.");
+    }
+  };
+
+  await run();
+  clearInterval(window.__kpiRefreshTimer);
+  window.__kpiRefreshTimer=setInterval(run,REFRESH_MS);
+}
+loadLiveKPI();
+const uploadDrop=$("uploadDrop"),csvInput=$("csvFile");
+["dragenter","dragover"].forEach(ev=>uploadDrop?.addEventListener(ev,e=>{e.preventDefault();uploadDrop.classList.add("dragover")}));
+["dragleave","drop"].forEach(ev=>uploadDrop?.addEventListener(ev,e=>{e.preventDefault();uploadDrop.classList.remove("dragover")}));
+uploadDrop?.addEventListener("drop",e=>{
+  const f=e.dataTransfer.files?.[0];if(!f)return;
+  try{const dt=new DataTransfer();dt.items.add(f);csvInput.files=dt.files;csvInput.dispatchEvent(new Event("change",{bubbles:true}))}
+  catch(err){alert("Please click the upload box to choose the CSV.")}
+});
+
+
+
+const LH_KEY="badoc_linehaul_tasks_town_v1";
+const LH_PACKED_KEY="badoc_linehaul_packed_rows_v1";
+const LH_BLANK_PACKED_KEY="badoc_linehaul_blank_packed_rows_v1";
+const LH_EXPORT_TOTAL_KEY="badoc_linehaul_export_total_v1";
+const LH_EXPORT_UNIQUE_KEY="badoc_linehaul_export_unique_v1";
+let linehaulTasks=[];
+function loadLinehaul(){
+  try{
+    linehaulTasks=JSON.parse(localStorage.getItem(LH_KEY)||"[]");
+    if(!Array.isArray(linehaulTasks))linehaulTasks=[];
+    linehaulTasks=linehaulTasks.filter(x=>x && (String(x.id||"").trim() || x.blank));
+  }catch(e){linehaulTasks=[]}
+}
+function saveLinehaul(){localStorage.setItem(LH_KEY,JSON.stringify(linehaulTasks))}
+function lhNum(v){const n=parseFloat(String(v??"").replace(/,/g,"").trim());return Number.isFinite(n)?n:0}
+function lhHeaderIndex(headers,names){
+  const clean=s=>String(s??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  const hs=Array.isArray(headers)?headers:[headers];
+  return hs.map(clean).findIndex(h=>names.some(n=>{const x=clean(n);return h===x||h.includes(x)||x.includes(h)}));
+}
+function parseLinehaulCSV(text){
+  text=String(text||"").replace(/^\uFEFF/,"");
+  const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i],n=text[i+1];
+    if(c==='"'){if(q&&n==='"'){cell+='"';i++}else q=!q}
+    else if(c===','&&!q){row.push(cell);cell=""}
+    else if((c==='\n'||c==='\r')&&!q){
+      if(c==='\r'&&n==='\n')i++;
+      row.push(cell);cell="";
+      if(row.some(x=>String(x).trim()!==""))rows.push(row);
+      row=[];
+    }else cell+=c;
+  }
+  if(cell!==""||row.length){row.push(cell);rows.push(row)}
+  if(rows.length<2)throw Error("The exported file is empty.");
+
+  const h=rows[0].map(x=>String(x).replace(/^\uFEFF/,"").trim());
+  const data=rows.slice(1);
+  const idx=(names)=>{
+    const clean=s=>String(s??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+    return h.map(clean).findIndex(x=>names.some(n=>{const y=clean(n);return x===y||x.includes(y)||y.includes(x)}));
+  };
+  const ti=idx(["Line Haul Task ID","Linehaul Task ID","Line Haul Task"]);
+  const spxi=idx(["SPX TN","SPX Tracking Number"]);
+  const toi=idx(["TO Number","TO No","TONumber"]);
+  const qi=idx(["TO Include Order Quantity","TO Include Order quantity","Include Order Quantity","Order Quantity"]);
+  const ri=idx(["TO Received Order Quantity","TO Received Order quantity","Received Order Quantity","Received Quantity"]);
+  const si=idx(["TO Status","Status","Order Status"]);
+  if(ti<0)throw Error("Line Haul Task ID was not found in the exported file.");
+  if(spxi<0)throw Error("SPX TN was not found in the exported file.");
+
+  const groups={};
+  data.forEach(r=>{
+    const id=String(r[ti]??"").trim();
+    const key=id||"__BLANK_LINEHAUL__";
+    if(!groups[key])groups[key]={id,blank:!id,exportTOs:new Set(),exportQty:0,exportReceived:0,statuses:[],exportRows:[]};
+    const g=groups[key];
+    const spxTN=String(r[spxi]??"").trim();
+    const to=toi>=0?String(r[toi]??"").trim():"";
+    if(to)g.exportTOs.add(to);
+    if(qi>=0)g.exportQty+=lhNum(r[qi]);
+    if(ri>=0)g.exportReceived+=lhNum(r[ri]);
+    if(si>=0&&String(r[si]??"").trim())g.statuses.push(String(r[si]).trim());
+    g.exportRows.push({
+      spxTN,to,qty:qi>=0?lhNum(r[qi]):0,received:ri>=0?lhNum(r[ri]):0,
+      status:si>=0?String(r[si]??"").trim():""
+    });
+  });
+
+  return Object.values(groups).map(g=>({
+    id:g.id,blank:g.blank,exportTOs:[...g.exportTOs],exportQty:g.exportQty,
+    exportReceived:g.exportReceived,
+    status:g.statuses.length?(new Set(g.statuses).size===1?g.statuses[0]:"In Progress"):"Pending Receive",
+    exportRows:g.exportRows
+  }));
+}
+function normJoin(v){
+  return String(v??"").trim().toUpperCase().replace(/[\s\-_.]/g,"");
+}
+function townFromParcel(r){
+  return String(r?.["Town Name"]??"").trim().toUpperCase();
+}
+function trackingFromParcel(r){
+  return String(r?.["SLS Tracking Number"]??"").trim();
+}
+function orderFromParcel(r){
+  return String(r?.["Order ID"]??"").trim();
+}
+
+/* Exact sample-file relationship:
+   inbound_to_from_spx.csv      : SPX TN
+   export_forward_order.csv     : Order ID -> Town Name
+*/
+function buildForwardOrderIndex(records){
+  const idx=new Map();
+  (records||[]).forEach(r=>{
+    const order=normJoin(r["Order ID"]);
+    if(order)idx.set(order,r);
+  });
+  return idx;
+}
+function linehaulTownBreakdown(task, parcelRows){
+  const out={};
+  const sourceRows=Array.isArray(parcelRows)?parcelRows:[];
+  const exportRows=Array.isArray(task?.exportRows)?task.exportRows:[];
+
+  // Match the Linehaul SPX TN to Parcel Records Order ID.
+  // Normalize common CSV/Excel formatting differences.
+  const norm=v=>String(v??"")
+    .trim()
+    .replace(/^["']+|["']+$/g,"")
+    .replace(/\s+/g,"")
+    .toUpperCase();
+
+  const orderIdOf=r=>(
+    r?.orderId ??
+    r?.orderID ??
+    r?.["Order ID"] ??
+    r?.["ORDER ID"] ??
+    r?.["OrderID"] ??
+    r?.spxTN ??
+    r?.["SPX TN"]
+  );
+
+  const townOf=r=>(
+    r?.town ??
+    r?.Town ??
+    r?.["Town"] ??
+    r?.["Town Name"] ??
+    r?.["TOWN NAME"] ??
+    r?.destinationTown ??
+    r?.destination_town ??
+    r?.["Destination Town"]
+  );
+
+  const orderMap=new Map();
+  sourceRows.forEach(r=>{
+    const id=norm(orderIdOf(r));
+    if(id) orderMap.set(id,r);
+  });
+
+  exportRows.forEach(er=>{
+    const spx=er?.spxTN ?? er?.["SPX TN"] ?? er?.["SPX TN ID"] ?? er?.orderId ?? er?.["Order ID"];
+    const id=norm(spx);
+    if(!id) return;
+
+    const parcel=orderMap.get(id);
+    if(!parcel) return;
+
+    const town=String(townOf(parcel)||"").trim();
+    if(!town) return;
+
+    if(!out[town]) out[town]={items:[],count:0};
+    out[town].items.push({
+      x:{...er,spxTN:er?.spxTN||spx,town},
+      r:parcel
+    });
+    out[town].count++;
+  });
+
+  return out;
+}
+function renderLinehaulTownDashboard(){
+  const el=$("linehaulTownDashboard");
+  if(!el)return;
+  const counts={};
+  linehaulTasks.forEach(task=>{
+    if(task.blank)return;
+    Object.entries(task.townBreakdown||{}).forEach(([town,group])=>{
+      const name=String(town||"").trim().toUpperCase();
+      if(!name)return;
+      counts[name]=(counts[name]||0)+(group.items||[]).length;
+    });
+  });
+
+  const badoc=[
+    ["TUROD","LABUT","CARAITAN"],
+    ["SAUD","PAGSANAHAN NORTE","PAGSANAHAN SUR"],
+    ["CANAAN (POB.)","GARRETA (POB.)"],
+    ["PALTIT","LUBIGAN","BATO"],
+    ["LA VIRGEN MILAGROSA (PAGUETPET)","MORONG","SANTA CRUZ NORTE","SANTA CRUZ SUR"],
+    ["GABUT NORTE","GABUT SUR","NAPU","MABUSAG NORTE","MABUSAG SUR","PARANG","PASUC"],
+    ["AR-ARUSIP","ALAY-NANGBABAAN (ALAY 15-B)","NAGREBCAN","BALBALDEZ"],
+    ["ALOGOOG","LACUBEN","ARING"]
+  ];
+  const pinili=[
+    ["UGUIS","CAMANGA","MADUPAYAS","LILIPUTEN","LUMBAAN-BICBICA","SACRITAN"],
+    ["PURITAC","DALAYAP","NAGTRIGOAN","UPON"],
+    ["APATUT-LUBONG","DARAT","CAPANGDANAN","GULPENG"],
+    ["AGLIPAY","SANTO TOMAS","CABAROAN","BUANGA"],
+    ["VALBUENA (POB.)","PAGDILAO (POB.)"],
+    ["BADIO","BULBULALA","PUZOL","TARTARABANG"],
+    ["SALANAP","BARBAR","BUNGRO","PUGAOAN"]
+  ];
+
+  function makeSection(title,groups){
+    return `<div class="lh-town-section">
+      <div class="lh-section-title">${esc(title)}</div>
+      <div class="lh-town-grid">
+        ${groups.map(group=>`<div class="lh-town-card">
+          ${group.map(t=>`<div class="lh-town-row"><span>${esc(t)}</span><b>${(counts[t]||0).toLocaleString()}</b></div>`).join("")}
+        </div>`).join("")}
+      </div>
+    </div>`;
+  }
+  el.innerHTML=makeSection("BADOC",badoc)+makeSection("PINILI",pinili);
+}
+
+
+function renderLinehaulDoidPanel(){
+  const panel=$("lhDoidPanel"), list=$("lhDoidList");
+  if(!panel||!list)return;
+
+  const records=[];
+  linehaulTasks.forEach(task=>{
+    (task?.exportRows||[]).forEach(row=>{
+      const tn=normJoin(row?.spxTN);
+      if(tn)records.push({row,task});
+    });
+  });
+
+  const groups=new Map();
+  records.forEach(item=>{
+    const tn=normJoin(item.row?.spxTN);
+    if(!groups.has(tn))groups.set(tn,{display:String(item.row?.spxTN||"").trim(),items:[]});
+    groups.get(tn).items.push(item);
+  });
+
+  const duplicates=[...groups.values()]
+    .filter(g=>g.items.length>1)
+    .sort((a,b)=>a.display.localeCompare(b.display));
+
+  // Build Order ID -> parcel record index for Town Name.
+  const forwardRecords=(typeof current!=="undefined"&&Array.isArray(current?.rows))
+    ? current.rows : [];
+  const orderIndex=buildForwardOrderIndex(forwardRecords);
+
+  const val=(obj,names)=>{
+    for(const n of names){
+      const v=obj?.[n];
+      if(v!==undefined&&String(v).trim()!=="")return String(v).trim();
+    }
+    return "";
+  };
+
+  const details=g=>{
+    const first=g.items[0];
+    const r=first.row||{};
+    const townRec=orderIndex.get(normJoin(r.spxTN))||{};
+    const town=townFromParcel(townRec)||val(r,["Town Name","Town","TownName"]);
+    const currentStation=val(townRec,["Current Station","Current Station Name","CurrentStation"]) ||
+      val(r,["Current Station","Current Station Name","CurrentStation"]);
+    const destination=val(townRec,["Destination Station","Destination","Destination Station Name","DestinationStation"]) ||
+      val(r,["Destination Station","Destination","Destination Station Name","DestinationStation"]);
+    const status=val(townRec,["Status","Order Status","TO Status"]) ||
+      val(r,["Status","Order Status","TO Status"]) || "";
+    const task=String(first.task?.id||"").trim();
+
+    return `<div class="lh-doid-detail">
+      <div class="lh-doid-tn">${esc(g.display)}</div>
+      <div class="lh-doid-fields">
+        <div><span>Town Name</span><b>${esc(town||"—")}</b></div>
+        <div><span>Current Station</span><b>${esc(currentStation||"—")}</b></div>
+        <div><span>Destination Station</span><b>${esc(destination||"—")}</b></div>
+        <div><span>Status</span><b>${esc(status||"—")}</b></div>
+      </div>
+      ${task?`<div class="lh-doid-task">Linehaul Task: ${esc(task)} · ${g.items.length} occurrences</div>`:""}
+    </div>`;
+  };
+
+  list.innerHTML=duplicates.length
+    ? duplicates.map(details).join("")
+    : '<div class="lh-doid-empty">No duplicate SPX TN found.</div>';
+
+  panel.style.display="block";
+  panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+
+function refreshLinehaulIncomingVolume(){
+  const el=document.getElementById("lhKpiIncoming");
+  if(!el)return;
+  const tasks=(typeof linehaulTasks!=="undefined"&&Array.isArray(linehaulTasks))?linehaulTasks:[];
+  let total=0;
+  tasks.forEach(task=>{
+    if(!task || task.cleared) return;
+    const rows=Array.isArray(task.exportRows)?task.exportRows:[];
+    total+=rows.length;
+  });
+  el.textContent=String(total);
+}
+
+function renderLinehaulKpis(){
+  refreshLinehaulIncomingVolume();
+  // INCOMING VOLUME includes valid Linehaul Task rows plus the
+  // PACKED/PACKING source rows. Duplicates are included.
+  let incomingTotal=0;
+  let doid=0;
+
+  const allRows=[];
+  linehaulTasks.forEach(task=>{
+    if(Array.isArray(task?.exportRows)){
+      allRows.push(...task.exportRows);
+    }
+  });
+  incomingTotal=allRows.length;
+
+  // DOID remains a separate duplicate-SPX-TN group count.
+  const counts=new Map();
+  allRows.forEach(row=>{
+    const tn=normJoin(row?.spxTN);
+    if(tn)counts.set(tn,(counts.get(tn)||0)+1);
+  });
+  counts.forEach(n=>{if(n>1)doid++});
+
+  const set=(id,v)=>{
+    const e=document.getElementById(id);
+    if(e)e.textContent=Number(v||0).toLocaleString();
+  };
+
+  set("lhKpiTotal",incomingTotal);
+  set("lhKpiDoid",doid);
+}
+function renderLinehaul(){
+  renderLinehaulTownDashboard();
+  renderLinehaulKpis();
+  const body=$("linehaulBody");
+  let rows=[], visibleTasks=0;
+
+  linehaulTasks.forEach(task=>{
+    const taskId=String(task.id||"").trim();
+    if(!taskId || task.blank)return;
+
+    const towns=task.townBreakdown||{};
+    const validTowns=Object.keys(towns)
+      .map(t=>String(t||"").trim())
+      .filter(Boolean)
+      .sort((a,b)=>a.localeCompare(b));
+
+    if(!validTowns.length)return;
+    visibleTasks++;
+
+    validTowns.forEach(town=>{
+      const group=towns[town];
+      (group.items||[]).forEach((item,n)=>{
+        const x=item.x,r=item.r;
+        // Never render a row with a blank task or town.
+        if(!taskId || !town)return;
+        rows.push(`<tr class="lh-detail ${n===0?"lh-first":""}">
+          <td>${n===0?esc(taskId):""}</td>
+          <td>${esc(x.spxTN||"—")}</td>
+          <td>${n===0?`<b>${esc(town)}</b>`:""}</td>
+          <td>${esc(x.to||"—")}</td>
+          <td>${esc(x.received>0?"Received":task.status)}</td>
+        </tr>`);
+      });
+    });
+  });
+
+  const shownTasks=linehaulTasks.filter(x=>{
+    const id=String(x?.id||"").trim();
+    const towns=Object.keys(x?.townBreakdown||{}).filter(t=>String(t||"").trim());
+    return id&&towns.length;
+  });
+  // One complete dashboard for EACH Linehaul Task ID:
+  // KPI cards first, then the exact same BADOC/PINILI town-card format.
+  const taskTownSections=[];
+  const badocGroups=[
+    ["TUROD","LABUT","CARAITAN"],["SAUD","PAGSANAHAN NORTE","PAGSANAHAN SUR"],
+    ["CANAAN (POB.)","GARRETA (POB.)"],["PALTIT","LUBIGAN","BATO"],
+    ["LA VIRGEN MILAGROSA (PAGUETPET)","MORONG","SANTA CRUZ NORTE","SANTA CRUZ SUR"],
+    ["GABUT NORTE","GABUT SUR","NAPU","MABUSAG NORTE","MABUSAG SUR","PARANG","PASUC"],
+    ["AR-ARUSIP","ALAY-NANGBABAAN (ALAY 15-B)","NAGREBCAN","BALBALDEZ"],
+    ["ALOGOOG","LACUBEN","ARING"]
+  ];
+  const piniliGroups=[
+    ["UGUIS","CAMANGA","MADUPAYAS","LILIPUTEN","LUMBAAN-BICBICA","SACRITAN"],
+    ["PURITAC","DALAYAP","NAGTRIGOAN","UPON"],
+    ["APATUT-LUBONG","DARAT","CAPANGDANAN","GULPENG"],
+    ["AGLIPAY","SANTO TOMAS","CABAROAN","BUANGA"],
+    ["VALBUENA (POB.)","PAGDILAO (POB.)"],["BADIO","BULBULALA","PUZOL","TARTARABANG"],
+    ["SALANAP","BARBAR","BUNGRO","PUGAOAN"]
+  ];
+
+  const packedForTask=(task)=>{
+    const rows=task.exportRows||[];
+    const seen=new Set();
+    rows.forEach(x=>{const k=normJoin(x?.spxTN);if(k)seen.add(k)});
+    return seen.size;
+  };
+
+  linehaulTasks.forEach(task=>{
+    const taskId=String(task?.id||"").trim();
+    if(!taskId||task.blank)return;
+
+    const towns=task.townBreakdown||{};
+    const counts={};
+    Object.entries(towns).forEach(([town,g])=>{
+      const t=String(town||"").trim().toUpperCase();
+      if(t)counts[t]=(g.items||[]).length;
+    });
+
+    const badocTotal=badocGroups.flat().reduce((s,t)=>s+(counts[t]||0),0);
+    const piniliTotal=piniliGroups.flat().reduce((s,t)=>s+(counts[t]||0),0);
+    const packedTotal=packedForTask(task);
+
+    // TOTAL VOLUME FOR THIS LINEHAUL TASK = BADOC TOTAL + PINILI TOTAL.
+    // Unmapped rows are intentionally excluded from this task total.
+    const incomingTotal=badocTotal+piniliTotal;
+
+    const cards=`
+      <div class="lh-task-kpis">
+        <div class="lh-task-kpi"><div class="lh-task-kpi-value">${incomingTotal.toLocaleString()}</div><div class="lh-task-kpi-label">TOTAL VOLUME FOR THIS LINEHAUL TASK</div></div>
+        <div class="lh-task-kpi"><div class="lh-task-kpi-value">${badocTotal.toLocaleString()}</div><div class="lh-task-kpi-label">BADOC</div></div>
+        <div class="lh-task-kpi"><div class="lh-task-kpi-value">${piniliTotal.toLocaleString()}</div><div class="lh-task-kpi-label">PINILI</div></div>
+      </div>`;
+
+    const makeSection=(title,groups)=>`
+      <div class="lh-town-section lh-task-town-section">
+        <div class="lh-section-title">${esc(title)}</div>
+        <div class="lh-town-grid">
+          ${groups.map(group=>`<div class="lh-town-card">
+            ${group.map(t=>`<div class="lh-town-row"><span>${esc(t)}</span><b>${(counts[t]||0).toLocaleString()}</b></div>`).join("")}
+          </div>`).join("")}
+        </div>
+      </div>`;
+
+    taskTownSections.push(`
+      <div class="lh-task-block collapsed">
+        <div class="lh-task-block-header lh-task-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="lh-task-chevron">▶</span><span>LINEHAUL TASK</span><strong>${esc(taskId)}</strong>
+          <em>Click to expand</em>
+        </div>
+        ${cards}
+        ${makeSection("BADOC",badocGroups)}
+        ${makeSection("PINILI",piniliGroups)}
+      </div>`);
+  });
+
+  const taskTownEl=$("linehaulTaskTownDashboard");
+  if(taskTownEl)taskTownEl.innerHTML=taskTownSections.join("");
+
+  if(!taskTownEl._collapseBound){
+    taskTownEl._collapseBound=true;
+    const toggle=(header)=>{
+      const block=header.closest(".lh-task-block");
+      if(!block)return;
+      const collapsed=block.classList.toggle("collapsed");
+      header.setAttribute("aria-expanded",String(!collapsed));
+      const chevron=header.querySelector(".lh-task-chevron");
+      if(chevron)chevron.textContent=collapsed?"▶":"▼";
+      const hint=header.querySelector("em");
+      if(hint)hint.textContent=collapsed?"Click to expand":"Click to collapse";
+    };
+    taskTownEl.addEventListener("click",e=>{
+      const header=e.target.closest(".lh-task-toggle");
+      if(header)toggle(header);
+    });
+    taskTownEl.addEventListener("keydown",e=>{
+      const header=e.target.closest(".lh-task-toggle");
+      if(header&&(e.key==="Enter"||e.key===" ")){
+        e.preventDefault();toggle(header);
+      }
+    });
+  }
+
+  $("linehaulStatus").textContent=`${visibleTasks} task${visibleTasks===1?"":"s"}`;
+
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';
+    return;
+  }
+  body.innerHTML=rows.join("");
+}
+$("linehaulCsvFile")?.addEventListener("change",async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  try{
+    const text=await f.text();
+    const imported=parseLinehaulCSV(text);
+    if(!imported.length)throw Error("No Line Haul Task ID / SPX TN values were found.");
+    const exportedRows=imported.flatMap(t=>t.exportRows||[]);
+    const exportedRowCount=exportedRows.length;
+    const exportedUniqueSPX=new Set(exportedRows.map(r=>normJoin(r?.spxTN)).filter(Boolean)).size;
+    localStorage.setItem(LH_EXPORT_TOTAL_KEY,String(exportedRowCount));
+    localStorage.setItem(LH_EXPORT_UNIQUE_KEY,String(exportedUniqueSPX));
+
+    // Keep every row from the blank Line Haul Task ID group as the
+    // PACKED/PACKING source.
+    const allRows=imported.flatMap(t=>t.exportRows||[]);
+    const blankRows=imported.filter(t=>t.blank).flatMap(t=>t.exportRows||[]);
+    // Keep the complete exported file for the overall KPI calculation.
+    localStorage.setItem(LH_PACKED_KEY,JSON.stringify(allRows));
+    localStorage.setItem(LH_BLANK_PACKED_KEY,JSON.stringify(blankRows));
+
+    // Match the inbound file's SPX TN directly to Parcel Records' Order ID.
+    // Parcel Records are the forward-order export already loaded into the app.
+    imported.forEach(task=>{
+      if(task.blank){
+        task.townBreakdown={};
+        task.matchedCount=0;
+        return;
+      }
+      const towns=linehaulTownBreakdown(task,current?.rows||[]);
+      task.townBreakdown=towns;
+      task.matchedCount=Object.values(towns).reduce((s,g)=>s+g.items.length,0);
+      Object.entries(towns).forEach(([town,group])=>(group.items||[]).forEach(item=>{item.x.town=town;item.x.status=item.x.status||task.status;}));
+    });
+
+    const map=new Map(linehaulTasks.map(x=>[x.blank?"__BLANK_LINEHAUL__":x.id,x]));
+    imported.forEach(x=>map.set(x.blank?"__BLANK_LINEHAUL__":x.id,x));
+    linehaulTasks=[...map.values()];
+    saveLinehaul();renderLinehaul();showPage("linehaul");
+
+    const matched=imported.reduce((s,x)=>s+(x.matchedCount||0),0);
+    const total=imported.reduce((s,x)=>s+(x.exportRows?.length||0),0);
+    alert(`Imported ${imported.length} linehaul task${imported.length===1?"":"s"}. Matched ${matched.toLocaleString()} of ${total.toLocaleString()} SPX TNs to Parcel Record Order IDs.`);
+  }catch(err){
+    alert("Could not read this exported file: "+err.message);
+    console.error(err);
+  }
+  e.target.value="";
+});
+$("clearLinehaul")?.addEventListener("click",()=>{
+  if(linehaulTasks.length&&confirm("Clear all linehaul tasks?")){
+    linehaulTasks=[];
+    localStorage.removeItem(LH_KEY);
+    localStorage.removeItem(LH_PACKED_KEY);
+    localStorage.removeItem(LH_BLANK_PACKED_KEY);
+    localStorage.removeItem(LH_EXPORT_TOTAL_KEY);
+    localStorage.removeItem(LH_EXPORT_UNIQUE_KEY);
+    saveLinehaul();
+    const unmappedHost=$("lhUnmappedSpxCardHost");
+    if(unmappedHost){unmappedHost.classList.remove("v10-show-unmapped");unmappedHost.innerHTML="";}
+    renderLinehaul();
+    renderLinehaulKpis();
+  }
+});
+loadLinehaul();renderLinehaul();
+
+(function(){
+  const card=$("lhDoidCard"), close=$("lhDoidClose");
+  if(card)card.addEventListener("click",()=>{const p=$("lhDoidPanel");if(!p)return;if(p.style.display==="none"||!p.style.display){renderLinehaulDoidPanel()}else{p.style.display="none"}});
+  if(close)close.addEventListener("click",()=>{const p=$("lhDoidPanel");if(p)p.style.display="none"});
+})();
+document.getElementById("recordStatus")?.addEventListener("change",renderRecords);
+</script>
+
+<script>
+(function(){
+  const m1=document.querySelector('#kpi .kpi-m1-sheet');
+  const toggle=document.getElementById('m1Toggle');
+  if(!m1||!toggle)return;
+  m1.classList.add('m1-collapsed');
+  const setState=open=>{
+    m1.classList.toggle('m1-open',open);
+    m1.classList.toggle('m1-collapsed',!open);
+    toggle.setAttribute('aria-expanded',String(open));
+    const em=toggle.querySelector('em');
+    if(em) em.textContent=open?'▾ EXPANDED':'▸ COLLAPSED';
+  };
+  toggle.addEventListener('click',()=>setState(m1.classList.contains('m1-collapsed')));
+  toggle.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();setState(m1.classList.contains('m1-collapsed'));}
+  });
+  setState(false);
+})();
+</script>
+
+
+
+<nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Home</button><button type="button" data-mobile-page="upload"><span class="mobile-ico">📤</span>Upload</button>
+  <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul</button>
+  <button type="button" data-mobile-page="records"><span class="mobile-ico">▤</span>Records</button>
+  <button type="button" data-mobile-page="misrouted"><span class="mobile-ico">!</span>Misroute</button>
+  <button type="button" data-mobile-page="kpi"><span class="mobile-ico">▣</span>KPI</button>
+</nav>
+<script>
+(function(){
+  const nav=document.getElementById("mobileBottomNav");
+  if(!nav)return;
+  function setActive(page){
+    nav.querySelectorAll("button").forEach(b=>{
+      b.classList.toggle("active",b.dataset.mobilePage===page);
+    });
+  }
+  nav.addEventListener("click",function(e){
+    const b=e.target.closest("button[data-mobile-page]");
+    if(!b)return;
+    let target=document.querySelector('.side button[data-page="'+b.dataset.mobilePage+'"]');
+    if(!target && b.dataset.mobilePage==="upload"){
+      target=[...document.querySelectorAll(".side button")].find(x=>(x.textContent||"").toLowerCase().includes("upload"));
+    }
+    if(target){
+      target.click();
+      setActive(b.dataset.mobilePage);
+    }
+  });
+  setActive("dashboard");
+})();
+</script>
+
+<script id="v2-runtime">
+window.DASHBOARD_V2_READY = true;
+</script>
+
+<script id="v3-m1-handler">
+(function(){
+  const t=$("m1Toggle"), w=$("kpiM1Wrap");
+  if(t&&w){
+    t.addEventListener("click",()=>{
+      const open=w.classList.toggle("m1-open");
+      t.setAttribute("aria-expanded",open?"true":"false");
+      const em=t.querySelector("em");
+      if(em)em.textContent=open?"▾ EXPANDED":"▸ COLLAPSED";
+    });
+  }
+})();
+</script>
+
+
+
+
+<script id="v3-6-location-runtime">
+(function(){
+  const clock=document.getElementById("topDateTime");
+  const weather=document.getElementById("topWeather");
+  const locationEl=document.getElementById("topLocation");
+
+  function updateClock(){
+    if(!clock)return;
+    clock.textContent=new Intl.DateTimeFormat(undefined,{
+      month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"
+    }).format(new Date());
+  }
+  updateClock();
+  setInterval(updateClock,1000);
+
+  const weatherCode={
+    0:"☀ Clear",1:"🌤 Mostly clear",2:"⛅ Partly cloudy",3:"☁ Cloudy",
+    45:"🌫 Fog",48:"🌫 Fog",51:"🌦 Drizzle",53:"🌦 Drizzle",55:"🌧 Drizzle",
+    61:"🌧 Rain",63:"🌧 Rain",65:"🌧 Heavy rain",80:"🌦 Showers",
+    81:"🌧 Showers",82:"⛈ Heavy showers",95:"⛈ Thunderstorm",
+    96:"⛈ Storm",99:"⛈ Storm"
+  };
+
+  function weatherText(t){if(weather)weather.textContent=t}
+  function locationText(){
+    // Fixed app location. GPS is used only for weather so the header cannot
+    // incorrectly resolve Badoc to a neighboring municipality.
+    if(locationEl)locationEl.textContent="📍 Badoc";
+  }
+
+  async function getWeather(lat,lon){
+    const url="https://api.open-meteo.com/v1/forecast"+
+      "?latitude="+encodeURIComponent(lat)+
+      "&longitude="+encodeURIComponent(lon)+
+      "&current=temperature_2m,weather_code"+
+      "&temperature_unit=celsius&timezone=auto";
+    const r=await fetch(url,{cache:"no-store",mode:"cors"});
+    if(!r.ok)throw new Error("weather");
+    const d=await r.json();
+    if(!d.current)throw new Error("weather data");
+    const temp=Math.round(Number(d.current.temperature_2m));
+    weatherText((weatherCode[d.current.weather_code]||"Weather")+" "+temp+"°C");
+  }
+
+  async function useGPSForWeather(){
+    if(!navigator.geolocation)throw new Error("GPS unavailable");
+    const pos=await new Promise((resolve,reject)=>{
+      navigator.geolocation.getCurrentPosition(resolve,reject,{
+        enableHighAccuracy:true,
+        timeout:12000,
+        maximumAge:300000
+      });
+    });
+    await getWeather(pos.coords.latitude,pos.coords.longitude);
+  }
+
+  async function load(){
+    // Always show the correct operational location immediately.
+    locationText();
+    weatherText("☁ Weather…");
+    try{
+      await useGPSForWeather();
+    }catch(e){
+      weatherText("☁ Weather unavailable");
+      // Keep Badoc visible even when GPS/weather is unavailable.
+      locationText();
+    }
+  }
+
+  load();
+  setInterval(load,15*60*1000);
+})();
+</script>
+
+
+
+
+<script id="v4-4-5-runtime">
+(function(){
+  const nav=document.getElementById("mobileBottomNav");
+  if(!nav)return;
+
+  function findNavTarget(page){
+    const aliases={
+      dashboard:["dashboard","home"],
+      parcels:["parcels","parcel","routing"],
+      upload:["upload","uploadExported","upload-exported","export"],
+      kpi:["kpi"]
+    };
+    const wanted=aliases[page]||[page];
+
+    // Prefer an existing sidebar/nav element with a matching data-page.
+    for(const p of wanted){
+      const el=document.querySelector('[data-page="'+p+'"]');
+      if(el && el!==nav.querySelector('[data-page="'+page+'"]')) return el;
+    }
+
+    // Then look for buttons/links by visible label.
+    const els=[...document.querySelectorAll("button,a")];
+    return els.find(el=>wanted.some(p=>el.textContent.trim().toLowerCase().includes(p.toLowerCase())));
+  }
+
+  nav.addEventListener("click",function(e){
+    const btn=e.target.closest("button[data-page]");
+    if(!btn)return;
+    const page=btn.dataset.page;
+    const target=findNavTarget(page);
+    if(target){
+      target.click();
+      [...nav.querySelectorAll("button")].forEach(b=>b.classList.toggle("active",b===btn));
+    }
+  });
+
+  // Keep the mobile active state aligned with the app's current page title.
+  const observer=new MutationObserver(function(){
+    const title=(document.getElementById("pageTitle")?.textContent||"").toLowerCase();
+    [...nav.querySelectorAll("button")].forEach(b=>{
+      const p=b.dataset.page;
+      const active=(p==="dashboard" && /dashboard|home/.test(title)) ||
+                   (p==="parcels" && /parcel|routing/.test(title)) ||
+                   (p==="upload" && /upload|export/.test(title)) ||
+                   (p==="kpi" && /kpi/.test(title));
+      b.classList.toggle("active",active);
+    });
+  });
+  const title=document.getElementById("pageTitle");
+  if(title)observer.observe(title,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+<script id="v5-2-2-parcel-filter-touch-runtime">
+(function(){
+  var ids=["recordTown","recordStation","recordStatus"];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(!el)continue;
+    el.style.maxWidth="100%";
+    el.addEventListener("touchstart",function(){
+      this.style.touchAction="manipulation";
+    },{passive:true});
+  }
+})();
+</script>
+
+<script id="m1-collapsed-score-sync">
+(function(){
+  const sync=()=>{
+    const source=document.getElementById("m1Score");
+    const target=document.getElementById("m1CollapsedScore");
+    if(source&&target) target.textContent=source.textContent||"—";
+  };
+  sync();
+  const body=document.getElementById("m1Body");
+  if(body&&window.MutationObserver){
+    new MutationObserver(sync).observe(body,{childList:true,subtree:true,characterData:true});
+  }
+})();
+</script>
+<script id="supabase-source-files-clean">
+/*
+ BADOC SHARED SYNC v7
+ Authoritative state is a Supabase Postgres row, not Storage metadata.
+ Storage contains the actual files; the DB row contains the current state.
+ Realtime fires immediately; 5-second polling is a fallback.
+*/
+(function(){
+  const cfg=window.BADOC_SHARED_CONFIG||{};
+  const bucket="exported-files";
+  const TABLE="badoc_shared_state";
+  const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json"};
+  let client=null,channel=null,pollTimer=null,pulling=false,started=false;
+  const deviceId=crypto?.randomUUID?.()||("d-"+Date.now()+"-"+Math.random().toString(36).slice(2));
+
+  function status(t){
+    const e=document.getElementById("sharedStatus"),s=e?.querySelector(".top-sync-text");
+    if(e)e.className="top-sync-status connected";
+    if(s)s.textContent=t;
+  }
+  function supa(){
+    if(client)return client;
+    if(!window.supabase||!cfg.url||!cfg.key)throw Error("Supabase configuration missing");
+    client=window.supabase.createClient(cfg.url,cfg.key,{
+      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+    });
+    return client;
+  }
+  function storage(){return supa().storage.from(bucket)}
+
+  async function put(path,data,type){
+    const r=await storage().upload(path,data,{contentType:type||"application/octet-stream",upsert:true,cacheControl:"0"});
+    if(r.error)throw Error(r.error.message||"Storage upload failed");
+  }
+  async function remove(path){
+    const r=await storage().remove([path]);
+    if(r.error&&!/not found|404|object not found/i.test(r.error.message||""))
+      throw Error(r.error.message||"Storage delete failed");
+  }
+  async function get(path){
+    const r=await storage().download(path);
+    if(r.error){
+      if(/not found|404|object not found/i.test(r.error.message||""))return null;
+      throw Error(r.error.message||"Storage download failed");
+    }
+    return r.data;
+  }
+
+  async function state(){
+    const c=supa();
+    const r=await c.from(TABLE).select("*").eq("id",1).maybeSingle();
+    if(r.error)throw Error(r.error.message||"Shared state read failed");
+    return r.data||null;
+  }
+  async function setState(patch){
+    const c=supa();
+    const old=await state();
+    const row={
+      id:1,
+      upload_exists:old?.upload_exists??false,
+      upload_version:Number(old?.upload_version||0),
+      linehaul_exists:old?.linehaul_exists??false,
+      linehaul_version:Number(old?.linehaul_version||0),
+      settings_version:Number(old?.settings_version||0),
+      updated_at:new Date().toISOString(),
+      updated_by:deviceId,
+      ...patch
+    };
+    const r=await c.from(TABLE).upsert(row,{onConflict:"id"}).select().single();
+    if(r.error)throw Error(r.error.message||"Shared state update failed");
+    return r.data;
+  }
+
+  async function announce(kind,action){
+    try{
+      if(!channel)await ensureRealtime();
+      if(channel)await channel.send({
+        type:"broadcast",event:"badoc-sync",
+        payload:{deviceId,kind,action,at:Date.now()}
+      });
+    }catch(e){console.warn("Broadcast:",e)}
+  }
+
+  async function ensureRealtime(){
+    const c=supa();
+    if(channel)return;
+    channel=c.channel("badoc-shared-state-v7");
+    channel.on("broadcast",{event:"badoc-sync"},({payload})=>{
+      if(payload?.deviceId===deviceId)return;
+      pull(payload?.kind).catch(e=>console.warn("Realtime pull:",e));
+    });
+    // Also listen to Postgres changes on the authoritative state row.
+    channel.on("postgres_changes",
+      {event:"UPDATE",schema:"public",table:TABLE,filter:"id=eq.1"},
+      payload=>{
+        if(payload?.new?.updated_by===deviceId)return;
+        pull().catch(e=>console.warn("DB realtime pull:",e));
+      }
+    );
+    channel.subscribe(s=>{
+      if(s==="SUBSCRIBED")status("Cloud sync connected");
+      else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")status("Sync reconnecting…");
+    });
+  }
+
+  async function clearLocalUpload(){
+    if(typeof batches!=="undefined")batches=[];
+    if(typeof current!=="undefined")current=null;
+    if(typeof saveBatches==="function")await saveBatches();
+    ["batches","currentBatch","current"].forEach(k=>{try{localStorage.removeItem(k)}catch{}});
+    const f=document.getElementById("csvFile");if(f)f.value="";
+    if(typeof render==="function")render();
+  }
+  async function clearLocalLinehaul(){
+    if(typeof linehaulTasks!=="undefined")linehaulTasks=[];
+    if(typeof saveLinehaul==="function")saveLinehaul();
+    [
+      typeof LH_KEY!=="undefined"?LH_KEY:"badoc_linehaul_tasks_town_v1",
+      typeof LH_PACKED_KEY!=="undefined"?LH_PACKED_KEY:"badoc_linehaul_packed_rows_v1",
+      typeof LH_BLANK_PACKED_KEY!=="undefined"?LH_BLANK_PACKED_KEY:"badoc_linehaul_blank_packed_rows_v1",
+      typeof LH_EXPORT_TOTAL_KEY!=="undefined"?LH_EXPORT_TOTAL_KEY:"badoc_linehaul_export_total_v1",
+      typeof LH_EXPORT_UNIQUE_KEY!=="undefined"?LH_EXPORT_UNIQUE_KEY:"badoc_linehaul_export_unique_v1"
+    ].forEach(k=>{try{localStorage.removeItem(k)}catch{}});
+    const f=document.getElementById("linehaulCsvFile");if(f)f.value="";
+    if(typeof renderLinehaul==="function")renderLinehaul();
+    if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+  }
+
+  async function applyUpload(){
+    const b=await get(P.upload);
+    if(!b){await clearLocalUpload();return}
+    if(typeof parseCSV!=="function"||typeof classify!=="function"||typeof saveBatches!=="function")return;
+    const rows=parseCSV(await b.text()),z=classify(rows);
+    const batch={name:"cloud-uploaded.csv",time:Date.now(),rows,valid:z.valid,mis:z.mis};
+    batches=[batch,...(Array.isArray(batches)?batches:[]).filter(x=>x&&x.name!=="cloud-uploaded.csv")];
+    current=batch;await saveBatches();
+    if(typeof render==="function")render();
+  }
+  async function applyLinehaul(){
+    const b=await get(P.linehaul);
+    if(!b){await clearLocalLinehaul();return}
+    if(typeof parseLinehaulCSV!=="function")return;
+    const imported=parseLinehaulCSV(await b.text());
+    if(!imported.length){await clearLocalLinehaul();return}
+    imported.forEach(task=>{
+      if(task.blank){task.townBreakdown={};task.matchedCount=0;return}
+      const tb=typeof linehaulTownBreakdown==="function"?linehaulTownBreakdown(task,current?.rows||[]):{};
+      task.townBreakdown=tb;
+      task.matchedCount=Object.values(tb).reduce((s,g)=>s+(g.items||[]).length,0);
+      Object.entries(tb).forEach(([town,g])=>(g.items||[]).forEach(item=>{
+        item.x.town=town;item.x.status=item.x.status||task.status;
+      }));
+    });
+    linehaulTasks=imported;
+    if(typeof saveLinehaul==="function")saveLinehaul();
+    if(typeof renderLinehaul==="function")renderLinehaul();
+    if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+  }
+  async function applySettings(){
+    const b=await get(P.settings);if(!b)return;
+    try{
+      towns=JSON.parse(await b.text());
+      try{localStorage.setItem("pr_towns",JSON.stringify(towns))}catch{}
+      if(typeof render==="function")render();
+    }catch(e){console.warn("Settings parse:",e)}
+  }
+
+  let seen={upload:0,linehaul:0,settings:0};
+  async function pull(kind){
+    if(pulling)return;
+    pulling=true;
+    try{
+      const s=await state();
+      if(!s){status("Shared state not set");return}
+      if(kind==="upload"){
+        if(!s.upload_exists)await clearLocalUpload();else await applyUpload();
+        seen.upload=Number(s.upload_version||0);
+      }else if(kind==="linehaul"){
+        if(!s.linehaul_exists)await clearLocalLinehaul();else await applyLinehaul();
+        seen.linehaul=Number(s.linehaul_version||0);
+      }else if(kind==="settings"){
+        if(Number(s.settings_version||0)>seen.settings)await applySettings();
+        seen.settings=Number(s.settings_version||0);
+      }else{
+        if(!s.upload_exists)await clearLocalUpload();else if(Number(s.upload_version||0)>seen.upload)await applyUpload();
+        if(!s.linehaul_exists)await clearLocalLinehaul();else if(Number(s.linehaul_version||0)>seen.linehaul)await applyLinehaul();
+        if(Number(s.settings_version||0)>seen.settings)await applySettings();
+        seen={upload:Number(s.upload_version||0),linehaul:Number(s.linehaul_version||0),settings:Number(s.settings_version||0)};
+      }
+      status("All devices synced");
+    }catch(e){console.warn("Shared pull:",e);status("Sync retrying…")}
+    finally{pulling=false}
+  }
+
+  async function uploadShared(kind,file){
+    const path=kind==="upload"?P.upload:P.linehaul;
+    const field=kind==="upload"?"upload":"linehaul";
+    const version=Date.now();
+    // Write the payload first. Only after success does the DB state become
+    // authoritative, so receivers can never pull a half-written file.
+    await put(path,file,file.type||"text/csv");
+    await setState({
+      [field+"_exists"]:true,
+      [field+"_version"]:version
+    });
+    await announce(kind,"upload");
+    status((kind==="upload"?"Upload":"Linehaul")+" synced");
+  }
+
+  async function clearShared(kind){
+    const path=kind==="upload"?P.upload:P.linehaul;
+    const field=kind==="upload"?"upload":"linehaul";
+    const version=Date.now();
+    // Delete payload, then atomically publish the durable CLEAR state.
+    await remove(path);
+    await setState({
+      [field+"_exists"]:false,
+      [field+"_version"]:version
+    });
+    await announce(kind,"clear");
+    status((kind==="upload"?"Upload":"Linehaul")+" cleared on all devices");
+  }
+
+  // Capture phase makes sure this layer sees the user's action even when the
+  // original app handler is registered elsewhere.
+  document.getElementById("csvFile")?.addEventListener("change",e=>{
+    const f=e.target.files?.[0];if(!f||!started)return;
+    uploadShared("upload",f).catch(err=>{console.error(err);status("Cloud upload failed: "+err.message)});
+  },true);
+  document.getElementById("linehaulCsvFile")?.addEventListener("change",e=>{
+    const f=e.target.files?.[0];if(!f||!started)return;
+    uploadShared("linehaul",f).catch(err=>{console.error(err);status("Cloud upload failed: "+err.message)});
+  },true);
+
+  document.getElementById("clearCurrentUpload")?.addEventListener("click",()=>{
+    if(!started)return;
+    setTimeout(()=>clearShared("upload").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
+  },true);
+  document.getElementById("clearLinehaul")?.addEventListener("click",()=>{
+    if(!started)return;
+    setTimeout(()=>clearShared("linehaul").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
+  },true);
+
+  // Town settings are synced as a shared file.
+  if(typeof saveTownSettings==="function"&&!window.__badocSharedTownSyncV7){
+    const original=saveTownSettings;window.__badocSharedTownSyncV7=true;
+    saveTownSettings=function(){
+      original.apply(this,arguments);
+      if(!started)return;
+      put(P.settings,new Blob([JSON.stringify(towns)],{type:"application/json"}),"application/json")
+        .then(()=>setState({settings_version:Date.now()}))
+        .then(s=>announce("settings","update"))
+        .catch(e=>console.warn("Town settings sync:",e));
+    };
+  }
+
+  async function start(){
+    if(started)return;started=true;
+    try{
+      supa();
+      // Don't block the app while Realtime connects.
+      ensureRealtime().catch(e=>console.warn(e));
+      setTimeout(()=>pull().catch(()=>{}),150);
+      clearInterval(pollTimer);
+      pollTimer=setInterval(()=>pull().catch(()=>{}),5000);
+    }catch(e){console.warn(e);status("Cloud sync unavailable")}
+  }
+
+  if(document.readyState==="loading")
+    document.addEventListener("DOMContentLoaded",()=>setTimeout(start,50),{once:true});
+  else setTimeout(start,50);
+})();
+</script>
+
+
+
+
+
+
+<script id="cloud-connection-test">
+(function(){
+  async function runCloudTest(){
+    const btn=document.getElementById("cloudTestBtn"),out=document.getElementById("cloudTestResult");
+    if(btn)btn.disabled=true;
+    if(out)out.textContent="Testing…";
+    try{
+      const cfg=window.BADOC_SHARED_CONFIG||{};
+      if(!window.supabase)throw Error("Supabase JavaScript library is not loaded");
+      if(!cfg.url)throw Error("Supabase URL is missing");
+      if(!cfg.key)throw Error("Supabase public key is missing");
+
+      const c=window.supabase.createClient(cfg.url,cfg.key,{
+        auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+      });
+      const bucket="exported-files";
+
+      const listed=await c.storage.from(bucket).list("current",{limit:10});
+      if(listed.error)throw Error("Bucket access: "+(listed.error.message||listed.error));
+
+      const path="current/.cloud-connection-test.txt";
+      const body=new Blob(["BADOC cloud connection test "+Date.now()],{type:"text/plain"});
+
+      const up=await c.storage.from(bucket).upload(path,body,{
+        contentType:"text/plain",upsert:true,cacheControl:"0"
+      });
+      if(up.error)throw Error("Upload permission: "+(up.error.message||up.error));
+
+      const dl=await c.storage.from(bucket).download(path);
+      if(dl.error)throw Error("Download permission: "+(dl.error.message||dl.error));
+
+      const rm=await c.storage.from(bucket).remove([path]);
+      if(rm.error)throw Error("Delete permission: "+(rm.error.message||rm.error));
+
+      const ch=c.channel("badoc-cloud-test-"+Date.now());
+      let rt="timeout";
+      await new Promise(resolve=>{
+        let done=false;
+        const finish=v=>{if(done)return;done=true;rt=v;resolve()};
+        const timer=setTimeout(()=>finish("timeout"),3500);
+        ch.subscribe(s=>{
+          if(s==="SUBSCRIBED"){clearTimeout(timer);finish("OK")}
+          else if(s==="CHANNEL_ERROR"){clearTimeout(timer);finish("channel error")}
+          else if(s==="TIMED_OUT"){clearTimeout(timer);finish("timeout")}
+        });
+      });
+      try{await c.removeChannel(ch)}catch{}
+
+      if(out)out.textContent="CONNECTED ✓  Bucket ✓  Upload ✓  Download ✓  Delete ✓  Realtime: "+rt;
+    }catch(e){
+      console.error("Cloud test failed:",e);
+      if(out)out.textContent="FAILED ✕  "+(e?.message||String(e));
+    }finally{
+      if(btn)btn.disabled=false;
+    }
+  }
+
+  function bind(){
+    document.getElementById("cloudTestBtn")?.addEventListener("click",runCloudTest);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});
+  else bind();
+})();
+</script>
+
+<script id="parcel-multi-filter-finalizer">
+(function(){
+  function refresh(){
+    try{
+      if(typeof current!=="undefined"&&Array.isArray(current?.valid)){
+        refreshRecordFilterCounts();renderRecords();
+      }
+    }catch(e){console.warn("Parcel filter refresh:",e)}
+  }
+  setTimeout(refresh,300);setTimeout(refresh,1200);
+})();
+</script>
+<script id="parcel-filter-repair-finalizer">
+(function(){
+  function repair(){
+    try{
+      if(typeof current!=="undefined" && Array.isArray(current?.valid)){
+        refreshRecordFilterCounts();
+        renderRecords();
+      }
+    }catch(e){console.warn("Parcel filter repair:",e)}
+  }
+  setTimeout(repair,250);
+  setTimeout(repair,1000);
+  setTimeout(repair,2000);
+})();
+</script>
+
+<script id="badoc-hub-pwa-register">
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function (err) {
+      console.warn("Badoc Hub PWA service worker:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
