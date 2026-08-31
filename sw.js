@@ -1,11 +1,48 @@
-const CACHE = "badoc-hub-v15-3d-spx";
-const APP_SHELL = ["./","./index.html","./manifest.webmanifest","./spx-logo-192.png","./spx-logo-512.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{
-  const r=e.request;
-  if(r.method!=="GET")return;
-  const u=new URL(r.url);
-  if(u.origin!==self.location.origin)return;
-  e.respondWith(fetch(r).catch(()=>caches.match(r)));
+const CACHE = "badoc-hub-v16-shell";
+const APP_SHELL = [
+  "./",
+  "./manifest.webmanifest",
+  "./badoc-hub-icon.png",
+  "./spx-logo-512.png"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(key => key !== CACHE).map(key => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Always fetch HTML/favicons fresh so deployments are not hidden by the PWA cache.
+  const isHtml = request.mode === "navigate" || request.destination === "document";
+  const isIcon = request.destination === "image" && (
+    url.pathname.endsWith("badoc-hub-icon.png") ||
+    url.pathname.endsWith("spx-logo-512.png")
+  );
+
+  if (isHtml || isIcon) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
+  event.respondWith(
+    fetch(request).catch(() => caches.match(request))
+  );
 });

@@ -2,7 +2,7 @@
   "name": "Badoc Hub",
   "short_name": "Badoc Hub",
   "description": "Badoc Hub V15",
-  "start_url": "./",
+  "start_url": "./?v=16",
   "scope": "./",
   "display": "standalone",
   "background_color": "#071018",
@@ -10,13 +10,13 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "./spx-logo-192.png",
+      "src": "./badoc-hub-icon.png?v=16",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./spx-logo-512.png",
+      "src": "./spx-logo-512.png?v=16",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
