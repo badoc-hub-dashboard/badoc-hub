@@ -2700,7 +2700,7 @@ html{
     <div id="misTable"></div>
   </div></section>
 
-  <section id="history" class="page"><div class="section"><h2>Upload History</h2><div id="uploadStackNote" class="hint" style="margin:8px 0"></div><div id="historyGrid" class="history"></div></div></section>
+  <section id="history" class="page"><div class="section"><h2>Upload History</h2><div id="historyGrid" class="history"></div></div></section>
 
   <section id="towns" class="page"><div class="section">
     <h2>Town Management</h2><div class="hint" style="margin-bottom:12px">Admin only. Towns are kept in the exact order shown on your reference sheet. Removing a town makes matching parcels misrouted.</div>
@@ -2830,29 +2830,16 @@ function openDB(){
   });
   return dbReady;
 }
-function rebuildStackedCurrent(){
- const allRows=[],allValid=[],allMis=[];
- (Array.isArray(batches)?batches:[]).forEach(b=>{
-   if(Array.isArray(b.rows))allRows.push(...b.rows);
-   if(Array.isArray(b.valid))allValid.push(...b.valid);
-   if(Array.isArray(b.mis))allMis.push(...b.mis);
- });
- current=batches.length?{
-   name:`${batches.length} stacked file${batches.length===1?"":"s"}`,
-   time:Math.max(...batches.map(b=>Number(b.time)||0)),
-   rows:allRows,valid:allValid,mis:allMis,stacked:true
- }:null;
-}
 async function loadBatches(){
- try{
-  const db=await openDB();
-  batches=await new Promise((resolve,reject)=>{
-   const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
-   r.onsuccess=()=>resolve((r.result||[]).filter(b=>b&&b.name&&Array.isArray(b.rows)).sort((a,b)=>b.time-a.time));
-   r.onerror=()=>reject(r.error);
-  });
-  rebuildStackedCurrent();
- }catch(e){console.error(e);batches=[];current=null;}
+  try{
+    const db=await openDB();
+    batches=await new Promise((resolve,reject)=>{
+      const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
+      r.onsuccess=()=>resolve((r.result||[]).filter(b=>b && b.name && Array.isArray(b.rows)).sort((a,b)=>b.time-a.time));
+      r.onerror=()=>reject(r.error);
+    });
+    current=batches[0]||null;
+  }catch(e){console.error(e); batches=[]; current=null;}
 }
 async function saveBatches(){
   const db=await openDB();
@@ -2962,9 +2949,6 @@ function renderHistory(){
   const list=document.getElementById("historyGrid");
   if(!list)return;
   const items=Array.isArray(batches)?batches:[];
-  const stackNote=document.getElementById("uploadStackNote");
-  if(stackNote)stackNote.textContent=items.length?`${items.length} file${items.length===1?"":"s"} stacked together`:"";
-
   if(!items.length){
     list.innerHTML='<div class="hint" style="padding:10px 2px">No uploads yet.</div>';
     return;
@@ -2978,11 +2962,7 @@ function renderHistory(){
         <span class="upload-history-file">📄 ${file}</span>
         <span class="upload-history-time">${esc(when)}</span>
       </summary>
-      <div class="upload-history-detail"><b>Uploaded by:</b> ${by}
-        ${Number.isFinite(x?.newRecords)?`<br><b>New:</b> ${Number(x.newRecords).toLocaleString()}`:""}
-        ${Number.isFinite(x?.replacedExisting)?`<br><b>Updated:</b> ${Number(x.replacedExisting).toLocaleString()}`:""}
-        ${Number.isFinite(x?.duplicateRowsInFile)?`<br><b>Duplicate rows skipped:</b> ${Number(x.duplicateRowsInFile).toLocaleString()}`:""}
-      </div>
+      <div class="upload-history-detail"><b>Uploaded by:</b> ${by}</div>
     </details>`;
   }).join("");
 }
@@ -3029,107 +3009,6 @@ function refreshRecordFilterCounts(){
   const n=filters.town.length+filters.station.length+filters.status.length;
   const hint=$("recordFilterHint");
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
-}
-
-
-/* SHARED STACKED PARCEL DATA
-   Supabase is the shared source of truth. Each device downloads the aggregate,
-   while uploads use newest-SPX-TN-wins. Local IndexedDB remains a cache. */
-let sharedParcelClient=null, sharedParcelChannel=null, sharedParcelPollTimer=null;
-let sharedParcelReady=false, sharedParcelApplying=false, sharedParcelLastUpdated="";
-
-function sharedParcelTN(r){
-  return String(r?.["SLS Tracking Number"]??r?.["SPX TN"]??r?.["SPX TN/Tracking Number"]??r?.["Tracking Number"]??r?.["Order ID"]??"").trim().toUpperCase();
-}
-function sharedParcelConfig(){
-  return window.BADOC_SHARED_CONFIG||{};
-}
-function mergeNewestParcelRows(oldRows,newRows){
-  const map=new Map();
-  (Array.isArray(oldRows)?oldRows:[]).forEach(r=>{
-    const tn=sharedParcelTN(r);
-    const key=tn||`__NO_TN__${map.size}`;
-    map.set(key,r);
-  });
-  let added=0,updated=0,duplicates=0;
-  const seenIncoming=new Set();
-  (Array.isArray(newRows)?newRows:[]).forEach(r=>{
-    const tn=sharedParcelTN(r);
-    if(tn){
-      if(seenIncoming.has(tn)){duplicates++;return;}
-      seenIncoming.add(tn);
-      if(map.has(tn))updated++;else added++;
-      map.set(tn,r);
-    }else{
-      added++;
-      map.set(`__NO_TN__${Date.now()}_${added}`,r);
-    }
-  });
-  return {rows:[...map.values()],added,updated,duplicates};
-}
-function setSharedParcelRows(rows){
-  const clean=Array.isArray(rows)?rows:[];
-  const z=classify(clean);
-  const batch={name:"Shared stacked data",time:Date.now(),rows:clean,valid:z.valid,mis:z.mis,uploadedBy:"Shared"};
-  batches=[batch];
-  current=batch;
-  try{saveBatches()}catch(e){}
-  render();
-}
-async function downloadSharedParcelData(){
-  if(!sharedParcelClient||sharedParcelApplying)return;
-  try{
-    const r=await sharedParcelClient.from("shared_parcel_data").select("rows,updated_at").eq("id","global").maybeSingle();
-    if(r.error)throw r.error;
-    if(r.data?.rows){
-      const u=String(r.data.updated_at||"");
-      if(u!==sharedParcelLastUpdated){
-        sharedParcelLastUpdated=u;
-        sharedParcelApplying=true;
-        try{setSharedParcelRows(r.data.rows)}finally{sharedParcelApplying=false}
-      }
-    }
-  }catch(e){console.warn("Shared parcel download failed:",e)}
-}
-async function publishSharedParcelRows(rows){
-  if(!sharedParcelClient||!sharedParcelReady)return null;
-  const r=await sharedParcelClient.from("shared_parcel_data").upsert(
-    {id:"global",rows:Array.isArray(rows)?rows:[],updated_at:new Date().toISOString()},
-    {onConflict:"id"}
-  );
-  if(r.error)throw r.error;
-  return r;
-}
-async function startSharedParcelSync(){
-  try{
-    const cfg=sharedParcelConfig();
-    if(!window.supabase||!cfg.url||!cfg.key)throw Error("Shared Supabase configuration unavailable");
-    sharedParcelClient=window.supabase.createClient(cfg.url,cfg.key,{
-      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
-    });
-    await downloadSharedParcelData();
-    sharedParcelReady=true;
-
-    sharedParcelChannel=sharedParcelClient.channel("badoc-global-parcels-v1")
-      .on("postgres_changes",
-        {event:"*",schema:"public",table:"shared_parcel_data",filter:"id=eq.global"},
-        payload=>{
-          if(payload?.new?.rows&&!sharedParcelApplying){
-            sharedParcelLastUpdated=String(payload.new.updated_at||"");
-            sharedParcelApplying=true;
-            try{setSharedParcelRows(payload.new.rows)}finally{sharedParcelApplying=false}
-          }
-        })
-      .on("broadcast",{event:"badoc-parcels"},({payload})=>{
-        if(payload?.rows&&!sharedParcelApplying){
-          sharedParcelApplying=true;
-          try{setSharedParcelRows(payload.rows)}finally{sharedParcelApplying=false}
-        }
-      })
-      .subscribe();
-    clearInterval(sharedParcelPollTimer);
-    sharedParcelPollTimer=setInterval(downloadSharedParcelData,2000);
-  }catch(e){console.warn("Shared parcel sync unavailable:",e)}
 }
 
 let sharedFilterSyncChannel=null;
@@ -3400,59 +3279,44 @@ async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(c
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
 function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
-$("csvFile").addEventListener("change",e=>{
- let f=e.target.files[0];if(!f)return;
- let rd=new FileReader();
- rd.onload=async()=>{
-  try{
-   const incoming=parseCSV(rd.result);
-   if(sharedParcelReady&&sharedParcelClient){
-     const rr=await sharedParcelClient.from("shared_parcel_data").select("rows").eq("id","global").maybeSingle();
-     if(rr.error)throw rr.error;
-     const oldRows=rr.data?.rows||[];
-     const merged=mergeNewestParcelRows(oldRows,incoming);
-     const z=classify(merged.rows);
-     await publishSharedParcelRows(merged.rows);
-     sharedParcelLastUpdated=new Date().toISOString();
-     setSharedParcelRows(merged.rows);
-     alert("Upload complete\n\n"+
-       `${merged.added.toLocaleString()} new records\n`+
-       `${merged.updated.toLocaleString()} records updated\n`+
-       `${merged.duplicates.toLocaleString()} duplicate rows in this file skipped\n`+
-       `${merged.rows.length.toLocaleString()} unique records in shared stack`);
-   }else{
-     const merged=mergeNewestParcelRows(current?.rows||[],incoming);
-     const z=classify(merged.rows);
-     setSharedParcelRows(merged.rows);
-     await saveBatches();
-     alert("Upload complete (shared connection not ready)\n\n"+
-       `${merged.added.toLocaleString()} new records\n${merged.updated.toLocaleString()} records updated\n`+
-       `${merged.duplicates.toLocaleString()} duplicate rows in this file skipped\n`+
-       `${merged.rows.length.toLocaleString()} unique records in stack`);
-   }
-   saveTownSettings(); render(); showPage("dashboard"); e.target.value="";
-  }catch(err){alert("Could not upload this CSV: "+err.message)}
- };
- rd.readAsText(f)
-});
+$("csvFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=async()=>{try{let rows=parseCSV(rd.result),z=classify(rows);current={name:f.name,time:Date.now(),rows,valid:z.valid,mis:z.mis};batches=[current,...batches.filter(b=>b.name!==f.name)];saveTownSettings();await saveBatches();render();showPage("dashboard")}catch(err){alert("Could not read this CSV: "+err.message)}};rd.readAsText(f)});
+
 $("clearCurrentUpload").onclick=async()=>{
- if(!batches.length){alert("There are no uploaded files to clear.");return;}
- const removed=batches[0];
- undoBatch={batch:removed,index:0};
- batches.splice(0,1);
- rebuildStackedCurrent();
- await saveBatches();
- render();
- showPage("upload");
+  if(!current){alert("There is no current upload to clear.");return;}
+  const idx=batches.findIndex(b=>b===current || (b.name===current.name && b.time===current.time));
+  if(idx<0){alert("Current upload was not found.");return;}
+  undoBatch={batch:current,index:idx};
+  batches.splice(idx,1);
+  current=batches[0]||null;
+  await saveBatches();
+  render();
+  showPage("upload");
 };
 $("undoUpload").onclick=async()=>{
- if(!undoBatch){alert("Nothing to undo.");return;}
- batches.splice(Math.min(undoBatch.index,batches.length),0,undoBatch.batch);
- undoBatch=null;
- rebuildStackedCurrent();
- await saveBatches();
- render();
- showPage("upload");
+  if(!undoBatch){alert("Nothing to undo.");return;}
+  const exists=batches.some(b=>b.name===undoBatch.batch.name && b.time===undoBatch.batch.time);
+  if(!exists)batches.splice(Math.min(undoBatch.index,batches.length),0,undoBatch.batch);
+  current=undoBatch.batch;
+  await saveBatches();
+  undoBatch=null;
+  render();
+  showPage("dashboard");
+};
+
+$("misroutedKpi").onclick=()=>showPage("misrouted");
+$("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showPage("misrouted")}};
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
+  const e=$(id); if(!e)return;
+  e.addEventListener("input",()=>{window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish()});
+  e.addEventListener("change",()=>{window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish()});
+});
+$("clearRecordFilters").onclick=()=>{
+  $("recordSearch").value="";
+  ["recordTown","recordStation","recordStatus"].forEach(id=>{
+    const e=$(id);if(e)[...e.options].forEach(o=>o.selected=false);
+  });
+  window.__parcelRecordPage=1;renderRecords();
 };
 $("misSearch").addEventListener("input",renderMis);
 function exportValidFiltered(){
@@ -5035,7 +4899,7 @@ try{
   else initSharedFilterSync();
 }catch(e){console.warn("Filter sync init:",e)}
 
-try{const initShared=()=>setTimeout(()=>{startSharedParcelSync();startSharedFilterSync();},1200);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initShared,{once:true});else initShared();}catch(e){console.warn("Shared sync init:",e)}
+try{const initSharedFilterSync=()=>setTimeout(startSharedFilterSync,1200);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSharedFilterSync,{once:true});else initSharedFilterSync();}catch(e){console.warn("Filter sync init:",e)}
 </script>
 
 </body>
