@@ -3017,6 +3017,8 @@ let sharedFilterSyncTimer=null;
 let sharedFilterSyncClient=null;
 let sharedFilterSyncReady=false;
 let sharedFilterSyncPending=null;
+let sharedFilterPollTimer=null;
+let sharedFilterLastUpdatedAt="";
 
 function sharedFilterState(){
   return {
@@ -3027,7 +3029,7 @@ function sharedFilterState(){
   };
 }
 function applySharedFilterState(state){
-  if(!state)return;
+  state=state||{search:"",town:[],station:[],status:[]};
   const apply=()=>{
     const els=["recordTown","recordStation","recordStatus"].map($);
     if(els.some(e=>!e||!e.options.length))return false;
@@ -3041,13 +3043,16 @@ function applySharedFilterState(state){
       sharedFilterSyncPending=null;
       window.__parcelRecordPage=1;
       renderRecords();
-    }finally{ sharedFilterSyncApplying=false; }
+    }finally{sharedFilterSyncApplying=false}
     return true;
   };
   if(!apply()){
     sharedFilterSyncPending=state;
     let tries=0;
-    const wait=()=>{if(!sharedFilterSyncPending||tries++>30)return;if(!apply())setTimeout(wait,500)};
+    const wait=()=>{
+      if(!sharedFilterSyncPending||tries++>30)return;
+      if(!apply())setTimeout(wait,500);
+    };
     setTimeout(wait,100);
   }
 }
@@ -3055,24 +3060,22 @@ async function publishSharedFilterState(){
   if(sharedFilterSyncApplying||!sharedFilterSyncClient||!sharedFilterSyncReady)return;
   const state=sharedFilterState();
   try{
+    const updated=new Date().toISOString();
     const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
-      {id:"global",state,updated_at:new Date().toISOString()},
-      {onConflict:"id"}
+      {id:"global",state,updated_at:updated},{onConflict:"id"}
     );
     if(r.error)throw r.error;
-    if(sharedFilterSyncChannel)await sharedFilterSyncChannel.send({
-      type:"broadcast",event:"badoc-filter",payload:{state}
-    });
+    sharedFilterLastUpdatedAt=updated;
+    if(sharedFilterSyncChannel){
+      await sharedFilterSyncChannel.send({type:"broadcast",event:"badoc-filter",payload:{state,updated_at:updated}});
+    }
   }catch(e){console.warn("Shared filter publish failed:",e)}
 }
 function queueSharedFilterPublish(){
   if(sharedFilterSyncApplying)return;
   clearTimeout(sharedFilterSyncTimer);
-  sharedFilterSyncTimer=setTimeout(publishSharedFilterState,300);
+  sharedFilterSyncTimer=setTimeout(publishSharedFilterState,250);
 }
-
-let sharedFilterPollTimer=null;
-let sharedFilterLastUpdatedAt="";
 async function pollSharedFilterState(){
   if(!sharedFilterSyncClient||!sharedFilterSyncReady||sharedFilterSyncApplying)return;
   try{
@@ -3080,18 +3083,17 @@ async function pollSharedFilterState(){
       .select("state,updated_at").eq("id","global").maybeSingle();
     if(r.error)throw r.error;
     const u=String(r.data?.updated_at||"");
-    if(r.data?.state && u && u!==sharedFilterLastUpdatedAt){
+    if(r.data && u && u!==sharedFilterLastUpdatedAt){
       sharedFilterLastUpdatedAt=u;
-      applySharedFilterState(r.data.state);
+      applySharedFilterState(r.data.state||{search:"",town:[],station:[],status:[]});
     }
   }catch(e){console.warn("Shared filter poll failed:",e)}
 }
 function startSharedFilterPolling(){
   clearInterval(sharedFilterPollTimer);
-  sharedFilterPollTimer=setInterval(pollSharedFilterState,2000);
+  sharedFilterPollTimer=setInterval(pollSharedFilterState,1500);
   pollSharedFilterState();
 }
-
 async function startSharedFilterSync(){
   try{
     const cfg=window.BADOC_SHARED_CONFIG||{};
@@ -3099,8 +3101,6 @@ async function startSharedFilterSync(){
     sharedFilterSyncClient=window.supabase.createClient(cfg.url,cfg.key,{
       auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
     });
-
-    // Read the shared state first. A new device must NOT overwrite it with its local empty filters.
     const r=await sharedFilterSyncClient.from("shared_filter_state")
       .select("state,updated_at").eq("id","global").maybeSingle();
     if(r.error)throw r.error;
@@ -3109,15 +3109,20 @@ async function startSharedFilterSync(){
     if(r.data?.state)applySharedFilterState(r.data.state);
     startSharedFilterPolling();
 
-    sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v2");
-    sharedFilterSyncChannel
+    sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v3")
       .on("broadcast",{event:"badoc-filter"},({payload})=>{
-        if(payload?.state&&!sharedFilterSyncApplying)applySharedFilterState(payload.state);
+        if(payload?.state&&!sharedFilterSyncApplying){
+          sharedFilterLastUpdatedAt=String(payload.updated_at||Date.now());
+          applySharedFilterState(payload.state);
+        }
       })
       .on("postgres_changes",
         {event:"*",schema:"public",table:"shared_filter_state",filter:"id=eq.global"},
         payload=>{
-          if(payload?.new?.state&&!sharedFilterSyncApplying)applySharedFilterState(payload.new.state);
+          if(payload?.new){
+            sharedFilterLastUpdatedAt=String(payload.new.updated_at||Date.now());
+            if(!sharedFilterSyncApplying)applySharedFilterState(payload.new.state||{});
+          }
         })
       .subscribe();
   }catch(e){console.warn("Shared filter sync unavailable:",e)}
@@ -4900,6 +4905,17 @@ try{
 }catch(e){console.warn("Filter sync init:",e)}
 
 try{const initSharedFilterSync=()=>setTimeout(startSharedFilterSync,1200);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSharedFilterSync,{once:true});else initSharedFilterSync();}catch(e){console.warn("Filter sync init:",e)}
+
+// Bidirectional global filter publishing: changes and clears from ANY device
+// are sent to the same shared_filter_state row.
+try{
+  ["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
+    const el=$(id);
+    if(!el)return;
+    el.addEventListener("input",queueSharedFilterPublish);
+    el.addEventListener("change",queueSharedFilterPublish);
+  });
+}catch(e){console.warn("Filter publish wiring:",e)}
 </script>
 
 </body>
