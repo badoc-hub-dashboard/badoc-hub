@@ -1,4 +1,4 @@
-const CACHE = "badoc-hub-v43-stack-timeout-fix";
+const CACHE = "badoc-hub-v45-individual-parcels";
 const APP_SHELL = [
   "./",
   "./manifest.webmanifest",

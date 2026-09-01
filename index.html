@@ -1189,35 +1189,7 @@ body{
 }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-try{
-  const clearBtn=$("clearCurrentUpload");
-  if(clearBtn&&!document.getElementById("clearSharedData")){
-    const b=document.createElement("button");
-    b.id="clearSharedData";
-    b.type="button";
-    b.className=clearBtn.className;
-    b.textContent="Clear Shared Data";
-    b.title="Permanently clear shared parcel data for all devices";
-    b.onclick=()=>clearSharedData().catch(e=>
-      alert("Could not clear shared data:\n\n"+e.message)
-    );
-    clearBtn.parentNode.insertBefore(b,clearBtn.nextSibling);
-  }
-}catch(e){console.warn("Clear Shared Data button:",e)}
-
-window.checkSharedStack=async()=>{
-  const files=await getSharedUploads();
-  let rows=[];
-  files.forEach(f=>{rows=stackMerge(rows,Array.isArray(f.rows)?f.rows:[]).rows});
-  const info={
-    cloudUploads:files.length,
-    uploads:files.map(f=>({file:f.file_name,rows:Array.isArray(f.rows)?f.rows.length:0,uploaded_at:f.uploaded_at})),
-    uniqueSPXTN:rows.length
-  };
-  console.log("BADOC SHARED STACK CHECK",info);
-  return info;
-};
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">try{const clearBtn=$("clearCurrentUpload");if(clearBtn&&!document.getElementById("clearSharedData")){const b=document.createElement("button");b.id="clearSharedData";b.type="button";b.className=clearBtn.className;b.textContent="Clear Shared Data";b.title="Permanently clear shared parcel data for all devices";b.onclick=()=>clearSharedData().catch(e=>alert("Could not clear shared data:\n\n"+e.message));clearBtn.parentNode.insertBefore(b,clearBtn.nextSibling)}}catch(e){console.warn("Clear Shared Data button:",e)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>startSharedParcels());else startSharedParcels();
 </script>
 
 <script>
@@ -3041,171 +3013,85 @@ function refreshRecordFilterCounts(){
 }
 
 
-/* SHARED STACKING UPGRADE
-   Each uploaded CSV is stored as its own cloud upload. The app rebuilds the
-   combined dataset from every upload. SPX TN is the unique key; newest wins. */
-let sharedStackClient=null;
-let sharedStackReady=false;
-let sharedStackPollTimer=null;
-let sharedStackApplying=false;
-let sharedStackSignature="";
-
-function stackNorm(v){
-  return String(v??"").trim()
-    .replace(/^["']+|["']+$/g,"")
-    .replace(/\s+/g,"")
-    .replace(/[\-_.]/g,"")
-    .toUpperCase();
-}
-function stackTN(r){
-  // SPX TN is the authoritative duplicate key.
-  const primary=[
-    "SPX TN","SPX Tracking Number","SPX TN/Tracking Number","spxTN"
-  ];
-  for(const k of primary){
-    const v=r?.[k];
-    if(v!==undefined&&String(v).trim()!=="")return stackNorm(v);
-  }
-  // Fallback only for older exports that don't contain SPX TN.
-  for(const k of ["SLS Tracking Number","Tracking Number"]){
-    const v=r?.[k];
-    if(v!==undefined&&String(v).trim()!=="")return stackNorm(v);
+/* V45 SHARED PARCEL RECORD STACK
+   One cloud row per parcel. SPX TN is the unique key; newest upload wins. */
+let sharedParcelClient=null,sharedParcelReady=false,sharedParcelBusy=false,sharedParcelPollTimer=null,sharedParcelSignature="";
+function sharedParcelNorm(v){return String(v??"").trim().replace(/^["']+|["']+$/g,"").replace(/\s+/g,"").replace(/[\-_.]/g,"").toUpperCase()}
+function sharedParcelTN(r){
+  for(const k of ["SPX TN","SPX Tracking Number","SPX TN/Tracking Number","spxTN","SLS Tracking Number","Tracking Number"]){
+    const v=r?.[k]; if(v!==undefined&&String(v).trim()!=="") return sharedParcelNorm(v);
   }
   return "";
 }
-
-function stackMerge(base,incoming){
-  const map=new Map(), order=[];
-  const put=(r,k)=>{if(!map.has(k))order.push(k);map.set(k,r)};
-  (base||[]).forEach((r,i)=>put(r,stackTN(r)||`__base_${i}`));
-
-  let added=0,updated=0,duplicates=0;
-  const seen=new Set();
-
-  (incoming||[]).forEach((r,i)=>{
-    const k=stackTN(r);
-    if(k){
-      if(seen.has(k)){duplicates++;return}
-      seen.add(k);
-      if(map.has(k))updated++;else added++;
-      put(r,k);                 // newest record replaces old record
-    }else{
-      added++;
-      put(r,`__blank_${i}_${Math.random()}`);
-    }
-  });
-  return {rows:order.map(k=>map.get(k)),added,updated,duplicates};
-}
-async function connectSharedStack(){
-  if(sharedStackReady)return;
+async function connectSharedParcels(){
+  if(sharedParcelReady)return;
   const cfg=window.BADOC_SHARED_CONFIG||{};
-  if(!window.supabase||!cfg.url||!cfg.key)
-    throw Error("Shared Supabase configuration unavailable.");
-  sharedStackClient=window.supabase.createClient(cfg.url,cfg.key,{
-    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
-  });
-  const t=await sharedStackClient.from("shared_parcel_uploads")
-    .select("id").limit(1);
-  if(t.error)throw t.error;
-  sharedStackReady=true;
+  if(!window.supabase||!cfg.url||!cfg.key)throw Error("Shared Supabase configuration unavailable.");
+  sharedParcelClient=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const t=await sharedParcelClient.from("shared_parcel_records").select("spx_tn").limit(1);
+  if(t.error)throw t.error; sharedParcelReady=true;
 }
-async function getSharedUploads(){
-  await connectSharedStack();
-  const r=await sharedStackClient.from("shared_parcel_uploads")
-    .select("id,file_name,rows,uploaded_at")
-    .order("uploaded_at",{ascending:true});
-  if(r.error)throw r.error;
-  return r.data||[];
-}
-async function rebuildSharedStack(){
-  if(sharedStackApplying)return;
-  const files=await getSharedUploads();
-  const sig=JSON.stringify(files.map(f=>[
-    f.id,f.uploaded_at,Array.isArray(f.rows)?f.rows.length:0
-  ]));
-  if(sig===sharedStackSignature)return;
-  sharedStackSignature=sig;
-  if(!files.length)return;
-
-  let rows=[];
-  files.forEach(f=>{
-    rows=stackMerge(rows,Array.isArray(f.rows)?f.rows:[]).rows;
-  });
-
-  sharedStackApplying=true;
-  try{
-    const z=classify(rows);
-    const b={
-      name:"Shared stacked data",time:Date.now(),rows,
-      valid:z.valid,mis:z.mis,uploadedBy:"Shared"
-    };
-    batches=[b];current=b;
-    await saveBatches();
-    render();
-  }finally{
-    sharedStackApplying=false;
+async function getSharedParcelRecords(){
+  await connectSharedParcels(); const page=1000; let from=0,all=[];
+  while(true){
+    const r=await sharedParcelClient.from("shared_parcel_records").select("spx_tn,row,updated_at").order("updated_at",{ascending:true}).range(from,from+page-1);
+    if(r.error)throw r.error; const part=r.data||[]; all.push(...part);
+    if(part.length<page)break; from+=page;
   }
+  return all;
 }
-async function startSharedStack(){
+async function rebuildSharedParcels(force=false){
+  if(sharedParcelBusy)return;
+  const records=await getSharedParcelRecords();
+  const sig=JSON.stringify(records.map(x=>[x.spx_tn,x.updated_at]));
+  if(!force&&sig===sharedParcelSignature)return;
+  sharedParcelSignature=sig;
+  const rows=records.map(x=>x.row).filter(Boolean);
+  sharedParcelBusy=true;
   try{
-    await connectSharedStack();
-    await rebuildSharedStack();
-    clearInterval(sharedStackPollTimer);
-    sharedStackPollTimer=setInterval(
-      ()=>rebuildSharedStack().catch(e=>console.warn("Shared stack refresh:",e)),
-      2000
-    );
-  }catch(e){
-    console.warn("Shared stack unavailable:",e);
-  }
+    if(!rows.length){batches=[];current=null;await saveBatches();render();return;}
+    const z=classify(rows),b={name:"Shared stacked data",time:Date.now(),rows,valid:z.valid,mis:z.mis,uploadedBy:"Shared"};
+    batches=[b];current=b;await saveBatches();render();
+  }finally{sharedParcelBusy=false}
 }
-async function uploadToSharedStack(fileName,rows){
-  await connectSharedStack();
-
-  // Large CSVs can exceed Supabase/Postgres statement timeouts if inserted as
-  // one huge JSONB row. Store the same file as small ordered chunks instead.
-  const sourceRows=Array.isArray(rows)?rows:[];
+async function startSharedParcels(){
+  try{
+    await connectSharedParcels(); await rebuildSharedParcels(true);
+    clearInterval(sharedParcelPollTimer);
+    sharedParcelPollTimer=setInterval(()=>rebuildSharedParcels().catch(e=>console.warn("Shared parcel refresh:",e)),2000);
+  }catch(e){console.warn("Shared parcel stack unavailable:",e)}
+}
+async function uploadSharedParcels(fileName,rows){
+  await connectSharedParcels();
+  const now=Date.now(),seen=new Set(),payload=[]; let duplicateInFile=0;
+  (rows||[]).forEach((row,i)=>{
+    const tn=sharedParcelTN(row);
+    const key=tn||("__NO-SPXTN__"+now+"-"+i+"-"+Math.random().toString(36).slice(2));
+    if(tn&&seen.has(tn)){duplicateInFile++;return}
+    if(tn)seen.add(tn);
+    payload.push({spx_tn:key,row,source_file:String(fileName||"Exported file"),updated_at:new Date(now+i).toISOString()});
+  });
   const CHUNK=100;
-  const baseName=String(fileName||"Exported file");
-
-  for(let i=0;i<sourceRows.length;i+=CHUNK){
-    const chunk=sourceRows.slice(i,i+CHUNK);
-    const payload={
-      id:(crypto?.randomUUID
-        ?crypto.randomUUID()
-        :"upload-"+Date.now()+"-"+Math.random().toString(36).slice(2)),
-      file_name:baseName+" ["+(Math.floor(i/CHUNK)+1)+"/"+Math.ceil(sourceRows.length/CHUNK)+"]",
-      rows:chunk,
-      uploaded_at:new Date(Date.now()+i).toISOString()
-    };
-    const r=await sharedStackClient.from("shared_parcel_uploads").insert(payload);
+  for(let i=0;i<payload.length;i+=CHUNK){
+    const r=await sharedParcelClient.from("shared_parcel_records").upsert(payload.slice(i,i+CHUNK),{onConflict:"spx_tn"});
     if(r.error)throw r.error;
   }
-  sharedStackSignature="";
+  sharedParcelSignature="";
+  return {uploaded:payload.length,duplicateInFile};
 }
-
 async function clearSharedData(){
-  await connectSharedStack();
-  const ok=confirm(
-    "CLEAR SHARED DATA?\n\n"+
-    "This permanently deletes ALL shared uploaded parcel files from the cloud.\n"+
-    "All connected devices will receive an empty shared dataset.\n\n"+
-    "Continue?"
-  );
+  await connectSharedParcels();
+  const ok=confirm("CLEAR SHARED DATA?\n\nThis permanently deletes ALL shared parcel records from the cloud.\nAll connected devices will become empty.\n\nContinue?");
   if(!ok)return;
-  const files=await getSharedUploads();
-  for(const f of files){
-    const r=await sharedStackClient.from("shared_parcel_uploads")
-      .delete().eq("id",f.id);
-    if(r.error)throw r.error;
+  while(true){
+    const r=await sharedParcelClient.from("shared_parcel_records").select("spx_tn").limit(1000);
+    if(r.error)throw r.error; const ids=(r.data||[]).map(x=>x.spx_tn); if(!ids.length)break;
+    const d=await sharedParcelClient.from("shared_parcel_records").delete().in("spx_tn",ids);
+    if(d.error)throw d.error;
   }
-
-  sharedStackSignature="";
-  batches=[];current=null;
-  try{await saveBatches()}catch(e){}
-  render();
-  alert("Shared data cleared successfully.");
+  sharedParcelSignature="";batches=[];current=null;await saveBatches();render();alert("Shared data cleared successfully.");
 }
+window.checkSharedParcels=async()=>{const r=await getSharedParcelRecords();const info={cloudRecords:r.length,uniqueSPXTN:r.filter(x=>!String(x.spx_tn).startsWith("__NO-SPXTN__")).length};console.log("BADOC SHARED PARCEL CHECK",info);return info};
 let sharedFilterSyncChannel=null;
 let sharedFilterSyncApplying=false;
 let sharedFilterSyncTimer=null;
@@ -3302,7 +3188,7 @@ async function startSharedFilterSync(){
     sharedFilterSyncReady=true;
     sharedFilterLastUpdatedAt=String(r.data?.updated_at||"");
     if(r.data?.state)applySharedFilterState(r.data.state);
-    startSharedStack();startSharedFilterPolling();
+    startSharedFilterPolling();
 
     sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v3")
       .on("broadcast",{event:"badoc-filter"},({payload})=>{
@@ -3480,59 +3366,14 @@ function download(name,text,type="text/csv"){let a=document.createElement("a");a
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
 function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
 $("csvFile").addEventListener("change",e=>{
-  const f=e.target.files[0];if(!f)return;
-  const rd=new FileReader();
-  rd.onload=async()=>{
-    try{
-      const incoming=parseCSV(rd.result);
-      await connectSharedStack();
-
-      // Read the complete shared stack BEFORE this upload.
-      const existing=await getSharedUploads();
-      let before=[];
-      existing.forEach(x=>{
-        before=stackMerge(
-          before,Array.isArray(x.rows)?x.rows:[]
-        ).rows;
-      });
-      const report=stackMerge(before,incoming);
-
-      // Store a NEW cloud upload. Never overwrite a previous upload.
-      await uploadToSharedStack(f.name,incoming);
-
-      // Rebuild from ALL shared uploads.
-      const all=await getSharedUploads();
-      let stacked=[];
-      all.forEach(x=>{
-        stacked=stackMerge(
-          stacked,Array.isArray(x.rows)?x.rows:[]
-        ).rows;
-      });
-
-      const z=classify(stacked);
-      const b={
-        name:"Shared stacked data",time:Date.now(),rows:stacked,
-        valid:z.valid,mis:z.mis,uploadedBy:"Shared"
-      };
-      batches=[b];current=b;
-      await saveBatches();
-      render();
-      showPage("dashboard");
-      e.target.value="";
-
-      alert(
-        "Shared upload complete\n\n"+
-        "New records: "+report.added.toLocaleString()+"\n"+
-        "Updated records: "+report.updated.toLocaleString()+"\n"+
-        "Duplicate rows skipped: "+report.duplicates.toLocaleString()+"\n"+
-        "TOTAL UNIQUE SHARED PARCELS: "+stacked.length.toLocaleString()+"\n\n"+
-        "Cloud storage: upload saved in small chunks to prevent timeout."
-      );
-    }catch(err){
-      alert("Shared upload failed:\n\n"+err.message);
-    }
-  };
-  rd.readAsText(f);
+ const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=async()=>{
+  try{
+   const incoming=parseCSV(rd.result),result=await uploadSharedParcels(f.name,incoming);
+   await rebuildSharedParcels(true);render();showPage("dashboard");e.target.value="";
+   alert("Shared upload complete\n\nRecords uploaded: "+result.uploaded.toLocaleString()+"\nDuplicate rows inside this file skipped: "+result.duplicateInFile.toLocaleString()+"\nTOTAL UNIQUE SHARED PARCELS: "+(current?.rows?.length||0).toLocaleString());
+  }catch(err){alert("Shared upload failed:\n\n"+err.message)}
+ };rd.readAsText(f)
 });
 $("clearCurrentUpload").onclick=async()=>{
   if(!current){alert("There is no current upload to clear.");return;}
