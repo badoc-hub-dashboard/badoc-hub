@@ -3161,18 +3161,29 @@ async function startSharedStack(){
 }
 async function uploadToSharedStack(fileName,rows){
   await connectSharedStack();
-  const payload={
-    id:(crypto?.randomUUID
-      ?crypto.randomUUID()
-      :"upload-"+Date.now()+"-"+Math.random().toString(36).slice(2)),
-    file_name:String(fileName||"Exported file"),
-    rows:Array.isArray(rows)?rows:[],
-    uploaded_at:new Date().toISOString()
-  };
-  const r=await sharedStackClient.from("shared_parcel_uploads").insert(payload);
-  if(r.error)throw r.error;
+
+  // Large CSVs can exceed Supabase/Postgres statement timeouts if inserted as
+  // one huge JSONB row. Store the same file as small ordered chunks instead.
+  const sourceRows=Array.isArray(rows)?rows:[];
+  const CHUNK=100;
+  const baseName=String(fileName||"Exported file");
+
+  for(let i=0;i<sourceRows.length;i+=CHUNK){
+    const chunk=sourceRows.slice(i,i+CHUNK);
+    const payload={
+      id:(crypto?.randomUUID
+        ?crypto.randomUUID()
+        :"upload-"+Date.now()+"-"+Math.random().toString(36).slice(2)),
+      file_name:baseName+" ["+(Math.floor(i/CHUNK)+1)+"/"+Math.ceil(sourceRows.length/CHUNK)+"]",
+      rows:chunk,
+      uploaded_at:new Date(Date.now()+i).toISOString()
+    };
+    const r=await sharedStackClient.from("shared_parcel_uploads").insert(payload);
+    if(r.error)throw r.error;
+  }
   sharedStackSignature="";
 }
+
 async function clearSharedData(){
   await connectSharedStack();
   const ok=confirm(
@@ -3182,9 +3193,12 @@ async function clearSharedData(){
     "Continue?"
   );
   if(!ok)return;
-  const r=await sharedStackClient.from("shared_parcel_uploads")
-    .delete().neq("id","");
-  if(r.error)throw r.error;
+  const files=await getSharedUploads();
+  for(const f of files){
+    const r=await sharedStackClient.from("shared_parcel_uploads")
+      .delete().eq("id",f.id);
+    if(r.error)throw r.error;
+  }
 
   sharedStackSignature="";
   batches=[];current=null;
@@ -3511,7 +3525,8 @@ $("csvFile").addEventListener("change",e=>{
         "New records: "+report.added.toLocaleString()+"\n"+
         "Updated records: "+report.updated.toLocaleString()+"\n"+
         "Duplicate rows skipped: "+report.duplicates.toLocaleString()+"\n"+
-        "TOTAL UNIQUE SHARED PARCELS: "+stacked.length.toLocaleString()
+        "TOTAL UNIQUE SHARED PARCELS: "+stacked.length.toLocaleString()+"\n\n"+
+        "Cloud storage: upload saved in small chunks to prevent timeout."
       );
     }catch(err){
       alert("Shared upload failed:\n\n"+err.message);
