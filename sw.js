@@ -1,4 +1,4 @@
-const CACHE = "badoc-hub-v25-bidirectional-filter";
+const CACHE = "badoc-hub-v27-bidirectional-final";
 const APP_SHELL = [
   "./",
   "./manifest.webmanifest",

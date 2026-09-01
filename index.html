@@ -3313,16 +3313,35 @@ $("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefaul
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 ["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
   const e=$(id); if(!e)return;
-  e.addEventListener("input",()=>{window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish()});
-  e.addEventListener("change",()=>{window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish()});
+  e.addEventListener("input",()=>{
+    if(sharedFilterSyncApplying)return;
+    window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();
+  });
+  e.addEventListener("change",()=>{
+    if(sharedFilterSyncApplying)return;
+    window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();
+  });
 });
 $("clearRecordFilters").onclick=()=>{
   $("recordSearch").value="";
   ["recordTown","recordStation","recordStatus"].forEach(id=>{
     const e=$(id);if(e)[...e.options].forEach(o=>o.selected=false);
   });
-  window.__parcelRecordPage=1;renderRecords();
+  window.__parcelRecordPage=1;
+  renderRecords();
+  // Clearing is itself a shared state change. Publish it explicitly.
+  queueSharedFilterPublish();
 };
+document.addEventListener("input",ev=>{
+  if(ev.target?.id==="recordSearch"){
+    if(!sharedFilterSyncApplying){window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();}
+  }
+});
+document.addEventListener("change",ev=>{
+  if(["recordTown","recordStation","recordStatus"].includes(ev.target?.id)){
+    if(!sharedFilterSyncApplying){window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();}
+  }
+});
 $("misSearch").addEventListener("input",renderMis);
 function exportValidFiltered(){
   if(!current){alert("There is no current upload to export.");return;}
