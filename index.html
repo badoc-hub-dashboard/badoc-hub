@@ -3011,48 +3011,6 @@ function refreshRecordFilterCounts(){
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
 }
 
-
-/* SHARED STACK TEST: every CSV is a separate shared upload; aggregate is rebuilt. */
-let sharedStackClient=null,sharedStackReady=false,sharedStackPollTimer=null,sharedStackApplying=false;
-function sharedStackTN(r){return String(r?.["SLS Tracking Number"]??r?.["SPX TN"]??r?.["SPX TN/Tracking Number"]??r?.["Tracking Number"]??r?.["Order ID"]??"").trim().toUpperCase()}
-function sharedStackMerge(oldRows,newRows){
- const map=new Map();(oldRows||[]).forEach((r,i)=>map.set(sharedStackTN(r)||`__old_${i}`,r));
- let added=0,updated=0,duplicates=0,seen=new Set();
- (newRows||[]).forEach((r,i)=>{const tn=sharedStackTN(r);
-  if(tn){if(seen.has(tn)){duplicates++;return}seen.add(tn);if(map.has(tn))updated++;else added++;map.set(tn,r)}
-  else{added++;map.set(`__new_${Date.now()}_${i}_${Math.random()}`,r)}
- });
- return {rows:[...map.values()],added,updated,duplicates};
-}
-async function sharedStackConnect(){
- try{
-  const cfg=window.BADOC_SHARED_CONFIG||{};
-  if(!window.supabase||!cfg.url||!cfg.key)throw Error("Shared Supabase configuration unavailable");
-  sharedStackClient=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-  sharedStackReady=true;await refreshSharedStack();
-  clearInterval(sharedStackPollTimer);sharedStackPollTimer=setInterval(refreshSharedStack,2000);
- }catch(e){console.warn("Shared stack unavailable:",e)}
-}
-async function getSharedUploads(){
- if(!sharedStackClient||!sharedStackReady)throw Error("Shared stack is not connected yet.");
- const r=await sharedStackClient.from("shared_parcel_uploads").select("id,file_name,rows,uploaded_at").order("uploaded_at",{ascending:true});
- if(r.error)throw r.error;return r.data||[];
-}
-async function refreshSharedStack(){
- if(!sharedStackClient||!sharedStackReady||sharedStackApplying)return;
- try{
-  const items=await getSharedUploads();if(!items.length)return;
-  let rows=[];items.forEach(x=>{rows=sharedStackMerge(rows,Array.isArray(x.rows)?x.rows:[]).rows});
-  sharedStackApplying=true;try{
-   const z=classify(rows);const b={name:"Shared stacked data",time:Date.now(),rows,valid:z.valid,mis:z.mis,uploadedBy:"Shared"};
-   batches=[b];current=b;await saveBatches();render();
-  }finally{sharedStackApplying=false}
- }catch(e){console.warn("Shared stack refresh failed:",e)}
-}
-async function sharedStackInsert(name,rows){
- const r=await sharedStackClient.from("shared_parcel_uploads").insert({id:crypto?.randomUUID?crypto.randomUUID():"u-"+Date.now()+"-"+Math.random(),file_name:name,rows,uploaded_at:new Date().toISOString()});
- if(r.error)throw r.error;
-}
 let sharedFilterSyncChannel=null;
 let sharedFilterSyncApplying=false;
 let sharedFilterSyncTimer=null;
@@ -3136,7 +3094,7 @@ function startSharedFilterPolling(){
   sharedFilterPollTimer=setInterval(pollSharedFilterState,1500);
   pollSharedFilterState();
 }
-async function startSharedStack();startSharedFilterSync(){
+async function startSharedFilterSync(){
   try{
     const cfg=window.BADOC_SHARED_CONFIG||{};
     if(!window.supabase||!cfg.url||!cfg.key)throw Error("Shared Supabase configuration unavailable");
@@ -3326,25 +3284,8 @@ async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(c
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
 function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
-$("csvFile").addEventListener("change",e=>{
- const f=e.target.files[0];if(!f)return;const rd=new FileReader();
- rd.onload=async()=>{
-  try{
-   const incoming=parseCSV(rd.result);
-   if(!sharedStackReady)await sharedStackConnect();
-   if(!sharedStackReady)throw Error("Shared stack is not connected. Wait for Connected.");
-   const beforeItems=await getSharedUploads();let before=[];
-   beforeItems.forEach(x=>{before=sharedStackMerge(before,Array.isArray(x.rows)?x.rows:[]).rows});
-   const report=sharedStackMerge(before,incoming);
-   await sharedStackInsert(f.name,incoming);
-   const after=await getSharedUploads();let stacked=[];
-   after.forEach(x=>{stacked=sharedStackMerge(stacked,Array.isArray(x.rows)?x.rows:[]).rows});
-   const z=classify(stacked);const b={name:"Shared stacked data",time:Date.now(),rows:stacked,valid:z.valid,mis:z.mis,uploadedBy:"Shared"};
-   batches=[b];current=b;await saveBatches();render();showPage("dashboard");e.target.value="";
-   alert("Upload complete\n\n"+`${report.added.toLocaleString()} new records\n${report.updated.toLocaleString()} records updated\n${report.duplicates.toLocaleString()} duplicate rows in this file skipped\n${stacked.length.toLocaleString()} unique records in shared stack`);
-  }catch(err){alert("Could not upload this CSV:\n\n"+err.message)}
- };rd.readAsText(f)
-});
+$("csvFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=async()=>{try{let rows=parseCSV(rd.result),z=classify(rows);current={name:f.name,time:Date.now(),rows,valid:z.valid,mis:z.mis};batches=[current,...batches.filter(b=>b.name!==f.name)];saveTownSettings();await saveBatches();render();showPage("dashboard")}catch(err){alert("Could not read this CSV: "+err.message)}};rd.readAsText(f)});
+
 $("clearCurrentUpload").onclick=async()=>{
   if(!current){alert("There is no current upload to clear.");return;}
   const idx=batches.findIndex(b=>b===current || (b.name===current.name && b.time===current.time));
