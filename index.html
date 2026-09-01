@@ -3016,6 +3016,7 @@ let sharedFilterSyncApplying=false;
 let sharedFilterSyncTimer=null;
 let sharedFilterSyncClient=null;
 let sharedFilterSyncReady=false;
+let sharedFilterSyncPending=null;
 
 function sharedFilterState(){
   return {
@@ -3025,41 +3026,72 @@ function sharedFilterState(){
     status:selectedValues("recordStatus")
   };
 }
-function sharedFilterActive(state){
-  return !!String(state?.search||"").trim() ||
-    [state?.town,state?.station,state?.status].some(v=>Array.isArray(v)&&v.length);
-}
-function setSharedFilterUI(state){
-  if(!state||sharedFilterSyncApplying)return;
-  sharedFilterSyncApplying=true;
-  try{
-    if($("recordSearch"))$("recordSearch").value=String(state.search||"");
-    [["recordTown",state.town||[]],["recordStation",state.station||[]],["recordStatus",state.status||[]]].forEach(([id,vals])=>{
-      const el=$(id); if(!el)return;
-      const wanted=new Set((Array.isArray(vals)?vals:[]).map(String));
-      [...el.options].forEach(o=>o.selected=wanted.has(String(o.value)));
-    });
-    window.__parcelRecordPage=1;
-    renderRecords();
-  }finally{
-    sharedFilterSyncApplying=false;
+function applySharedFilterState(state){
+  if(!state)return;
+  const apply=()=>{
+    const els=["recordTown","recordStation","recordStatus"].map($);
+    if(els.some(e=>!e||!e.options.length))return false;
+    sharedFilterSyncApplying=true;
+    try{
+      if($("recordSearch"))$("recordSearch").value=String(state.search||"");
+      [["recordTown",state.town||[]],["recordStation",state.station||[]],["recordStatus",state.status||[]]].forEach(([id,vals])=>{
+        const el=$(id),wanted=new Set((Array.isArray(vals)?vals:[]).map(String));
+        [...el.options].forEach(o=>o.selected=wanted.has(String(o.value)));
+      });
+      sharedFilterSyncPending=null;
+      window.__parcelRecordPage=1;
+      renderRecords();
+    }finally{ sharedFilterSyncApplying=false; }
+    return true;
+  };
+  if(!apply()){
+    sharedFilterSyncPending=state;
+    let tries=0;
+    const wait=()=>{if(!sharedFilterSyncPending||tries++>30)return;if(!apply())setTimeout(wait,500)};
+    setTimeout(wait,100);
   }
 }
 async function publishSharedFilterState(){
   if(sharedFilterSyncApplying||!sharedFilterSyncClient||!sharedFilterSyncReady)return;
+  const state=sharedFilterState();
   try{
-    const state=sharedFilterState();
     const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
       {id:"global",state,updated_at:new Date().toISOString()},
       {onConflict:"id"}
     );
     if(r.error)throw r.error;
-  }catch(e){console.warn("Shared filter sync publish failed:",e)}
+    if(sharedFilterSyncChannel)await sharedFilterSyncChannel.send({
+      type:"broadcast",event:"badoc-filter",payload:{state}
+    });
+  }catch(e){console.warn("Shared filter publish failed:",e)}
 }
 function queueSharedFilterPublish(){
+  if(sharedFilterSyncApplying)return;
   clearTimeout(sharedFilterSyncTimer);
-  sharedFilterSyncTimer=setTimeout(publishSharedFilterState,250);
+  sharedFilterSyncTimer=setTimeout(publishSharedFilterState,300);
 }
+
+let sharedFilterPollTimer=null;
+let sharedFilterLastUpdatedAt="";
+async function pollSharedFilterState(){
+  if(!sharedFilterSyncClient||!sharedFilterSyncReady||sharedFilterSyncApplying)return;
+  try{
+    const r=await sharedFilterSyncClient.from("shared_filter_state")
+      .select("state,updated_at").eq("id","global").maybeSingle();
+    if(r.error)throw r.error;
+    const u=String(r.data?.updated_at||"");
+    if(r.data?.state && u && u!==sharedFilterLastUpdatedAt){
+      sharedFilterLastUpdatedAt=u;
+      applySharedFilterState(r.data.state);
+    }
+  }catch(e){console.warn("Shared filter poll failed:",e)}
+}
+function startSharedFilterPolling(){
+  clearInterval(sharedFilterPollTimer);
+  sharedFilterPollTimer=setInterval(pollSharedFilterState,2000);
+  pollSharedFilterState();
+}
+
 async function startSharedFilterSync(){
   try{
     const cfg=window.BADOC_SHARED_CONFIG||{};
@@ -3068,27 +3100,27 @@ async function startSharedFilterSync(){
       auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
     });
 
-    const r=await sharedFilterSyncClient.from("shared_filter_state").select("state").eq("id","global").maybeSingle();
+    // Read the shared state first. A new device must NOT overwrite it with its local empty filters.
+    const r=await sharedFilterSyncClient.from("shared_filter_state")
+      .select("state,updated_at").eq("id","global").maybeSingle();
     if(r.error)throw r.error;
     sharedFilterSyncReady=true;
-    if(r.data?.state)setSharedFilterUI(r.data.state);
+    sharedFilterLastUpdatedAt=String(r.data?.updated_at||"");
+    if(r.data?.state)applySharedFilterState(r.data.state);
+    startSharedFilterPolling();
 
-    sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v1");
+    sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v2");
     sharedFilterSyncChannel
+      .on("broadcast",{event:"badoc-filter"},({payload})=>{
+        if(payload?.state&&!sharedFilterSyncApplying)applySharedFilterState(payload.state);
+      })
       .on("postgres_changes",
         {event:"*",schema:"public",table:"shared_filter_state",filter:"id=eq.global"},
         payload=>{
-          if(payload?.new?.state)setSharedFilterUI(payload.new.state);
+          if(payload?.new?.state&&!sharedFilterSyncApplying)applySharedFilterState(payload.new.state);
         })
-      .subscribe(status=>{
-        if(status==="SUBSCRIBED"){
-          sharedFilterSyncReady=true;
-          publishSharedFilterState();
-        }
-      });
-  }catch(e){
-    console.warn("Shared filter sync unavailable:",e);
-  }
+      .subscribe();
+  }catch(e){console.warn("Shared filter sync unavailable:",e)}
 }
 
 function recordFiltersActive(){
@@ -4866,6 +4898,8 @@ try{
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSharedFilterSync,{once:true});
   else initSharedFilterSync();
 }catch(e){console.warn("Filter sync init:",e)}
+
+try{const initSharedFilterSync=()=>setTimeout(startSharedFilterSync,1200);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSharedFilterSync,{once:true});else initSharedFilterSync();}catch(e){console.warn("Filter sync init:",e)}
 </script>
 
 </body>

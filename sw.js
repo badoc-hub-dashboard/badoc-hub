@@ -1,4 +1,4 @@
-const CACHE = "badoc-hub-v16-shell";
+const CACHE = "badoc-hub-v18-global-filter-poll";
 const APP_SHELL = [
   "./",
   "./manifest.webmanifest",
