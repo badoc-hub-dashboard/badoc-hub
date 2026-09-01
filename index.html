@@ -3010,6 +3010,54 @@ function refreshRecordFilterCounts(){
   const hint=$("recordFilterHint");
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
 }
+
+function updateDashboardFromParcelFilters(){
+  const all=Array.isArray(current?.valid)?current.valid:[];
+  const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
+  const q=norm($("recordSearch")?.value||"");
+  const active=!!q||["recordTown","recordStation","recordStatus"].some(id=>{
+    const e=$(id); return e&&[...e.options].some(o=>o.selected&&o.value);
+  });
+  const rows=active?filtered:all;
+
+  const total=$("total"), badoc=$("badocTotal"), pinili=$("piniliTotal"), mis=$("misTotal");
+  if(total)total.textContent=rows.length.toLocaleString();
+  const bc=rows.filter(r=>String(r?._area||"").toLowerCase()==="badoc").length;
+  const pc=rows.filter(r=>String(r?._area||"").toLowerCase()==="pinili").length;
+  if(badoc)badoc.textContent=bc.toLocaleString();
+  if(pinili)pinili.textContent=pc.toLocaleString();
+
+  const allMis=Array.isArray(current?.mis)?current.mis:[];
+  const key=r=>String(r?.["SLS Tracking Number"]??r?.["SLS Tracking"]??r?.["Tracking Number"]??r?.["Order ID"]??"").trim().toUpperCase();
+  const keys=new Set(rows.map(key).filter(Boolean));
+  if(mis)mis.textContent=(active?allMis.filter(r=>keys.has(key(r))).length:allMis.length).toLocaleString();
+
+  const cards=[
+    [$("total"),"TOTAL VOLUME","FILTERED TOTAL VOLUME",`${filtered.length.toLocaleString()} matching of ${all.length.toLocaleString()} records`],
+    [$("badocTotal"),"BADOC","FILTERED BADOC",`${bc.toLocaleString()} filtered Badoc records`],
+    [$("piniliTotal"),"PINILI","FILTERED PINILI",`${pc.toLocaleString()} filtered Pinili records`],
+    [$("misTotal"),"MISROUTED","FILTERED MISROUTED",`${(active?allMis.filter(r=>keys.has(key(r))).length:allMis.length).toLocaleString()} filtered misrouted records`]
+  ];
+  cards.forEach(([el,normal,filteredLabel,desc])=>{
+    const k=el?.closest(".kpi"); if(!k)return;
+    const lab=k.querySelector(".lab"), d=k.querySelector(".desc");
+    if(lab)lab.textContent=active?filteredLabel:normal;
+    if(d)d.textContent=active?desc:"";
+  });
+
+  // Keep the original town grouping/order/cards; hide only rows whose count is 0.
+  ["badocGrid","piniliGrid"].forEach(id=>{
+    const list=id==="badocGrid"?(towns?.badoc||[]):(towns?.pinili||[]);
+    renderTownGrid(id,list,rows);
+    if(!active)return;
+    const grid=$(id); if(!grid)return;
+    grid.querySelectorAll(".town-row").forEach(row=>{
+      const n=Number(String(row.querySelector(".count")?.textContent||"0").replace(/,/g,""));
+      row.style.display=n>0?"":"none";
+    });
+  });
+}
+
 function renderRecords(){
   refreshRecordFilterCounts();
   const allRows=Array.isArray(current?.valid)?current.valid:[];
@@ -3020,6 +3068,8 @@ function renderRecords(){
   window.__parcelRecordFiltered=filtered;
   window.__parcelRecordPage=1;
   $("recordMeta").textContent=`· ${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`;
+  updateDashboardFromParcelFilters();
+  updateRecordExportButton();
   renderRecordPage();
 }
 function renderRecordPage(){
@@ -3146,7 +3196,28 @@ $("clearRecordFilters").onclick=()=>{
   window.__parcelRecordPage=1;renderRecords();
 };
 $("misSearch").addEventListener("input",renderMis);
-$("exportValid").onclick=()=>current&&download("valid-parcels.csv",csv(current.valid));$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
+function recordFiltersActive(){
+  const q=norm($("recordSearch")?.value||"");
+  return !!q||["recordTown","recordStation","recordStatus"].some(id=>{
+    const e=$(id); return e&&[...e.options].some(o=>o.selected&&o.value);
+  });
+}
+function exportValidFiltered(){
+  if(!current){alert("There is no current upload to export.");return;}
+  const all=Array.isArray(current.valid)?current.valid:[];
+  const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
+  const active=recordFiltersActive();
+  const rows=active?filtered:all;
+  if(!rows.length){alert("There are no matching parcel records to export.");return;}
+  download(`valid-parcels-${active?"filtered":"all"}.csv`,csv(rows));
+}
+function updateRecordExportButton(){
+  const b=$("exportValid");if(!b)return;
+  const all=Array.isArray(current?.valid)?current.valid:[];
+  const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
+  b.textContent=recordFiltersActive()?`Export filtered CSV (${filtered.length.toLocaleString()})`:"Export valid CSV";
+}
+$("exportValid").onclick=exportValidFiltered;$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
 $("addBadoc").onclick=()=>addTown("badoc");$("addPinili").onclick=()=>addTown("pinili");
 $("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({towns,batches},null,2),"application/json");
 $("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
