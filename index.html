@@ -3322,15 +3322,40 @@ document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dat
     window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();
   });
 });
-$("clearRecordFilters").onclick=()=>{
+$("clearRecordFilters").onclick=async()=>{
   $("recordSearch").value="";
   ["recordTown","recordStation","recordStatus"].forEach(id=>{
-    const e=$(id);if(e)[...e.options].forEach(o=>o.selected=false);
+    const e=$(id);
+    if(e)[...e.options].forEach(o=>o.selected=false);
   });
   window.__parcelRecordPage=1;
   renderRecords();
-  // Clearing is itself a shared state change. Publish it explicitly.
-  queueSharedFilterPublish();
+
+  // Publish the EMPTY state directly. Do not wait for the debounce queue.
+  const emptyState={search:"",town:[],station:[],status:[]};
+  if(sharedFilterSyncClient&&sharedFilterSyncReady){
+    try{
+      const updated=new Date().toISOString();
+      const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
+        {id:"global",state:emptyState,updated_at:updated},
+        {onConflict:"id"}
+      );
+      if(r.error)throw r.error;
+      sharedFilterLastUpdatedAt=updated;
+      if(sharedFilterSyncChannel){
+        await sharedFilterSyncChannel.send({
+          type:"broadcast",event:"badoc-filter",
+          payload:{state:emptyState,updated_at:updated}
+        });
+      }
+    }catch(err){
+      console.warn("Clear filter publish failed:",err);
+      // Retry through the normal queue if the direct write fails.
+      queueSharedFilterPublish();
+    }
+  }else{
+    queueSharedFilterPublish();
+  }
 };
 document.addEventListener("input",ev=>{
   if(ev.target?.id==="recordSearch"){
