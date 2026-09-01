@@ -1189,7 +1189,36 @@ body{
 }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+try{
+  const clearBtn=$("clearCurrentUpload");
+  if(clearBtn&&!document.getElementById("clearSharedData")){
+    const b=document.createElement("button");
+    b.id="clearSharedData";
+    b.type="button";
+    b.className=clearBtn.className;
+    b.textContent="Clear Shared Data";
+    b.title="Permanently clear shared parcel data for all devices";
+    b.onclick=()=>clearSharedData().catch(e=>
+      alert("Could not clear shared data:\n\n"+e.message)
+    );
+    clearBtn.parentNode.insertBefore(b,clearBtn.nextSibling);
+  }
+}catch(e){console.warn("Clear Shared Data button:",e)}
+
+window.checkSharedStack=async()=>{
+  const files=await getSharedUploads();
+  let rows=[];
+  files.forEach(f=>{rows=stackMerge(rows,Array.isArray(f.rows)?f.rows:[]).rows});
+  const info={
+    cloudUploads:files.length,
+    uploads:files.map(f=>({file:f.file_name,rows:Array.isArray(f.rows)?f.rows.length:0,uploaded_at:f.uploaded_at})),
+    uniqueSPXTN:rows.length
+  };
+  console.log("BADOC SHARED STACK CHECK",info);
+  return info;
+};
+</script>
 
 <script>
 /* Shared connection — configure these ONCE before sharing the file. */
@@ -3011,6 +3040,158 @@ function refreshRecordFilterCounts(){
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
 }
 
+
+/* SHARED STACKING UPGRADE
+   Each uploaded CSV is stored as its own cloud upload. The app rebuilds the
+   combined dataset from every upload. SPX TN is the unique key; newest wins. */
+let sharedStackClient=null;
+let sharedStackReady=false;
+let sharedStackPollTimer=null;
+let sharedStackApplying=false;
+let sharedStackSignature="";
+
+function stackNorm(v){
+  return String(v??"").trim()
+    .replace(/^["']+|["']+$/g,"")
+    .replace(/\s+/g,"")
+    .replace(/[\-_.]/g,"")
+    .toUpperCase();
+}
+function stackTN(r){
+  // SPX TN is the authoritative duplicate key.
+  const primary=[
+    "SPX TN","SPX Tracking Number","SPX TN/Tracking Number","spxTN"
+  ];
+  for(const k of primary){
+    const v=r?.[k];
+    if(v!==undefined&&String(v).trim()!=="")return stackNorm(v);
+  }
+  // Fallback only for older exports that don't contain SPX TN.
+  for(const k of ["SLS Tracking Number","Tracking Number"]){
+    const v=r?.[k];
+    if(v!==undefined&&String(v).trim()!=="")return stackNorm(v);
+  }
+  return "";
+}
+
+function stackMerge(base,incoming){
+  const map=new Map(), order=[];
+  const put=(r,k)=>{if(!map.has(k))order.push(k);map.set(k,r)};
+  (base||[]).forEach((r,i)=>put(r,stackTN(r)||`__base_${i}`));
+
+  let added=0,updated=0,duplicates=0;
+  const seen=new Set();
+
+  (incoming||[]).forEach((r,i)=>{
+    const k=stackTN(r);
+    if(k){
+      if(seen.has(k)){duplicates++;return}
+      seen.add(k);
+      if(map.has(k))updated++;else added++;
+      put(r,k);                 // newest record replaces old record
+    }else{
+      added++;
+      put(r,`__blank_${i}_${Math.random()}`);
+    }
+  });
+  return {rows:order.map(k=>map.get(k)),added,updated,duplicates};
+}
+async function connectSharedStack(){
+  if(sharedStackReady)return;
+  const cfg=window.BADOC_SHARED_CONFIG||{};
+  if(!window.supabase||!cfg.url||!cfg.key)
+    throw Error("Shared Supabase configuration unavailable.");
+  sharedStackClient=window.supabase.createClient(cfg.url,cfg.key,{
+    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+  });
+  const t=await sharedStackClient.from("shared_parcel_uploads")
+    .select("id").limit(1);
+  if(t.error)throw t.error;
+  sharedStackReady=true;
+}
+async function getSharedUploads(){
+  await connectSharedStack();
+  const r=await sharedStackClient.from("shared_parcel_uploads")
+    .select("id,file_name,rows,uploaded_at")
+    .order("uploaded_at",{ascending:true});
+  if(r.error)throw r.error;
+  return r.data||[];
+}
+async function rebuildSharedStack(){
+  if(sharedStackApplying)return;
+  const files=await getSharedUploads();
+  const sig=JSON.stringify(files.map(f=>[
+    f.id,f.uploaded_at,Array.isArray(f.rows)?f.rows.length:0
+  ]));
+  if(sig===sharedStackSignature)return;
+  sharedStackSignature=sig;
+  if(!files.length)return;
+
+  let rows=[];
+  files.forEach(f=>{
+    rows=stackMerge(rows,Array.isArray(f.rows)?f.rows:[]).rows;
+  });
+
+  sharedStackApplying=true;
+  try{
+    const z=classify(rows);
+    const b={
+      name:"Shared stacked data",time:Date.now(),rows,
+      valid:z.valid,mis:z.mis,uploadedBy:"Shared"
+    };
+    batches=[b];current=b;
+    await saveBatches();
+    render();
+  }finally{
+    sharedStackApplying=false;
+  }
+}
+async function startSharedStack(){
+  try{
+    await connectSharedStack();
+    await rebuildSharedStack();
+    clearInterval(sharedStackPollTimer);
+    sharedStackPollTimer=setInterval(
+      ()=>rebuildSharedStack().catch(e=>console.warn("Shared stack refresh:",e)),
+      2000
+    );
+  }catch(e){
+    console.warn("Shared stack unavailable:",e);
+  }
+}
+async function uploadToSharedStack(fileName,rows){
+  await connectSharedStack();
+  const payload={
+    id:(crypto?.randomUUID
+      ?crypto.randomUUID()
+      :"upload-"+Date.now()+"-"+Math.random().toString(36).slice(2)),
+    file_name:String(fileName||"Exported file"),
+    rows:Array.isArray(rows)?rows:[],
+    uploaded_at:new Date().toISOString()
+  };
+  const r=await sharedStackClient.from("shared_parcel_uploads").insert(payload);
+  if(r.error)throw r.error;
+  sharedStackSignature="";
+}
+async function clearSharedData(){
+  await connectSharedStack();
+  const ok=confirm(
+    "CLEAR SHARED DATA?\n\n"+
+    "This permanently deletes ALL shared uploaded parcel files from the cloud.\n"+
+    "All connected devices will receive an empty shared dataset.\n\n"+
+    "Continue?"
+  );
+  if(!ok)return;
+  const r=await sharedStackClient.from("shared_parcel_uploads")
+    .delete().neq("id","");
+  if(r.error)throw r.error;
+
+  sharedStackSignature="";
+  batches=[];current=null;
+  try{await saveBatches()}catch(e){}
+  render();
+  alert("Shared data cleared successfully.");
+}
 let sharedFilterSyncChannel=null;
 let sharedFilterSyncApplying=false;
 let sharedFilterSyncTimer=null;
@@ -3107,7 +3288,7 @@ async function startSharedFilterSync(){
     sharedFilterSyncReady=true;
     sharedFilterLastUpdatedAt=String(r.data?.updated_at||"");
     if(r.data?.state)applySharedFilterState(r.data.state);
-    startSharedFilterPolling();
+    startSharedStack();startSharedFilterPolling();
 
     sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v3")
       .on("broadcast",{event:"badoc-filter"},({payload})=>{
@@ -3284,8 +3465,60 @@ async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(c
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
 function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
-$("csvFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=async()=>{try{let rows=parseCSV(rd.result),z=classify(rows);current={name:f.name,time:Date.now(),rows,valid:z.valid,mis:z.mis};batches=[current,...batches.filter(b=>b.name!==f.name)];saveTownSettings();await saveBatches();render();showPage("dashboard")}catch(err){alert("Could not read this CSV: "+err.message)}};rd.readAsText(f)});
+$("csvFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    try{
+      const incoming=parseCSV(rd.result);
+      await connectSharedStack();
 
+      // Read the complete shared stack BEFORE this upload.
+      const existing=await getSharedUploads();
+      let before=[];
+      existing.forEach(x=>{
+        before=stackMerge(
+          before,Array.isArray(x.rows)?x.rows:[]
+        ).rows;
+      });
+      const report=stackMerge(before,incoming);
+
+      // Store a NEW cloud upload. Never overwrite a previous upload.
+      await uploadToSharedStack(f.name,incoming);
+
+      // Rebuild from ALL shared uploads.
+      const all=await getSharedUploads();
+      let stacked=[];
+      all.forEach(x=>{
+        stacked=stackMerge(
+          stacked,Array.isArray(x.rows)?x.rows:[]
+        ).rows;
+      });
+
+      const z=classify(stacked);
+      const b={
+        name:"Shared stacked data",time:Date.now(),rows:stacked,
+        valid:z.valid,mis:z.mis,uploadedBy:"Shared"
+      };
+      batches=[b];current=b;
+      await saveBatches();
+      render();
+      showPage("dashboard");
+      e.target.value="";
+
+      alert(
+        "Shared upload complete\n\n"+
+        "New records: "+report.added.toLocaleString()+"\n"+
+        "Updated records: "+report.updated.toLocaleString()+"\n"+
+        "Duplicate rows skipped: "+report.duplicates.toLocaleString()+"\n"+
+        "TOTAL UNIQUE SHARED PARCELS: "+stacked.length.toLocaleString()
+      );
+    }catch(err){
+      alert("Shared upload failed:\n\n"+err.message);
+    }
+  };
+  rd.readAsText(f);
+});
 $("clearCurrentUpload").onclick=async()=>{
   if(!current){alert("There is no current upload to clear.");return;}
   const idx=batches.findIndex(b=>b===current || (b.name===current.name && b.time===current.time));
@@ -3885,61 +4118,62 @@ function linehaulTownBreakdown(task, parcelRows){
   const sourceRows=Array.isArray(parcelRows)?parcelRows:[];
   const exportRows=Array.isArray(task?.exportRows)?task.exportRows:[];
 
+  // Match the Linehaul SPX TN to Parcel Records Order ID.
+  // Normalize common CSV/Excel formatting differences.
   const norm=v=>String(v??"")
     .trim()
     .replace(/^["']+|["']+$/g,"")
     .replace(/\s+/g,"")
-    .replace(/[\-_.]/g,"")
     .toUpperCase();
 
-  const values=(r,names)=>names.map(k=>r?.[k]).find(v=>v!==undefined&&String(v).trim()!=="");
+  const orderIdOf=r=>(
+    r?.orderId ??
+    r?.orderID ??
+    r?.["Order ID"] ??
+    r?.["ORDER ID"] ??
+    r?.["OrderID"] ??
+    r?.spxTN ??
+    r?.["SPX TN"]
+  );
 
-  // Build a lookup using BOTH Order ID and SLS/SPX tracking fields.
-  // Different linehaul exports can identify the same parcel using either one.
-  const index=new Map();
+  const townOf=r=>(
+    r?.town ??
+    r?.Town ??
+    r?.["Town"] ??
+    r?.["Town Name"] ??
+    r?.["TOWN NAME"] ??
+    r?.destinationTown ??
+    r?.destination_town ??
+    r?.["Destination Town"]
+  );
+
+  const orderMap=new Map();
   sourceRows.forEach(r=>{
-    [
-      r?.["Order ID"],r?.["ORDER ID"],r?.["OrderID"],r?.orderId,
-      r?.["SLS Tracking Number"],r?.["SPX TN"],r?.["SPX TN ID"],
-      r?.["Tracking Number"],r?.spxTN
-    ].forEach(v=>{
-      const k=norm(v);
-      if(k)index.set(k,r);
-    });
+    const id=norm(orderIdOf(r));
+    if(id) orderMap.set(id,r);
   });
 
   exportRows.forEach(er=>{
-    const rawId=values(er,[
-      "spxTN","SPX TN","SPX TN ID","SLS Tracking Number",
-      "Tracking Number","orderId","Order ID","ORDER ID","OrderID"
-    ]);
-    const id=norm(rawId);
-    if(!id)return;
+    const spx=er?.spxTN ?? er?.["SPX TN"] ?? er?.["SPX TN ID"] ?? er?.orderId ?? er?.["Order ID"];
+    const id=norm(spx);
+    if(!id) return;
 
-    const parcel=index.get(id);
+    const parcel=orderMap.get(id);
+    if(!parcel) return;
 
-    // Prefer the matched Parcel Record's town, but accept a Town Name
-    // already present in the linehaul export as a fallback.
-    const townRaw=
-      (parcel && values(parcel,[
-        "Town Name","Town","TownName","town","destinationTown","Destination Town"
-      ])) ??
-      values(er,["Town Name","Town","TownName","town","destinationTown","Destination Town"]);
+    const town=String(townOf(parcel)||"").trim();
+    if(!town) return;
 
-    const town=String(townRaw??"").trim();
-    if(!town)return;
-
-    if(!out[town])out[town]={items:[],count:0};
+    if(!out[town]) out[town]={items:[],count:0};
     out[town].items.push({
-      x:{...er,spxTN:er?.spxTN||rawId,town},
-      r:parcel||{}
+      x:{...er,spxTN:er?.spxTN||spx,town},
+      r:parcel
     });
     out[town].count++;
   });
 
   return out;
 }
-
 function renderLinehaulTownDashboard(){
   const el=$("linehaulTownDashboard");
   if(!el)return;
@@ -4280,10 +4514,7 @@ $("linehaulCsvFile")?.addEventListener("change",async e=>{
         task.matchedCount=0;
         return;
       }
-      const parcelSource=Array.isArray(current?.rows)&&current.rows.length
-        ? current.rows
-        : (Array.isArray(current?.valid)?current.valid:[]);
-      const towns=linehaulTownBreakdown(task,parcelSource);
+      const towns=linehaulTownBreakdown(task,current?.rows||[]);
       task.townBreakdown=towns;
       task.matchedCount=Object.values(towns).reduce((s,g)=>s+g.items.length,0);
       Object.entries(towns).forEach(([town,group])=>(group.items||[]).forEach(item=>{item.x.town=town;item.x.status=item.x.status||task.status;}));
@@ -4296,7 +4527,7 @@ $("linehaulCsvFile")?.addEventListener("change",async e=>{
 
     const matched=imported.reduce((s,x)=>s+(x.matchedCount||0),0);
     const total=imported.reduce((s,x)=>s+(x.exportRows?.length||0),0);
-    alert(`Imported ${imported.length} linehaul task${imported.length===1?"":"s"}. Matched ${matched.toLocaleString()} of ${total.toLocaleString()} SPX TNs to Parcel Records for town counting.`);
+    alert(`Imported ${imported.length} linehaul task${imported.length===1?"":"s"}. Matched ${matched.toLocaleString()} of ${total.toLocaleString()} SPX TNs to Parcel Record Order IDs.`);
   }catch(err){
     alert("Could not read this exported file: "+err.message);
     console.error(err);
