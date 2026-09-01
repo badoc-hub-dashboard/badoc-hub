@@ -1,4 +1,4 @@
-const CACHE = "badoc-hub-v29-clear-filter-hardfix";
+const CACHE = "badoc-hub-v31-linehaul-town-fix";
 const APP_SHELL = [
   "./",
   "./manifest.webmanifest",

@@ -3885,62 +3885,61 @@ function linehaulTownBreakdown(task, parcelRows){
   const sourceRows=Array.isArray(parcelRows)?parcelRows:[];
   const exportRows=Array.isArray(task?.exportRows)?task.exportRows:[];
 
-  // Match the Linehaul SPX TN to Parcel Records Order ID.
-  // Normalize common CSV/Excel formatting differences.
   const norm=v=>String(v??"")
     .trim()
     .replace(/^["']+|["']+$/g,"")
     .replace(/\s+/g,"")
+    .replace(/[\-_.]/g,"")
     .toUpperCase();
 
-  const orderIdOf=r=>(
-    r?.orderId ??
-    r?.orderID ??
-    r?.["Order ID"] ??
-    r?.["ORDER ID"] ??
-    r?.["OrderID"] ??
-    r?.spxTN ??
-    r?.["SPX TN"]
-  );
+  const values=(r,names)=>names.map(k=>r?.[k]).find(v=>v!==undefined&&String(v).trim()!=="");
 
-  const townOf=r=>(
-    r?.town ??
-    r?.Town ??
-    r?.["Town"] ??
-    r?.["Town Name"] ??
-    r?.["TOWN NAME"] ??
-    r?.destinationTown ??
-    r?.destination_town ??
-    r?.["Destination Town"]
-  );
-
-  const orderMap=new Map();
+  // Build a lookup using BOTH Order ID and SLS/SPX tracking fields.
+  // Different linehaul exports can identify the same parcel using either one.
+  const index=new Map();
   sourceRows.forEach(r=>{
-    const id=norm(orderIdOf(r));
-    if(id) orderMap.set(id,r);
+    [
+      r?.["Order ID"],r?.["ORDER ID"],r?.["OrderID"],r?.orderId,
+      r?.["SLS Tracking Number"],r?.["SPX TN"],r?.["SPX TN ID"],
+      r?.["Tracking Number"],r?.spxTN
+    ].forEach(v=>{
+      const k=norm(v);
+      if(k)index.set(k,r);
+    });
   });
 
   exportRows.forEach(er=>{
-    const spx=er?.spxTN ?? er?.["SPX TN"] ?? er?.["SPX TN ID"] ?? er?.orderId ?? er?.["Order ID"];
-    const id=norm(spx);
-    if(!id) return;
+    const rawId=values(er,[
+      "spxTN","SPX TN","SPX TN ID","SLS Tracking Number",
+      "Tracking Number","orderId","Order ID","ORDER ID","OrderID"
+    ]);
+    const id=norm(rawId);
+    if(!id)return;
 
-    const parcel=orderMap.get(id);
-    if(!parcel) return;
+    const parcel=index.get(id);
 
-    const town=String(townOf(parcel)||"").trim();
-    if(!town) return;
+    // Prefer the matched Parcel Record's town, but accept a Town Name
+    // already present in the linehaul export as a fallback.
+    const townRaw=
+      (parcel && values(parcel,[
+        "Town Name","Town","TownName","town","destinationTown","Destination Town"
+      ])) ??
+      values(er,["Town Name","Town","TownName","town","destinationTown","Destination Town"]);
 
-    if(!out[town]) out[town]={items:[],count:0};
+    const town=String(townRaw??"").trim();
+    if(!town)return;
+
+    if(!out[town])out[town]={items:[],count:0};
     out[town].items.push({
-      x:{...er,spxTN:er?.spxTN||spx,town},
-      r:parcel
+      x:{...er,spxTN:er?.spxTN||rawId,town},
+      r:parcel||{}
     });
     out[town].count++;
   });
 
   return out;
 }
+
 function renderLinehaulTownDashboard(){
   const el=$("linehaulTownDashboard");
   if(!el)return;
@@ -4281,7 +4280,10 @@ $("linehaulCsvFile")?.addEventListener("change",async e=>{
         task.matchedCount=0;
         return;
       }
-      const towns=linehaulTownBreakdown(task,current?.rows||[]);
+      const parcelSource=Array.isArray(current?.rows)&&current.rows.length
+        ? current.rows
+        : (Array.isArray(current?.valid)?current.valid:[]);
+      const towns=linehaulTownBreakdown(task,parcelSource);
       task.townBreakdown=towns;
       task.matchedCount=Object.values(towns).reduce((s,g)=>s+g.items.length,0);
       Object.entries(towns).forEach(([town,group])=>(group.items||[]).forEach(item=>{item.x.town=town;item.x.status=item.x.status||task.status;}));
@@ -4294,7 +4296,7 @@ $("linehaulCsvFile")?.addEventListener("change",async e=>{
 
     const matched=imported.reduce((s,x)=>s+(x.matchedCount||0),0);
     const total=imported.reduce((s,x)=>s+(x.exportRows?.length||0),0);
-    alert(`Imported ${imported.length} linehaul task${imported.length===1?"":"s"}. Matched ${matched.toLocaleString()} of ${total.toLocaleString()} SPX TNs to Parcel Record Order IDs.`);
+    alert(`Imported ${imported.length} linehaul task${imported.length===1?"":"s"}. Matched ${matched.toLocaleString()} of ${total.toLocaleString()} SPX TNs to Parcel Records for town counting.`);
   }catch(err){
     alert("Could not read this exported file: "+err.message);
     console.error(err);
