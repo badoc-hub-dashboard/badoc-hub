@@ -1189,6 +1189,15 @@ body{
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* Shared connection — configure these ONCE before sharing the file. */
+window.BADOC_SHARED_CONFIG = {
+  url: "https://qxmfkpctbaiahgerrkuo.supabase.co",
+  key: "sb_publishable_hpKmEjEVlUvY6SxN-4aEYQ_Ih3yyjsQ"
+};
+</script>
 <style id="v1-4-kpi-model">
 #kpiLiveSheet .kpi-category-title{padding:12px 14px;background:linear-gradient(90deg,#071923,#05090D)!important;border-left:4px solid var(--electric-blue)!important;color:#EAF8FF!important;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
 #kpiLiveSheet .kpi-metric{min-height:112px}
@@ -2766,6 +2775,21 @@ html{
 </section>
 
 <section id="settings" class="page">
+<style id="cloud-test-style">
+#cloudTestCard{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid rgba(0,180,255,.22);border-radius:9px;background:rgba(10,25,38,.7);font-size:11px}
+#cloudTestBtn{border:0;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:11px}
+#cloudTestResult{opacity:.8;word-break:break-word}
+</style>
+<div id="cloudTestCard">
+  <button id="cloudTestBtn" type="button">Test Cloud Connection</button>
+  <span id="cloudTestResult">Not tested</span>
+</div>
+
+<div class="section shared-storage-panel">
+  <h2>☁ Shared Files</h2>
+  <p class="hint">Shared storage is built into this version. No setup or login is required for other users.</p>
+  
+</div>
 <div class="section">
     <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all local data</button></div>
     <div class="hint">Clear all local data removes uploaded files/data from both Upload Exported and Linehaul Task. Town/station settings are kept.</div>
@@ -2986,47 +3010,6 @@ function refreshRecordFilterCounts(){
   const hint=$("recordFilterHint");
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
 }
-
-function syncDashboardTotalToRecordFilters(){
-  const totalEl=$("total");
-  if(!totalEl)return;
-
-  const allRows=Array.isArray(current?.valid)?current.valid:[];
-  const filtered=Array.isArray(window.__parcelRecordFiltered)
-    ?window.__parcelRecordFiltered:allRows;
-
-  const search=norm($("recordSearch")?.value||"");
-  const hasFilter=["recordTown","recordStation","recordStatus"].some(id=>{
-    const el=$(id);
-    return el && [...el.options].some(o=>o.selected && o.value);
-  });
-  const active=!!search||hasFilter;
-
-  totalEl.textContent=(active?filtered.length:allRows.length).toLocaleString();
-
-  const kpi=totalEl.closest(".kpi");
-  const label=kpi?.querySelector(".lab");
-  const desc=kpi?.querySelector(".desc");
-  if(label) label.textContent=active?"FILTERED TOTAL VOLUME":"TOTAL VOLUME";
-  if(desc) desc.textContent=active
-    ?`${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`
-    :"";
-}
-
-
-function syncFilteredDashboardTowns(rows,active){
-  ["badocGrid","piniliGrid"].forEach(id=>{
-    const list=id==="badocGrid"?(towns?.badoc||[]):(towns?.pinili||[]);
-    renderTownGrid(id,list,rows);
-    if(!active)return;
-    const grid=$(id); if(!grid)return;
-    grid.querySelectorAll(".town-row").forEach(row=>{
-      const n=Number(String(row.querySelector(".count")?.textContent||"0").replace(/,/g,""));
-      row.style.display=n>0?"":"none";
-    });
-  });
-}
-
 function renderRecords(){
   refreshRecordFilterCounts();
   const allRows=Array.isArray(current?.valid)?current.valid:[];
@@ -3035,25 +3018,8 @@ function renderRecords(){
   const filtered=recordMatches(allRows,q,filters,null);
   window.__parcelRecordAllCount=allRows.length;
   window.__parcelRecordFiltered=filtered;
-
-  const active=!!q||Object.values(filters).some(v=>Array.isArray(v)&&v.length);
-  const totalEl=$("total"), badocEl=$("badocTotal"), piniliEl=$("piniliTotal"), misEl=$("misTotal");
-  if(totalEl)totalEl.textContent=(active?filtered.length:allRows.length).toLocaleString();
-  const rows=active?filtered:allRows;
-  const bc=rows.filter(r=>String(r?._area||"").toLowerCase()==="badoc").length;
-  const pc=rows.filter(r=>String(r?._area||"").toLowerCase()==="pinili").length;
-  if(badocEl)badocEl.textContent=bc.toLocaleString();
-  if(piniliEl)piniliEl.textContent=pc.toLocaleString();
-
-  const allMis=Array.isArray(current?.mis)?current.mis:[];
-  const key=r=>String(r?.["SLS Tracking Number"]??r?.["SLS Tracking"]??r?.["Tracking Number"]??r?.["Order ID"]??"").trim().toUpperCase();
-  const keys=new Set(rows.map(key).filter(Boolean));
-  if(misEl)misEl.textContent=(active?allMis.filter(r=>keys.has(key(r))).length:allMis.length).toLocaleString();
-
-  syncFilteredDashboardTowns(rows,active);
   window.__parcelRecordPage=1;
   $("recordMeta").textContent=`· ${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`;
-  if(typeof updateRecordExportButton==="function")updateRecordExportButton();
   renderRecordPage();
 }
 function renderRecordPage(){
@@ -3178,41 +3144,9 @@ $("clearRecordFilters").onclick=()=>{
     const e=$(id);if(e)[...e.options].forEach(o=>o.selected=false);
   });
   window.__parcelRecordPage=1;renderRecords();
-  syncDashboardTotalToRecordFilters();
-  updateRecordExportButton();
 };
 $("misSearch").addEventListener("input",renderMis);
-function hasActiveRecordFilters(){
-  const search=norm($("recordSearch")?.value||"");
-  if(search)return true;
-  return ["recordTown","recordStation","recordStatus"].some(id=>{
-    const el=$(id);
-    return el && [...el.options].some(o=>o.selected && o.value);
-  });
-}
-function exportValidFiltered(){
-  if(!current){alert("There is no current upload to export.");return;}
-  const all=Array.isArray(current.valid)?current.valid:[];
-  const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
-  const active=hasActiveRecordFilters();
-  const rows=active?filtered:all;
-  if(!rows.length){alert("There are no matching parcel records to export.");return;}
-  const stamp=active?"filtered":"all";
-  download(`valid-parcels-${stamp}.csv`,csv(rows));
-}
-function updateRecordExportButton(){
-  const b=$("exportValid");
-  if(!b)return;
-  const all=Array.isArray(current?.valid)?current.valid:[];
-  const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
-  if(hasActiveRecordFilters()){
-    b.textContent=`Export filtered CSV (${filtered.length.toLocaleString()})`;
-  }else{
-    b.textContent="Export valid CSV";
-  }
-}
-$("exportValid").onclick=exportValidFiltered;
-$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
+$("exportValid").onclick=()=>current&&download("valid-parcels.csv",csv(current.valid));$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
 $("addBadoc").onclick=()=>addTown("badoc");$("addPinili").onclick=()=>addTown("pinili");
 $("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({towns,batches},null,2),"application/json");
 $("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
@@ -4390,6 +4324,350 @@ window.DASHBOARD_V2_READY = true;
   }
 })();
 </script>
+<script id="supabase-source-files-clean">
+/*
+ BADOC SHARED SYNC v7
+ Authoritative state is a Supabase Postgres row, not Storage metadata.
+ Storage contains the actual files; the DB row contains the current state.
+ Realtime fires immediately; 5-second polling is a fallback.
+*/
+(function(){
+  const cfg=window.BADOC_SHARED_CONFIG||{};
+  const bucket="exported-files";
+  const TABLE="badoc_shared_state";
+  const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json"};
+  let client=null,channel=null,pollTimer=null,pulling=false,started=false;
+  const deviceId=crypto?.randomUUID?.()||("d-"+Date.now()+"-"+Math.random().toString(36).slice(2));
+
+  function status(t){
+    const e=document.getElementById("sharedStatus"),s=e?.querySelector(".top-sync-text");
+    if(e)e.className="top-sync-status connected";
+    if(s)s.textContent=t;
+  }
+  function supa(){
+    if(client)return client;
+    if(!window.supabase||!cfg.url||!cfg.key)throw Error("Supabase configuration missing");
+    client=window.supabase.createClient(cfg.url,cfg.key,{
+      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+    });
+    return client;
+  }
+  function storage(){return supa().storage.from(bucket)}
+
+  async function put(path,data,type){
+    const r=await storage().upload(path,data,{contentType:type||"application/octet-stream",upsert:true,cacheControl:"0"});
+    if(r.error)throw Error(r.error.message||"Storage upload failed");
+  }
+  async function remove(path){
+    const r=await storage().remove([path]);
+    if(r.error&&!/not found|404|object not found/i.test(r.error.message||""))
+      throw Error(r.error.message||"Storage delete failed");
+  }
+  async function get(path){
+    const r=await storage().download(path);
+    if(r.error){
+      if(/not found|404|object not found/i.test(r.error.message||""))return null;
+      throw Error(r.error.message||"Storage download failed");
+    }
+    return r.data;
+  }
+
+  async function state(){
+    const c=supa();
+    const r=await c.from(TABLE).select("*").eq("id",1).maybeSingle();
+    if(r.error)throw Error(r.error.message||"Shared state read failed");
+    return r.data||null;
+  }
+  async function setState(patch){
+    const c=supa();
+    const old=await state();
+    const row={
+      id:1,
+      upload_exists:old?.upload_exists??false,
+      upload_version:Number(old?.upload_version||0),
+      linehaul_exists:old?.linehaul_exists??false,
+      linehaul_version:Number(old?.linehaul_version||0),
+      settings_version:Number(old?.settings_version||0),
+      updated_at:new Date().toISOString(),
+      updated_by:deviceId,
+      ...patch
+    };
+    const r=await c.from(TABLE).upsert(row,{onConflict:"id"}).select().single();
+    if(r.error)throw Error(r.error.message||"Shared state update failed");
+    return r.data;
+  }
+
+  async function announce(kind,action){
+    try{
+      if(!channel)await ensureRealtime();
+      if(channel)await channel.send({
+        type:"broadcast",event:"badoc-sync",
+        payload:{deviceId,kind,action,at:Date.now()}
+      });
+    }catch(e){console.warn("Broadcast:",e)}
+  }
+
+  async function ensureRealtime(){
+    const c=supa();
+    if(channel)return;
+    channel=c.channel("badoc-shared-state-v7");
+    channel.on("broadcast",{event:"badoc-sync"},({payload})=>{
+      if(payload?.deviceId===deviceId)return;
+      pull(payload?.kind).catch(e=>console.warn("Realtime pull:",e));
+    });
+    // Also listen to Postgres changes on the authoritative state row.
+    channel.on("postgres_changes",
+      {event:"UPDATE",schema:"public",table:TABLE,filter:"id=eq.1"},
+      payload=>{
+        if(payload?.new?.updated_by===deviceId)return;
+        pull().catch(e=>console.warn("DB realtime pull:",e));
+      }
+    );
+    channel.subscribe(s=>{
+      if(s==="SUBSCRIBED")status("Cloud sync connected");
+      else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")status("Sync reconnecting…");
+    });
+  }
+
+  async function clearLocalUpload(){
+    if(typeof batches!=="undefined")batches=[];
+    if(typeof current!=="undefined")current=null;
+    if(typeof saveBatches==="function")await saveBatches();
+    ["batches","currentBatch","current"].forEach(k=>{try{localStorage.removeItem(k)}catch{}});
+    const f=document.getElementById("csvFile");if(f)f.value="";
+    if(typeof render==="function")render();
+  }
+  async function clearLocalLinehaul(){
+    if(typeof linehaulTasks!=="undefined")linehaulTasks=[];
+    if(typeof saveLinehaul==="function")saveLinehaul();
+    [
+      typeof LH_KEY!=="undefined"?LH_KEY:"badoc_linehaul_tasks_town_v1",
+      typeof LH_PACKED_KEY!=="undefined"?LH_PACKED_KEY:"badoc_linehaul_packed_rows_v1",
+      typeof LH_BLANK_PACKED_KEY!=="undefined"?LH_BLANK_PACKED_KEY:"badoc_linehaul_blank_packed_rows_v1",
+      typeof LH_EXPORT_TOTAL_KEY!=="undefined"?LH_EXPORT_TOTAL_KEY:"badoc_linehaul_export_total_v1",
+      typeof LH_EXPORT_UNIQUE_KEY!=="undefined"?LH_EXPORT_UNIQUE_KEY:"badoc_linehaul_export_unique_v1"
+    ].forEach(k=>{try{localStorage.removeItem(k)}catch{}});
+    const f=document.getElementById("linehaulCsvFile");if(f)f.value="";
+    if(typeof renderLinehaul==="function")renderLinehaul();
+    if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+  }
+
+  async function applyUpload(){
+    const b=await get(P.upload);
+    if(!b){await clearLocalUpload();return}
+    if(typeof parseCSV!=="function"||typeof classify!=="function"||typeof saveBatches!=="function")return;
+    const rows=parseCSV(await b.text()),z=classify(rows);
+    const batch={name:"cloud-uploaded.csv",time:Date.now(),rows,valid:z.valid,mis:z.mis};
+    batches=[batch,...(Array.isArray(batches)?batches:[]).filter(x=>x&&x.name!=="cloud-uploaded.csv")];
+    current=batch;await saveBatches();
+    if(typeof render==="function")render();
+  }
+  async function applyLinehaul(){
+    const b=await get(P.linehaul);
+    if(!b){await clearLocalLinehaul();return}
+    if(typeof parseLinehaulCSV!=="function")return;
+    const imported=parseLinehaulCSV(await b.text());
+    if(!imported.length){await clearLocalLinehaul();return}
+    imported.forEach(task=>{
+      if(task.blank){task.townBreakdown={};task.matchedCount=0;return}
+      const tb=typeof linehaulTownBreakdown==="function"?linehaulTownBreakdown(task,current?.rows||[]):{};
+      task.townBreakdown=tb;
+      task.matchedCount=Object.values(tb).reduce((s,g)=>s+(g.items||[]).length,0);
+      Object.entries(tb).forEach(([town,g])=>(g.items||[]).forEach(item=>{
+        item.x.town=town;item.x.status=item.x.status||task.status;
+      }));
+    });
+    linehaulTasks=imported;
+    if(typeof saveLinehaul==="function")saveLinehaul();
+    if(typeof renderLinehaul==="function")renderLinehaul();
+    if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+  }
+  async function applySettings(){
+    const b=await get(P.settings);if(!b)return;
+    try{
+      towns=JSON.parse(await b.text());
+      try{localStorage.setItem("pr_towns",JSON.stringify(towns))}catch{}
+      if(typeof render==="function")render();
+    }catch(e){console.warn("Settings parse:",e)}
+  }
+
+  let seen={upload:0,linehaul:0,settings:0};
+  async function pull(kind){
+    if(pulling)return;
+    pulling=true;
+    try{
+      const s=await state();
+      if(!s){status("Shared state not set");return}
+      if(kind==="upload"){
+        if(!s.upload_exists)await clearLocalUpload();else await applyUpload();
+        seen.upload=Number(s.upload_version||0);
+      }else if(kind==="linehaul"){
+        if(!s.linehaul_exists)await clearLocalLinehaul();else await applyLinehaul();
+        seen.linehaul=Number(s.linehaul_version||0);
+      }else if(kind==="settings"){
+        if(Number(s.settings_version||0)>seen.settings)await applySettings();
+        seen.settings=Number(s.settings_version||0);
+      }else{
+        if(!s.upload_exists)await clearLocalUpload();else if(Number(s.upload_version||0)>seen.upload)await applyUpload();
+        if(!s.linehaul_exists)await clearLocalLinehaul();else if(Number(s.linehaul_version||0)>seen.linehaul)await applyLinehaul();
+        if(Number(s.settings_version||0)>seen.settings)await applySettings();
+        seen={upload:Number(s.upload_version||0),linehaul:Number(s.linehaul_version||0),settings:Number(s.settings_version||0)};
+      }
+      status("All devices synced");
+    }catch(e){console.warn("Shared pull:",e);status("Sync retrying…")}
+    finally{pulling=false}
+  }
+
+  async function uploadShared(kind,file){
+    const path=kind==="upload"?P.upload:P.linehaul;
+    const field=kind==="upload"?"upload":"linehaul";
+    const version=Date.now();
+    // Write the payload first. Only after success does the DB state become
+    // authoritative, so receivers can never pull a half-written file.
+    await put(path,file,file.type||"text/csv");
+    await setState({
+      [field+"_exists"]:true,
+      [field+"_version"]:version
+    });
+    await announce(kind,"upload");
+    status((kind==="upload"?"Upload":"Linehaul")+" synced");
+  }
+
+  async function clearShared(kind){
+    const path=kind==="upload"?P.upload:P.linehaul;
+    const field=kind==="upload"?"upload":"linehaul";
+    const version=Date.now();
+    // Delete payload, then atomically publish the durable CLEAR state.
+    await remove(path);
+    await setState({
+      [field+"_exists"]:false,
+      [field+"_version"]:version
+    });
+    await announce(kind,"clear");
+    status((kind==="upload"?"Upload":"Linehaul")+" cleared on all devices");
+  }
+
+  // Capture phase makes sure this layer sees the user's action even when the
+  // original app handler is registered elsewhere.
+  document.getElementById("csvFile")?.addEventListener("change",e=>{
+    const f=e.target.files?.[0];if(!f||!started)return;
+    uploadShared("upload",f).catch(err=>{console.error(err);status("Cloud upload failed: "+err.message)});
+  },true);
+  document.getElementById("linehaulCsvFile")?.addEventListener("change",e=>{
+    const f=e.target.files?.[0];if(!f||!started)return;
+    uploadShared("linehaul",f).catch(err=>{console.error(err);status("Cloud upload failed: "+err.message)});
+  },true);
+
+  document.getElementById("clearCurrentUpload")?.addEventListener("click",()=>{
+    if(!started)return;
+    setTimeout(()=>clearShared("upload").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
+  },true);
+  document.getElementById("clearLinehaul")?.addEventListener("click",()=>{
+    if(!started)return;
+    setTimeout(()=>clearShared("linehaul").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
+  },true);
+
+  // Town settings are synced as a shared file.
+  if(typeof saveTownSettings==="function"&&!window.__badocSharedTownSyncV7){
+    const original=saveTownSettings;window.__badocSharedTownSyncV7=true;
+    saveTownSettings=function(){
+      original.apply(this,arguments);
+      if(!started)return;
+      put(P.settings,new Blob([JSON.stringify(towns)],{type:"application/json"}),"application/json")
+        .then(()=>setState({settings_version:Date.now()}))
+        .then(s=>announce("settings","update"))
+        .catch(e=>console.warn("Town settings sync:",e));
+    };
+  }
+
+  async function start(){
+    if(started)return;started=true;
+    try{
+      supa();
+      // Don't block the app while Realtime connects.
+      ensureRealtime().catch(e=>console.warn(e));
+      setTimeout(()=>pull().catch(()=>{}),150);
+      clearInterval(pollTimer);
+      pollTimer=setInterval(()=>pull().catch(()=>{}),5000);
+    }catch(e){console.warn(e);status("Cloud sync unavailable")}
+  }
+
+  if(document.readyState==="loading")
+    document.addEventListener("DOMContentLoaded",()=>setTimeout(start,50),{once:true});
+  else setTimeout(start,50);
+})();
+</script>
+
+
+
+
+
+
+<script id="cloud-connection-test">
+(function(){
+  async function runCloudTest(){
+    const btn=document.getElementById("cloudTestBtn"),out=document.getElementById("cloudTestResult");
+    if(btn)btn.disabled=true;
+    if(out)out.textContent="Testing…";
+    try{
+      const cfg=window.BADOC_SHARED_CONFIG||{};
+      if(!window.supabase)throw Error("Supabase JavaScript library is not loaded");
+      if(!cfg.url)throw Error("Supabase URL is missing");
+      if(!cfg.key)throw Error("Supabase public key is missing");
+
+      const c=window.supabase.createClient(cfg.url,cfg.key,{
+        auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+      });
+      const bucket="exported-files";
+
+      const listed=await c.storage.from(bucket).list("current",{limit:10});
+      if(listed.error)throw Error("Bucket access: "+(listed.error.message||listed.error));
+
+      const path="current/.cloud-connection-test.txt";
+      const body=new Blob(["BADOC cloud connection test "+Date.now()],{type:"text/plain"});
+
+      const up=await c.storage.from(bucket).upload(path,body,{
+        contentType:"text/plain",upsert:true,cacheControl:"0"
+      });
+      if(up.error)throw Error("Upload permission: "+(up.error.message||up.error));
+
+      const dl=await c.storage.from(bucket).download(path);
+      if(dl.error)throw Error("Download permission: "+(dl.error.message||dl.error));
+
+      const rm=await c.storage.from(bucket).remove([path]);
+      if(rm.error)throw Error("Delete permission: "+(rm.error.message||rm.error));
+
+      const ch=c.channel("badoc-cloud-test-"+Date.now());
+      let rt="timeout";
+      await new Promise(resolve=>{
+        let done=false;
+        const finish=v=>{if(done)return;done=true;rt=v;resolve()};
+        const timer=setTimeout(()=>finish("timeout"),3500);
+        ch.subscribe(s=>{
+          if(s==="SUBSCRIBED"){clearTimeout(timer);finish("OK")}
+          else if(s==="CHANNEL_ERROR"){clearTimeout(timer);finish("channel error")}
+          else if(s==="TIMED_OUT"){clearTimeout(timer);finish("timeout")}
+        });
+      });
+      try{await c.removeChannel(ch)}catch{}
+
+      if(out)out.textContent="CONNECTED ✓  Bucket ✓  Upload ✓  Download ✓  Delete ✓  Realtime: "+rt;
+    }catch(e){
+      console.error("Cloud test failed:",e);
+      if(out)out.textContent="FAILED ✕  "+(e?.message||String(e));
+    }finally{
+      if(btn)btn.disabled=false;
+    }
+  }
+
+  function bind(){
+    document.getElementById("cloudTestBtn")?.addEventListener("click",runCloudTest);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});
+  else bind();
+})();
+</script>
+
 <script id="parcel-multi-filter-finalizer">
 (function(){
   function refresh(){
