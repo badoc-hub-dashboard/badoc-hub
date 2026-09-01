@@ -2987,29 +2987,6 @@ function refreshRecordFilterCounts(){
   if(hint)hint.textContent=n?`${n} filter value${n===1?"":"s"} selected · counts reflect the other active filters`:"";
 }
 
-function syncDashboardTownsToRecordFilters(displayRows, active){
-  const rows=Array.isArray(displayRows)?displayRows:[];
-  ["badocGrid","piniliGrid"].forEach(gridId=>{
-    const list=gridId==="badocGrid"?(towns?.badoc||[]):(towns?.pinili||[]);
-
-    // Always render using the original town list. This preserves the exact
-    // existing three-column/card structure and ordering.
-    renderTownGrid(gridId,list,rows);
-
-    if(!active)return;
-
-    const grid=$(gridId);
-    if(!grid)return;
-
-    // Hide only individual town rows whose filtered count is zero.
-    // The columns, cards, order, and grouping remain unchanged.
-    [...grid.querySelectorAll(".town-row")].forEach(row=>{
-      const count=Number(String(row.querySelector(".count")?.textContent||"0").replace(/,/g,""));
-      row.style.display=count>0?"":"none";
-    });
-  });
-}
-
 function syncDashboardTotalToRecordFilters(){
   const totalEl=$("total");
   if(!totalEl)return;
@@ -3025,24 +3002,7 @@ function syncDashboardTotalToRecordFilters(){
   });
   const active=!!search||hasFilter;
 
-  const displayRows=active?filtered:allRows;
-  const badocEl=$("badocTotal");
-  const piniliEl=$("piniliTotal");
-  const misEl=$("misTotal");
-  const badocCount=displayRows.filter(r=>String(r?._area||"").toLowerCase()==="badoc").length;
-  const piniliCount=displayRows.filter(r=>String(r?._area||"").toLowerCase()==="pinili").length;
-
-  const allMis=Array.isArray(current?.mis)?current.mis:[];
-  const keyOf=r=>String(r?.["SLS Tracking Number"]??r?.["SLS Tracking"]??r?.["Tracking Number"]??r?.["Order ID"]??r?.tracking??r?.orderId??"").trim().toUpperCase();
-  const filteredKeys=new Set(displayRows.map(keyOf).filter(Boolean));
-  const misCount=active
-    ? allMis.filter(r=>filteredKeys.has(keyOf(r))).length
-    : allMis.length;
-
-  totalEl.textContent=displayRows.length.toLocaleString();
-  if(badocEl) badocEl.textContent=badocCount.toLocaleString();
-  if(piniliEl) piniliEl.textContent=piniliCount.toLocaleString();
-  if(misEl) misEl.textContent=misCount.toLocaleString();
+  totalEl.textContent=(active?filtered.length:allRows.length).toLocaleString();
 
   const kpi=totalEl.closest(".kpi");
   const label=kpi?.querySelector(".lab");
@@ -3051,26 +3011,20 @@ function syncDashboardTotalToRecordFilters(){
   if(desc) desc.textContent=active
     ?`${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`
     :"";
+}
 
-  const badocKpi=$("badocTotal")?.closest(".kpi");
-  const piniliKpi=$("piniliTotal")?.closest(".kpi");
-  if(badocKpi){
-    const l=badocKpi.querySelector(".lab"), d=badocKpi.querySelector(".desc");
-    if(l) l.textContent=active?"FILTERED BADOC":"BADOC";
-    if(d) d.textContent=active?`${badocCount.toLocaleString()} filtered Badoc records`:"";
-  }
-  if(piniliKpi){
-    const l=piniliKpi.querySelector(".lab"), d=piniliKpi.querySelector(".desc");
-    if(l) l.textContent=active?"FILTERED PINILI":"PINILI";
-    if(d) d.textContent=active?`${piniliCount.toLocaleString()} filtered Pinili records`:"";
-  }
-  const misKpi=$("misTotal")?.closest(".kpi");
-  if(misKpi){
-    const l=misKpi.querySelector(".lab"), d=misKpi.querySelector(".desc");
-    if(l) l.textContent=active?"FILTERED MISROUTED":"MISROUTED";
-    if(d) d.textContent=active?`${misCount.toLocaleString()} filtered misrouted records`:"";
-  }
-  syncDashboardTownsToRecordFilters(displayRows, active);
+
+function syncFilteredDashboardTowns(rows,active){
+  ["badocGrid","piniliGrid"].forEach(id=>{
+    const list=id==="badocGrid"?(towns?.badoc||[]):(towns?.pinili||[]);
+    renderTownGrid(id,list,rows);
+    if(!active)return;
+    const grid=$(id); if(!grid)return;
+    grid.querySelectorAll(".town-row").forEach(row=>{
+      const n=Number(String(row.querySelector(".count")?.textContent||"0").replace(/,/g,""));
+      row.style.display=n>0?"":"none";
+    });
+  });
 }
 
 function renderRecords(){
@@ -3081,10 +3035,25 @@ function renderRecords(){
   const filtered=recordMatches(allRows,q,filters,null);
   window.__parcelRecordAllCount=allRows.length;
   window.__parcelRecordFiltered=filtered;
-  syncDashboardTotalToRecordFilters();
+
+  const active=!!q||Object.values(filters).some(v=>Array.isArray(v)&&v.length);
+  const totalEl=$("total"), badocEl=$("badocTotal"), piniliEl=$("piniliTotal"), misEl=$("misTotal");
+  if(totalEl)totalEl.textContent=(active?filtered.length:allRows.length).toLocaleString();
+  const rows=active?filtered:allRows;
+  const bc=rows.filter(r=>String(r?._area||"").toLowerCase()==="badoc").length;
+  const pc=rows.filter(r=>String(r?._area||"").toLowerCase()==="pinili").length;
+  if(badocEl)badocEl.textContent=bc.toLocaleString();
+  if(piniliEl)piniliEl.textContent=pc.toLocaleString();
+
+  const allMis=Array.isArray(current?.mis)?current.mis:[];
+  const key=r=>String(r?.["SLS Tracking Number"]??r?.["SLS Tracking"]??r?.["Tracking Number"]??r?.["Order ID"]??"").trim().toUpperCase();
+  const keys=new Set(rows.map(key).filter(Boolean));
+  if(misEl)misEl.textContent=(active?allMis.filter(r=>keys.has(key(r))).length:allMis.length).toLocaleString();
+
+  syncFilteredDashboardTowns(rows,active);
   window.__parcelRecordPage=1;
   $("recordMeta").textContent=`· ${filtered.length.toLocaleString()} matching of ${allRows.length.toLocaleString()} records`;
-  updateRecordExportButton();
+  if(typeof updateRecordExportButton==="function")updateRecordExportButton();
   renderRecordPage();
 }
 function renderRecordPage(){
