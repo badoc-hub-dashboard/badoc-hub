@@ -3015,7 +3015,7 @@ function refreshRecordFilterCounts(){
 
 /* V45 SHARED PARCEL RECORD STACK
    One cloud row per parcel. SPX TN is the unique key; newest upload wins. */
-let sharedParcelClient=null,sharedParcelReady=false,sharedParcelBusy=false,sharedParcelPollTimer=null,sharedParcelSignature="";
+let sharedParcelClient=null,sharedParcelReady=false,sharedParcelBusy=false,sharedParcelPollTimer=null,sharedParcelSignature="",sharedParcelLastError="";
 function sharedParcelNorm(v){return String(v??"").trim().replace(/^["']+|["']+$/g,"").replace(/\s+/g,"").replace(/[\-_.]/g,"").toUpperCase()}
 function sharedParcelTN(r){
   for(const k of ["SPX TN","SPX Tracking Number","SPX TN/Tracking Number","spxTN","SLS Tracking Number","Tracking Number"]){
@@ -3032,14 +3032,20 @@ async function connectSharedParcels(){
   if(t.error)throw t.error; sharedParcelReady=true;
 }
 async function getSharedParcelRecords(){
-  await connectSharedParcels(); const page=1000; let from=0,all=[];
+  await connectSharedParcels();
+  const PAGE=500; let from=0,all=[];
   while(true){
-    const r=await sharedParcelClient.from("shared_parcel_records").select("spx_tn,row,updated_at").order("updated_at",{ascending:true}).range(from,from+page-1);
-    if(r.error)throw r.error; const part=r.data||[]; all.push(...part);
-    if(part.length<page)break; from+=page;
+    const r=await sharedParcelClient.from("shared_parcel_records")
+      .select("spx_tn,row,updated_at").order("spx_tn",{ascending:true})
+      .range(from,from+PAGE-1);
+    if(r.error)throw r.error;
+    const part=r.data||[]; all.push(...part);
+    if(part.length<PAGE)break;
+    from+=PAGE;
   }
   return all;
 }
+
 async function rebuildSharedParcels(force=false){
   if(sharedParcelBusy)return;
   const records=await getSharedParcelRecords();
@@ -3055,12 +3061,23 @@ async function rebuildSharedParcels(force=false){
   }finally{sharedParcelBusy=false}
 }
 async function startSharedParcels(){
-  try{
-    await connectSharedParcels(); await rebuildSharedParcels(true);
-    clearInterval(sharedParcelPollTimer);
-    sharedParcelPollTimer=setInterval(()=>rebuildSharedParcels().catch(e=>console.warn("Shared parcel refresh:",e)),2000);
-  }catch(e){console.warn("Shared parcel stack unavailable:",e)}
+  const attempt=async()=>{
+    try{
+      await connectSharedParcels();
+      const records=await getSharedParcelRecords();
+      sharedParcelLastError="";
+      await rebuildSharedParcels(true);
+      console.log("BADOC SHARED PARCELS CONNECTED:",records.length,"cloud records");
+    }catch(e){
+      sharedParcelLastError=String(e?.message||e);
+      console.warn("Shared parcel sync retry:",e);
+    }
+  };
+  await attempt();
+  clearInterval(sharedParcelPollTimer);
+  sharedParcelPollTimer=setInterval(attempt,3000);
 }
+
 async function uploadSharedParcels(fileName,rows){
   await connectSharedParcels();
   const now=Date.now(),seen=new Set(),payload=[]; let duplicateInFile=0;
@@ -3091,7 +3108,16 @@ async function clearSharedData(){
   }
   sharedParcelSignature="";batches=[];current=null;await saveBatches();render();alert("Shared data cleared successfully.");
 }
-window.checkSharedParcels=async()=>{const r=await getSharedParcelRecords();const info={cloudRecords:r.length,uniqueSPXTN:r.filter(x=>!String(x.spx_tn).startsWith("__NO-SPXTN__")).length};console.log("BADOC SHARED PARCEL CHECK",info);return info};
+window.checkSharedParcels=async()=>{
+  try{
+    const r=await getSharedParcelRecords();
+    const info={cloudRecords:r.length,uniqueSPXTN:r.filter(x=>!String(x.spx_tn).startsWith("__NO-SPXTN__")).length,lastError:sharedParcelLastError};
+    console.log("BADOC SHARED PARCEL CHECK",info); return info;
+  }catch(e){
+    console.error("BADOC SHARED PARCEL CHECK FAILED",e);
+    return {cloudRecords:0,uniqueSPXTN:0,lastError:String(e?.message||e)};
+  }
+};console.log("BADOC SHARED PARCEL CHECK",info);return info};
 let sharedFilterSyncChannel=null;
 let sharedFilterSyncApplying=false;
 let sharedFilterSyncTimer=null;
