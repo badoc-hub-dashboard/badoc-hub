@@ -5821,12 +5821,30 @@ window.updateOperationProgress=function(){
   const station=r=>norm((r&&r["Current Station"])||"");
   const destination=r=>norm((r&&r["Destination Station"])||"");
   const status=r=>norm(statusTo(r));
+  const statusKey=v=>String(v??"").toUpperCase().replace(/[\s\-_\.]/g,"");
   const tnKey=v=>norm(v).replace(/[\s\-_.]/g,"");
   const now=new Date(), mins=now.getHours()*60+now.getMinutes();
   // New operating cutoffs: 3:00 AM and 3:00 PM.
   const after3am=mins>=180;
   const after3pm=mins>=900;
   const stations=["BADOC HUB","CAGAYAN DC","SOC 6"];
+  // Exact 57-town allowlist: 29 Badoc + 28 Pinili.
+  // Normalize punctuation/case so CSV values such as AR-ARUSIP and
+  // ALAY-NANGBABAAAN (ALAY 15-B) match the configured names exactly.
+  const allowedTomorrowTowns=new Set([
+    "TUROD","LABUT","CARAITAN","PALTIT","LUBIGAN","BATO","AR-ARUSIP",
+    "ALAY-NANGBABAAAN (ALAY 15-B)","NAGREBCAN","BALBALDEZ","SAUD",
+    "PAGSANAHAN NORTE","PAGSANAHAN SUR","LA VIRGEN MILAGROSA (PAGUETPET)",
+    "MORONG","SANTA CRUZ NORTE","SANTA CRUZ SUR","ALOGOOG","LACUBEN","ARING",
+    "CANAAN (POB.)","GARRETA (POB.)","GABUT NORTE","GABUT SUR","NAPU",
+    "MABUSAG NORTE","MABUSAG SUR","PARANG","PASUC",
+    "UGUIS","CAMANGA","MADUPAYAS","LILIPUTEN","LUMBAAN-BICBICA","SACRITAN",
+    "AGLIPAY","SANTO TOMAS","CABAROAN","BUANGA","PURITAC","DALAYAP","NAGTRIGOAN",
+    "UPON","VALBUENA (POB.)","PAGDILAO (POB.)","SALANAP","BARBAR","BUNGRO","PUGAOAN",
+    "APATUT-LUBONG","DARAT","CAPANGDANAN","GULPENG","BADIO","BULBULALA","PUZOL","TARTARABANG"
+  ].map(norm));
+  const townName=r=>String((r&&r["Town Name"])??(r&&r["Town"])??(r&&r["town"])??"").trim();
+  const tomorrowTownEligible=r=>allowedTomorrowTowns.has(norm(townName(r)));
   const dayEligible=r=>destination(r)==="BADOC HUB" && stations.includes(station(r));
   const qualifyingDayRows=allRows.filter(dayEligible).filter(r=>!isExceptionRow(r));
 
@@ -5878,15 +5896,34 @@ window.updateOperationProgress=function(){
     }
   });
 
-  // Linehaul Task uploaded-file rows are NOT included in Today's Volume.
-  // Today's Volume comes only from the Parcel Records upload, plus the
-  // optional hidden hub-status checkbox (Transporting/Transported/Packed/Packing).
+  // Linehaul Task uploaded-file rows are NOT included in Today's Volume
+  // or Estimated Volume Tomorrow. Both dashboard volumes use Parcel Records.
   const todayVolume=todayRows.length;
 
-  // Estimated Volume Tomorrow appears as a card all day. Starting 3 PM it is:
-  // unique Linehaul Task parcels that have BOTH a Linehaul Task ID and an SPX TN.
-  // Received parcels are NOT included in this card.
-  const estimatedTomorrow=linehaulSpxKeys.size && after3pm?linehaulSpxKeys.size:0;
+  // Estimated Volume Tomorrow: starting at 3 PM, count unique Parcel Records
+  // that are destined for Badoc Hub, currently at an allowed station, belong
+  // to one of the exact configured Badoc/Pinili towns, are not exceptions,
+  // and have one of the qualifying next-period statuses.
+  // `current.valid` is already classified by destination + current station +
+  // the exact configured town map, so do not use Linehaul Task data here.
+  const estimatedStatuses=new Set([
+    "RECEIVED",
+    "LMHUBRECEIVED",
+    "SOCLHTRANSPORTING",
+    "SOCLHTRANSPORTED",
+    "SOCPACKED",
+    "SOCPACKING"
+  ]);
+  const estimatedTnKeys=new Set();
+  if(after3pm){
+    qualifyingDayRows.forEach(r=>{
+      if(!tomorrowTownEligible(r))return;
+      if(!estimatedStatuses.has(statusKey(status(r))))return;
+      const tn=tnKey(spxTN(r));
+      if(tn)estimatedTnKeys.add(tn);
+    });
+  }
+  const estimatedTomorrow=after3pm?estimatedTnKeys.size:0;
 
   const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
   qualifyingDayRows.forEach(r=>{
@@ -6035,5 +6072,101 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   }
 })();
 </script>
+<script>
+/* FINAL ESTIMATED TOMORROW: exact 57-town allow-list */
+(function(){
+  const BADOC_PINILI_57 = ['Turod','Labut','Caraitan','Paltit','Lubigan','Bato','Ar-Arusip','Alay-Nangbabaan (Alay 15-B)','Nagrebcan','Balbaldez','Saud','Pagsanahan Norte','Pagsanahan Sur','La Virgen Milagrosa (Paguetpet)','Morong','Santa Cruz Norte','Santa Cruz Sur','Alogoog','Lacuben','Aring','Canaan (Pob.)','Garreta (Pob.)','Gabut Norte','Gabut Sur','Napu','Mabusag Norte','Mabusag Sur','Parang','Pasuc','Uguis','Camanga','Madupayas','Liliputen','Lumbaan-Bicbica','Sacritan','Aglipay','Santo Tomas','Cabaroan','Buanga','Puritac','Dalayap','Nagtrigoan','Upon','Valbuena (Pob.)','Pagdilao (Pob.)','Salanap','Barbar','Bungro','Pugaoan','Apatut-Lubong','Darat','Capangdanan','Gulpeng','Badio','Bulbulala','Puzol','Tartarabang'];
+  function etNorm(v){
+    return String(v ?? "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[\u2010-\u2015]/g,"-")
+      .replace(/[_-]+/g," ")
+      .replace(/[()]/g," ")
+      .replace(/\s+/g," ")
+      .trim().toUpperCase();
+  }
+  const ET_TOWN_SET = new Set(BADOC_PINILI_57.map(etNorm));
+  window.BADOC_PINILI_57_TOWN_ALLOWED = function(v){
+    return ET_TOWN_SET.has(etNorm(v));
+  };
+})();
+</script>
+
+<script>
+/* FINAL OVERRIDE: Estimated Volume Tomorrow uses current uploaded parcel rows,
+   exact destination/station/status filters, exact 57-town list, and exceptions. */
+(function(){
+  function norm(v){
+    return String(v ?? "").trim().replace(/[_-]+/g," ").replace(/\s+/g," ").toUpperCase();
+  }
+  function field(r, names){
+    for(const k of names){
+      if(r && Object.prototype.hasOwnProperty.call(r,k) && String(r[k] ?? "").trim())
+        return String(r[k]).trim();
+    }
+    return "";
+  }
+  function tn(r){
+    return field(r,[
+      "SLS Tracking Number","SLS Tracking No","Tracking Number",
+      "Tracking No","SPX Tracking Number","SPX Tracking No"
+    ]);
+  }
+  function town(r){
+    return field(r,["Town Name","Town","TOWN NAME"]);
+  }
+  function station(r){
+    return norm(field(r,["Current Station","CURRENT STATION"]));
+  }
+  function destination(r){
+    return norm(field(r,["Destination Station","DESTINATION STATION"]));
+  }
+  function status(r){
+    return norm(field(r,["Status","Parcel Status To","Status To","TO Status","To Status"]));
+  }
+  function exception(r){
+    try{
+      return typeof window.isExceptionRow==="function" && window.isExceptionRow(r);
+    }catch(e){ return false; }
+  }
+  function recalc(){
+    try{
+      const mins = new Date().getHours()*60 + new Date().getMinutes();
+      const el = document.getElementById("opIncomingVolume");
+      if(!el) return;
+      if(mins < 900){ el.textContent="0"; return; }
+
+      const rows =
+        Array.isArray(window.current?.valid) ? window.current.valid :
+        Array.isArray(window.current?.rows) ? window.current.rows : [];
+
+      const allowedStations = new Set(["BADOC HUB","CAGAYAN DC","SOC 6"]);
+      const allowedStatuses = new Set([
+        "RECEIVED","LMHUB RECEIVED",
+        "SOC LHTRANSPORTING","SOC LHTRANSPORTED",
+        "SOC PACKED","SOC PACKING"
+      ]);
+
+      const seen = new Set();
+      for(const r of rows){
+        if(destination(r)!=="BADOC HUB") continue;
+        if(!allowedStations.has(station(r))) continue;
+        if(!window.BADOC_PINILI_57_TOWN_ALLOWED || !window.BADOC_PINILI_57_TOWN_ALLOWED(town(r))) continue;
+        if(!allowedStatuses.has(status(r))) continue;
+        if(exception(r)) continue;
+        const key = norm(tn(r)).replace(/[\s\-_.]/g,"");
+        if(key) seen.add(key);
+      }
+      el.textContent = String(seen.size);
+    }catch(e){
+      console.warn("Estimated Tomorrow final calculation:",e);
+    }
+  }
+  window.recalculateEstimatedTomorrowFinal = recalc;
+  document.addEventListener("DOMContentLoaded", recalc);
+  setInterval(recalc, 30000);
+})();
+</script>
+
 </body>
 </html>
