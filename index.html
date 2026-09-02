@@ -221,6 +221,41 @@ body{background:#05070a;color:#f5f8fc}
 @media(max-width:900px){#linehaul .lh-task-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){#linehaul .lh-task-kpis{grid-template-columns:1fr}}
 
+
+/* Parcel Count — upload status */
+.parcel-upload-status .pus-toggle{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:0;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left;
+}
+.parcel-upload-status .pus-chevron{font-size:12px;transition:transform .15s ease;color:#7F9AA8}
+.parcel-upload-status.is-open .pus-chevron{transform:rotate(180deg)}
+.parcel-upload-status .pus-body{display:none}
+.parcel-upload-status.is-open .pus-body{display:block}
+.parcel-upload-status{
+  margin-top:12px;border:1px solid #22313D;border-radius:10px;
+  background:linear-gradient(145deg,#0A1016,#070B0F);
+  padding:10px 12px;color:#DDEAF2;
+}
+.parcel-upload-status .pus-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:7px;font-size:11px;font-weight:900;letter-spacing:.06em;
+  color:#9FC6D9;text-transform:uppercase;
+}
+.parcel-upload-status .pus-total{color:#4DD4FF;font-size:12px}
+.parcel-upload-status .pus-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+  gap:12px;align-items:center;padding:7px 0;border-top:1px solid #17242D;
+  font-size:12px;
+}
+.parcel-upload-status .pus-file{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#F4F9FC}
+.parcel-upload-status .pus-meta{color:#8FA8B7;font-size:11px;white-space:nowrap}
+.parcel-upload-status .pus-ok{color:#67E8F9;font-weight:800;white-space:nowrap}
+.parcel-upload-status .pus-empty{color:#718391;font-size:11px}
+@media(max-width:600px){
+  .parcel-upload-status .pus-row{grid-template-columns:1fr auto}
+  .parcel-upload-status .pus-meta{grid-column:1/-1}
+}
+
 #linehaul .lh-task-toggle{cursor:pointer;user-select:none}
 #linehaul .lh-task-toggle em{margin-left:auto;font-style:normal;font-size:9px;color:#8b9bb0}
 #linehaul .lh-task-chevron{width:14px;font-size:10px}
@@ -2609,6 +2644,362 @@ html{
 <link rel="icon" type="image/png" sizes="192x192" href="./badoc-hub-icon.png?v=16">
 <link rel="shortcut icon" href="./badoc-hub-icon.png?v=16">
 <link rel="apple-touch-icon" sizes="192x192" href="./badoc-hub-icon.png?v=16">
+<style id="dashboard-operation-progress">
+.dashboard-overview{padding:0;overflow:hidden}
+.dashboard-overview-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;border-bottom:1px solid #22313D;background:linear-gradient(120deg,#0B151D,#091018)}
+.dashboard-overview-kicker{font-size:11px;font-weight:900;letter-spacing:1px;color:#7fdcff}
+.dashboard-overview h2{margin:5px 0 0;font-size:20px;color:#fff}
+.dashboard-overview h2:before{display:none}
+.dashboard-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px 20px;border-bottom:1px solid #22313D}
+.dashboard-summary-card{padding:15px;border:1px solid #22313D;border-radius:11px;background:linear-gradient(145deg,#0E151B,#080C10);min-height:88px}
+.dashboard-summary-card strong{display:block;font-size:30px;line-height:1;color:#fff}
+.dashboard-summary-card span{display:block;margin-top:8px;font-size:11px;font-weight:900;letter-spacing:.7px;color:#EAF8FF}
+.dashboard-summary-card small{display:block;margin-top:4px;font-size:9px;color:#718695}
+.dashboard-summary-card.volume{border-top:2px solid #18B8FF}
+.dashboard-summary-card.clear{border-top:2px solid #4ADE80}
+.dashboard-summary-card.volume strong{color:#4DD4FF}.dashboard-summary-card.clear strong{color:#86EFAC}
+.dashboard-status-section{padding:16px 20px 20px}
+.dashboard-status-title{font-size:12px;font-weight:900;letter-spacing:.8px;color:#DCEFFF;margin-bottom:10px}
+.dashboard-status-title span{font-size:10px;font-weight:600;color:#718695;margin-left:8px;letter-spacing:0}
+.dashboard-hub-table{border:1px solid #22313D;border-radius:11px;overflow:hidden;background:#080C10}
+.dashboard-hub-row{display:grid;grid-template-columns:1.15fr .65fr 1.1fr .65fr;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid #17242D;font-size:12px}
+.dashboard-hub-row:last-child{border-bottom:0}
+.dashboard-hub-row.header{background:#101A22;color:#9FB3BF;font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+.dashboard-hub-row strong{font-size:13px;color:#fff}
+.dashboard-hub-row .hub-volume,.dashboard-hub-row .hub-completed{text-align:right;font-variant-numeric:tabular-nums}
+.dashboard-hub-row .hub-progress{display:flex;align-items:center;gap:8px}
+.dashboard-progress-track{height:7px;flex:1;background:#101A20;border:1px solid #20313B;border-radius:999px;overflow:hidden}
+.dashboard-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#0878FF,#00B8FF,#62E6FF);border-radius:999px;transition:width .2s ease}
+.dashboard-progress-label{min-width:48px;text-align:right;font-size:10px;color:#B9D7E6;font-variant-numeric:tabular-nums}
+.dashboard-fleet-title{margin-top:16px}
+.dashboard-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dashboard-status-card{padding:15px;border:1px solid #22313D;border-radius:11px;background:linear-gradient(145deg,#0E151B,#080C10);min-height:96px}
+.dashboard-status-card strong{display:block;font-size:30px;line-height:1;color:#fff}
+.dashboard-status-card span{display:block;margin-top:8px;font-size:11px;font-weight:900;letter-spacing:.7px;color:#EAF8FF}
+.dashboard-status-card small{display:block;margin-top:4px;font-size:9px;color:#718695}
+.dashboard-status-card.delivering{border-top:2px solid #18B8FF}
+.dashboard-status-card.delivered{border-top:2px solid #4ADE80}
+.dashboard-status-card.onhold{border-top:2px solid #FBBF24}
+.dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}
+.parcel-upload-inline{margin-bottom:14px}
+@media(max-width:800px){.dashboard-hub-row{grid-template-columns:1.1fr .6fr 1fr}.dashboard-hub-row .hub-progress{grid-column:1/-1}.dashboard-hub-row.header .hub-progress{grid-column:auto}}
+@media(max-width:700px){.dashboard-summary-grid{grid-template-columns:1fr}.dashboard-overview-head{align-items:flex-start;flex-direction:column}.dashboard-status-grid{grid-template-columns:1fr}.dashboard-hub-row{grid-template-columns:1fr .7fr}.dashboard-hub-row .hub-completed{display:none}.dashboard-hub-row.header .hub-completed{display:none}.dashboard-hub-row .hub-progress{grid-column:1/-1}}
+</style>
+
+<style id="safe-dashboard-kpi-style">
+#dashboardKpiSummary{margin:16px 0;padding:18px;border:1px solid rgba(38,173,255,.22);border-radius:16px;background:rgba(8,17,25,.96)}
+#dashboardKpiSummary .dashboard-kpi-summary-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#dashboardKpiSummary .dashboard-kpi-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;color:#19b9ff}
+#dashboardKpiSummary .dashboard-kpi-title{font-size:18px;font-weight:900;margin-top:3px}
+#dashboardKpiSummary .dashboard-kpi-subtitle{font-size:11px;color:#7f8c99;margin-top:3px}
+#dashboardKpiSummary .dashboard-kpi-badge{font-size:9px;font-weight:800;letter-spacing:.08em;padding:6px 9px;border:1px solid rgba(25,185,255,.25);border-radius:999px;color:#7dd9ff}
+#dashboardKpiSummary .dashboard-kpi-summary-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:10px}
+#dashboardKpiSummary .dashboard-kpi-card{padding:15px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:#10171d;min-width:0}
+#dashboardKpiSummary .dashboard-kpi-card .label{font-size:9px;font-weight:800;letter-spacing:.11em;color:#8b98a5}
+#dashboardKpiSummary .dashboard-kpi-card strong{display:block;font-size:27px;line-height:1.15;margin-top:8px;color:#f3f7fa}
+#dashboardKpiSummary .dashboard-kpi-card small{display:block;font-size:10px;color:#667480;margin-top:6px}
+#dashboardKpiSummary .dashboard-kpi-card.remarks strong{font-size:16px}
+@media(max-width:650px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr 1fr}#dashboardKpiSummary .remarks{grid-column:1/-1}}
+@media(max-width:430px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr}#dashboardKpiSummary .remarks{grid-column:auto}}
+</style>
+<style id="kpi-fit-click-style">
+#dashboardKpiSummary{width:100%;box-sizing:border-box;margin:16px 0}
+#dashboardKpiSummary .dashboard-kpi-summary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);gap:10px}
+#dashboardKpiSummary .dashboard-kpi-card{min-width:0}
+#dashboardLiveKpi{cursor:pointer;appearance:none;font:inherit}
+#dashboardLiveKpi:hover{border-color:#19b9ff;background:rgba(25,185,255,.12)}
+#dashboardLiveKpi:focus-visible{outline:2px solid #19b9ff;outline-offset:2px}
+@media(max-width:700px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr 1fr}#dashboardKpiSummary .remarks{grid-column:1/-1}}
+@media(max-width:430px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr}#dashboardKpiSummary .remarks{grid-column:auto}}
+</style>
+
+<style id="dashboard-kpi-dark-fit-final">
+/* Keep Today's Volume and Clear Floor Rate as two equal, compact cards. */
+#homeDashboard .dashboard-summary-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:16px !important;
+  align-items:stretch !important;
+}
+#homeDashboard .dashboard-summary-card{
+  min-width:0 !important;
+  width:auto !important;
+  min-height:150px !important;
+  box-sizing:border-box !important;
+}
+#homeDashboard .dashboard-summary-card strong{
+  font-size:42px !important;
+  line-height:1 !important;
+}
+
+/* KPI Summary stays below the two operation cards. */
+#homeDashboard #dashboardKpiSummary{
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+  margin:16px 0 18px !important;
+}
+
+/* Dark LIVE KPI button, matching the app's dark theme. */
+#homeDashboard #dashboardLiveKpi{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  background:#10171d !important;
+  color:#73d8ff !important;
+  border:1px solid rgba(25,185,255,.35) !important;
+  box-shadow:none !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.08em !important;
+  border-radius:999px !important;
+  padding:8px 13px !important;
+  min-height:36px !important;
+}
+#homeDashboard #dashboardLiveKpi:hover{
+  background:#13212b !important;
+  border-color:#19b9ff !important;
+  color:#8be0ff !important;
+}
+#homeDashboard #dashboardLiveKpi:focus-visible{
+  outline:2px solid #19b9ff !important;
+  outline-offset:2px !important;
+}
+@media(max-width:700px){
+  #homeDashboard .dashboard-summary-grid{grid-template-columns:1fr !important}
+  #homeDashboard .dashboard-summary-card{min-height:130px !important}
+}
+</style>
+<style id="kpi-below-clear-floor-final">
+#homeDashboard #dashboardKpiSummary{width:100%;box-sizing:border-box;margin:16px 0 18px}
+#homeDashboard #dashboardLiveKpi{appearance:none;-webkit-appearance:none;background:#10171d;color:#73d8ff;border:1px solid rgba(25,185,255,.35);box-shadow:none;cursor:pointer}
+#homeDashboard #dashboardLiveKpi:hover{background:#13212b;border-color:#19b9ff}
+</style><style id="kpi-summary-top-spacing">
+#homeDashboard #dashboardKpiSummary{margin-top:0;margin-bottom:16px}
+</style>
+<style id="dashboard-ui-1-5-7">
+/* Dashboard UI upgrade: Today's Volume focus + secondary Incoming Volume + mobile-first layout. */
+#homeDashboard .dashboard-summary-grid{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:14px !important;
+  padding:16px 20px !important;
+  align-items:stretch !important;
+}
+#homeDashboard .dashboard-summary-card{
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+#homeDashboard .dashboard-summary-card.volume{
+  grid-column:1 / -1 !important;
+  min-height:190px !important;
+  padding:24px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  background:linear-gradient(145deg,#0D1B24,#080C10) !important;
+  border:1px solid rgba(24,184,255,.38) !important;
+  border-top:3px solid #18B8FF !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 8px 24px rgba(0,0,0,.18) !important;
+}
+#homeDashboard .dashboard-summary-card.volume strong{
+  font-size:58px !important;
+  line-height:.95 !important;
+  letter-spacing:-1px !important;
+}
+#homeDashboard .dashboard-summary-card.volume span{
+  margin-top:12px !important;
+  font-size:12px !important;
+  letter-spacing:1px !important;
+}
+#homeDashboard .dashboard-summary-card.volume small{
+  margin-top:6px !important;
+  font-size:10px !important;
+}
+#homeDashboard .dashboard-summary-card.incoming{
+  min-height:118px !important;
+  opacity:.88 !important;
+  padding:16px !important;
+  border:1px solid #22313D !important;
+  border-top:1px solid #2B3A44 !important;
+  background:linear-gradient(145deg,#0C1318,#080C10) !important;
+}
+#homeDashboard .dashboard-summary-card.incoming strong{
+  font-size:30px !important;
+  color:#B9C8D1 !important;
+}
+#homeDashboard .dashboard-summary-card.incoming span{
+  color:#C9D6DD !important;
+}
+#homeDashboard .dashboard-summary-card.incoming small{
+  color:#687984 !important;
+}
+#homeDashboard .dashboard-summary-card.clear{
+  min-height:118px !important;
+}
+@media(max-width:700px){
+  #homeDashboard .dashboard-summary-grid{
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    padding:12px !important;
+  }
+  #homeDashboard .dashboard-summary-card.volume{
+    grid-column:auto !important;
+    min-height:150px !important;
+    padding:20px !important;
+  }
+  #homeDashboard .dashboard-summary-card.volume strong{
+    font-size:48px !important;
+  }
+  #homeDashboard .dashboard-summary-card.clear,
+  #homeDashboard .dashboard-summary-card.incoming{
+    min-height:100px !important;
+    padding:14px !important;
+  }
+}
+@media(max-width:430px){
+  #homeDashboard .dashboard-summary-card.volume{min-height:138px !important;padding:18px !important}
+  #homeDashboard .dashboard-summary-card.volume strong{font-size:42px !important}
+  #homeDashboard .dashboard-summary-card.volume span{font-size:11px !important}
+}
+</style>
+
+<style id="android-bottom-nav-final-fix">
+/* Compact Android bottom navigation */
+@media (max-width:760px){
+  html,body{
+    -webkit-text-size-adjust:100%!important;
+    text-size-adjust:100%!important;
+  }
+  .mobile-bottom-nav{
+    left:10px!important;
+    right:10px!important;
+    bottom:10px!important;
+    height:68px!important;
+    min-height:68px!important;
+    max-height:68px!important;
+    padding:5px!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:4px!important;
+    align-items:stretch!important;
+    border-radius:18px!important;
+    box-sizing:border-box!important;
+  }
+  .mobile-bottom-nav button{
+    width:100%!important;
+    height:56px!important;
+    min-height:56px!important;
+    max-height:56px!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    border-radius:13px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    font-size:11px!important;
+    line-height:1.05!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  .mobile-bottom-nav .mobile-ico,
+  .mobile-bottom-nav button .nav-icon{
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    font-size:19px!important;
+    line-height:1!important;
+    flex:0 0 auto!important;
+  }
+  .mobile-bottom-nav button.active::after{
+    bottom:3px!important;
+    width:18px!important;
+    height:2px!important;
+  }
+}
+@media (max-width:430px){
+  .mobile-bottom-nav{
+    left:7px!important;
+    right:7px!important;
+    bottom:7px!important;
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    padding:4px!important;
+    gap:3px!important;
+  }
+  .mobile-bottom-nav button{
+    height:54px!important;
+    min-height:54px!important;
+    max-height:54px!important;
+    font-size:10px!important;
+    padding:3px 1px!important;
+  }
+  .mobile-bottom-nav .mobile-ico,
+  .mobile-bottom-nav button .nav-icon{
+    font-size:18px!important;
+  }
+}
+</style>
+<style id="parcel-filter-pc-overflow-fix">
+/* PC: keep all parcel filters and both action buttons inside the records card. */
+@media(min-width:1051px){
+  #records .records-filter-toolbar{
+    grid-template-columns:minmax(180px,1.25fr) minmax(125px,1fr) minmax(140px,1fr) minmax(115px,.8fr) minmax(96px,auto) minmax(108px,auto)!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+    gap:8px!important;
+  }
+  #records .records-filter-toolbar .parcel-filter-action{
+    width:100%!important;
+    min-width:0!important;
+    padding-left:9px!important;
+    padding-right:9px!important;
+    white-space:normal!important;
+    line-height:1.15!important;
+  }
+}
+</style>
+
+<style id="parcel-records-pc-final-fix">
+/* Final PC fix: Parcel Records is inside #dashboard, not #records. */
+@media(min-width:901px){
+  #parcelRecordsIntegrated .records-filter-toolbar.parcel-filter-upgraded{
+    display:grid !important;
+    grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,1fr)) minmax(100px,.7fr) minmax(112px,.8fr) !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    gap:8px !important;
+    align-items:end !important;
+    overflow:visible !important;
+  }
+  #parcelRecordsIntegrated .records-filter-toolbar.parcel-filter-upgraded > *{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+  #parcelRecordsIntegrated .parcel-filter-field{
+    min-width:0 !important;
+    width:auto !important;
+  }
+  #parcelRecordsIntegrated .parcel-filter-field input,
+  #parcelRecordsIntegrated .parcel-filter-field select,
+  #parcelRecordsIntegrated .parcel-filter-action{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+  #parcelRecordsIntegrated .parcel-filter-action{
+    white-space:nowrap !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -2617,12 +3008,11 @@ html{
 <aside class="side">
   <div class="brand">BADOC HUB<small></small></div>
   <nav class="nav">
-    <button class="active" data-page="dashboard"><span class="ico">▦</span> Dashboard</button>
-    <button data-page="upload"><span class="ico">↑</span> Upload Exported</button>
+    <button class="active" data-page="homeDashboard"><span class="ico">▣</span> Dashboard</button>
+    <button data-page="dashboard"><span class="ico">▦</span> Parcel Count</button>
     <button data-page="linehaul"><span class="ico">⇄</span> Linehaul Task</button>
-    <button data-page="records"><span class="ico">▤</span> Parcel Records</button>
-    <button data-page="misrouted"><span class="ico">!</span> Misrouted <span id="misroutedSideCount" class="side-count">0</span></button>
-    <button data-page="kpi"><span class="ico">▣</span> KPI</button><button data-page="settings"><span class="ico">⚙</span> Settings</button>
+    <button data-page="kpi"><span class="ico">▣</span> KPI</button>
+    <button data-page="settings"><span class="ico">⚙</span> Settings</button>
   </nav>
 </aside>
 <main class="main">
@@ -2640,7 +3030,96 @@ html{
   </div>
 </div>
 
-  <section id="dashboard" class="page active">
+  <section id="homeDashboard" class="page">
+<div class="section dashboard-kpi-summary" id="dashboardKpiSummary">
+  <div class="dashboard-kpi-summary-head">
+    <div>
+      <div class="dashboard-kpi-kicker">PERFORMANCE</div>
+      <div class="dashboard-kpi-title">KPI SUMMARY</div>
+      <div class="dashboard-kpi-subtitle">Overall operational performance</div>
+    </div>
+    <button type="button" class="dashboard-kpi-badge" id="dashboardLiveKpi" title="Open KPI menu">LIVE KPI</button>
+  </div>
+  <div class="dashboard-kpi-summary-grid">
+    <div class="dashboard-kpi-card">
+      <span class="label">OVERALL SCORE</span>
+      <strong id="dashboardOverallScore">—</strong>
+      <small>Current KPI score</small>
+    </div>
+    <div class="dashboard-kpi-card">
+      <span class="label">GRADE</span>
+      <strong id="dashboardKpiGrade">—</strong>
+      <small>Performance grade</small>
+    </div>
+    <div class="dashboard-kpi-card remarks">
+      <span class="label">REMARKS</span>
+      <strong id="dashboardKpiRemarks">—</strong>
+      <small>Current KPI assessment</small>
+    </div>
+  </div>
+</div>
+
+    <div class="section dashboard-overview">
+      <div class="dashboard-overview-head">
+        <div>
+          <div class="dashboard-overview-kicker">OPERATION PROGRESS</div>
+          <h2>Today's Operation</h2>
+        </div>
+      </div>
+      <div class="dashboard-summary-grid">
+        <div class="dashboard-summary-card volume"><strong id="opTodayVolume">0</strong><span>TODAY'S VOLUME</span><small>Badoc + Pinili parcel volume</small></div>
+
+
+<div class="dashboard-summary-card clear"><strong id="opClearFloorRate">0.0%</strong><span>CLEAR FLOOR RATE</span><small>Delivered ÷ today's volume</small></div>
+        <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>ESTIMATED VOLUME TOMORROW</span><small>Next-period estimate</small></div>
+      </div>
+      <div id="volumeCutoffStatus" style="margin-top:8px;color:#8fa0ad;font-size:12px">Volume period: checking local time…</div>
+      <div class="today-volume-options" style="display:none">
+        <input type="checkbox" class="today-volume-status-option" data-status="SOC LHTRANSPORTING">
+        <input type="checkbox" class="today-volume-status-option" data-status="SOC LHTRANSPORTED">
+        <input type="checkbox" class="today-volume-status-option" data-status="SOC PACKED">
+        <input type="checkbox" class="today-volume-status-option" data-status="SOC PACKING">
+      </div>
+      <label title="Include Transporting, Transported, Packed and Packing in Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
+        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add hub statuses
+      </label>
+
+
+      <div class="dashboard-status-section">
+        <div class="dashboard-status-title">IN HUB STATUS <span>filtered by Destination + Current Station</span></div>
+        <div class="dashboard-hub-table">
+          <div class="dashboard-hub-row header"><div>Status</div><div>Volume</div></div>
+          <div class="dashboard-hub-row"><strong>Transporting</strong><div class="hub-volume" id="opTransporting">0</div></div>
+          <div class="dashboard-hub-row"><strong>Transported</strong><div class="hub-volume" id="opTransported">0</div></div>
+          <div class="dashboard-hub-row"><strong>Received</strong><div class="hub-volume" id="opReceived">0</div></div>
+          <div class="dashboard-hub-row"><strong>Assigning</strong><div class="hub-volume" id="opAssigning">0</div></div>
+          <div class="dashboard-hub-row"><strong>Assigned</strong><div class="hub-volume" id="opAssigned">0</div></div>
+        </div>
+        <div class="dashboard-status-title dashboard-fleet-title">FLEET STATUS <span>from Parcel Status To</span></div>
+        <div class="dashboard-status-grid">
+          <div class="dashboard-status-card delivering"><strong id="opDelivering">0</strong><span>DELIVERING</span><small>Parcel Status To</small></div>
+          <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small>Parcel Status To</small></div>
+          <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small>Parcel Status To</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboard" class="page">
+    <div class="section upload-section parcel-upload-inline">
+      <div class="upload-label">DATA SOURCE</div>
+      <div class="uploadbox upload-drop" id="uploadDrop">
+        <div class="upload-icon">⇧</div>
+        <div class="upload-main">Drop Exported File Here</div>
+        <div class="upload-sub">or click to browse</div>
+        <label for="csvFile" class="upload-click"></label>
+        <input id="csvFile" type="file" accept=".csv,text/csv">
+      </div>
+      <div class="toolbar upload-actions">
+        <button class="btn" id="undoUpload">Undo last upload</button>
+      </div>
+      <div id="parcelUploadStatus" class="parcel-upload-status" aria-live="polite"></div>
+    </div>
     <div class="kpis">
       <div class="kpi"><div class="num" id="total">0</div><div class="lab">TOTAL VOLUME</div><div class="desc"></div></div>
       <div class="kpi"><div class="num" id="badocTotal">0</div><div class="lab">BADOC</div><div class="desc"></div></div>
@@ -2649,26 +3128,7 @@ html{
     </div>
     <div class="section"><h2>BADOC</h2><div id="badocGrid" class="town-grid"></div></div>
     <div class="section"><h2>PINILI</h2><div id="piniliGrid" class="town-grid"></div></div>
-  </section>
-
-  <section id="upload" class="page">
-  <div class="section upload-section">
-    <div class="upload-label">DATA SOURCE</div>
-    <div class="uploadbox upload-drop" id="uploadDrop">
-      <div class="upload-icon">⇧</div>
-      <div class="upload-main">Drop Exported File Here</div>
-      <div class="upload-sub">or click to browse</div>
-      <label for="csvFile" class="upload-click"></label>
-      <input id="csvFile" type="file" accept=".csv,text/csv">
-    </div>
-    <div class="toolbar upload-actions">
-      <button class="btn danger reset-zero" id="clearCurrentUpload"></span> Clear</button>
-      <button class="btn" id="undoUpload">Undo last upload</button>
-    </div>
-  </div>
-</section>
-
-  <section id="records" class="page"><div class="section">
+<div id="parcelRecordsIntegrated"><div class="section">
     <h2>Parcel Records <span id="recordMeta"></span></h2>
     
 <div class="toolbar records-filter-toolbar parcel-filter-upgraded">
@@ -2693,22 +3153,15 @@ html{
 </div>
 <div id="recordFilterHint" class="record-filter-hint">Select multiple values in a filter.</div>
 <div id="recordTable"></div>
-  </div></section>
-<section id="misrouted" class="page"><div class="section">
+  </div></div>
+<div id="misroutedIntegrated"><div class="section">
     <h2>Misrouted Parcels <span></span></h2>
     <div class="toolbar"><input id="misSearch" placeholder="Search town or tracking number..."><button class="btn" id="exportMis">Export misrouted CSV</button></div>
     <div id="misTable"></div>
-  </div></section>
+  </div></div>
 
-  <section id="history" class="page"><div class="section"><h2>Upload History</h2><div id="historyGrid" class="history"></div></div></section>
 
-  <section id="towns" class="page"><div class="section">
-    <h2>Town Management</h2><div class="hint" style="margin-bottom:12px">Admin only. Towns are kept in the exact order shown on your reference sheet. Removing a town makes matching parcels misrouted.</div>
-    <div class="settings-grid"><div class="section"><h2>BADOC</h2><div id="badocEdit" class="listbox"></div><button class="btn primary" id="addBadoc">Add Badoc town</button></div>
-    <div class="section"><h2>PINILI</h2><div id="piniliEdit" class="listbox"></div><button class="btn primary" id="addPinili">Add Pinili town</button></div></div>
-  </div></section>
-
-  
+  </section>
 
 <section id="linehaul" class="page">
   <div class="section">
@@ -2749,6 +3202,16 @@ html{
     </div>
   </div>
 </section>
+<section id="history" class="page"><div class="section"><h2>Upload History</h2><div id="historyGrid" class="history"></div></div></section>
+
+  <section id="towns" class="page"><div class="section">
+    <h2>Town Management</h2><div class="hint" style="margin-bottom:12px">Admin only. Towns are kept in the exact order shown on your reference sheet. Removing a town makes matching parcels misrouted.</div>
+    <div class="settings-grid"><div class="section"><h2>BADOC</h2><div id="badocEdit" class="listbox"></div><button class="btn primary" id="addBadoc">Add Badoc town</button></div>
+    <div class="section"><h2>PINILI</h2><div id="piniliEdit" class="listbox"></div><button class="btn primary" id="addPinili">Add Pinili town</button></div></div>
+  </div></section>
+
+  
+
 
 <section id="kpi" class="page">
   <div class="kpi-sheet" id="kpiLiveSheet">
@@ -2779,6 +3242,17 @@ html{
 #cloudTestCard{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid rgba(0,180,255,.22);border-radius:9px;background:rgba(10,25,38,.7);font-size:11px}
 #cloudTestBtn{border:0;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:11px}
 #cloudTestResult{opacity:.8;word-break:break-word}
+
+<style id="inhub-status-clean-ui">
+.dashboard-hub-table{grid-template-columns:minmax(0,1fr) 110px!important;}
+.dashboard-hub-row{grid-template-columns:minmax(0,1fr) 110px!important;}
+.dashboard-hub-row.header{font-size:11px!important;text-transform:uppercase;letter-spacing:.08em;}
+.dashboard-hub-row .hub-volume{font-weight:800;text-align:right;}
+.dashboard-hub-row strong{font-weight:650;}
+@media(max-width:640px){
+  .dashboard-hub-table,.dashboard-hub-row{grid-template-columns:minmax(0,1fr) 82px!important;}
+}
+</style>
 </style>
 <div id="cloudTestCard">
   <button id="cloudTestBtn" type="button">Test Cloud Connection</button>
@@ -2791,7 +3265,7 @@ html{
   
 </div>
 <div class="section">
-    <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all local data</button></div>
+    <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all data</button></div>
     <div class="hint">Clear all local data removes uploaded files/data from both Upload Exported and Linehaul Task. Town/station settings are kept.</div>
   </div></section>
 </main>
@@ -2799,6 +3273,8 @@ html{
 
 
 <script>
+// Local downloaded HTML files (content:// / file://) may block IndexedDB in mobile browsers.
+// This build automatically falls back to session-memory storage so CSV upload and multi-upload still work.
 const DEFAULTS={
 badoc:[
 ["TUROD"],["LABUT"],["CARAITAN"],[""],["PALTIT"],["LUBIGAN"],["BATO"],[""],
@@ -2820,39 +3296,48 @@ const $=id=>document.getElementById(id);
 // Large parcel uploads are stored in IndexedDB instead of localStorage.
 const DB_NAME="ParcelRoutingDashboardCleanStartV2", DB_VERSION=1, STORE="batches";
 let dbReady=null;
+let memoryOnlyStorage=false;
 function openDB(){
   if(dbReady) return dbReady;
-  dbReady=new Promise((resolve,reject)=>{
-    const req=indexedDB.open(DB_NAME,DB_VERSION);
-    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error);
+  dbReady=new Promise((resolve)=>{
+    try{
+      if(!window.indexedDB){ memoryOnlyStorage=true; resolve(null); return; }
+      const req=indexedDB.open(DB_NAME,DB_VERSION);
+      req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>{ console.warn("IndexedDB unavailable; using session memory storage.",req.error); memoryOnlyStorage=true; resolve(null); };
+      req.onblocked=()=>{ console.warn("IndexedDB blocked; using session memory storage."); memoryOnlyStorage=true; resolve(null); };
+    }catch(e){ console.warn("IndexedDB unavailable; using session memory storage.",e); memoryOnlyStorage=true; resolve(null); }
   });
   return dbReady;
 }
 async function loadBatches(){
   try{
     const db=await openDB();
+    if(!db){ batches=[]; current=null; return; }
     batches=await new Promise((resolve,reject)=>{
       const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
       r.onsuccess=()=>resolve((r.result||[]).filter(b=>b && b.name && Array.isArray(b.rows)).sort((a,b)=>b.time-a.time));
       r.onerror=()=>reject(r.error);
     });
-    current=batches[0]||null;
-  }catch(e){console.error(e); batches=[]; current=null;}
+    current=mergeAllBatches();
+  }catch(e){console.error(e); batches=[]; current=null; memoryOnlyStorage=true;}
 }
 async function saveBatches(){
   const db=await openDB();
-  const tx=db.transaction(STORE,"readwrite"), st=tx.objectStore(STORE);
-  await new Promise((resolve,reject)=>{
-    st.clear();
-    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
-    // The store uses an auto-increment key. Do not supply an undefined key.
-    batches.forEach(b=>{
-      const copy={name:b.name,time:b.time,rows:b.rows,valid:b.valid,mis:b.mis};
-      st.add(copy);
+  if(!db){ return; }
+  try{
+    const tx=db.transaction(STORE,"readwrite"), st=tx.objectStore(STORE);
+    await new Promise((resolve,reject)=>{
+      st.clear();
+      tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+      // The store uses an auto-increment key. Do not supply an undefined key.
+      batches.forEach(b=>{
+        const copy={name:b.name,time:b.time,rows:b.rows,valid:b.valid,mis:b.mis};
+        st.add(copy);
+      });
     });
-  });
+  }catch(e){ console.warn("IndexedDB save failed; continuing in session memory.",e); memoryOnlyStorage=true; }
 }
 function saveTownSettings(){localStorage.setItem("pr_towns",JSON.stringify(towns))}
 function norm(s){return String(s??"").trim().replace(/\s+/g," ").toUpperCase()}
@@ -2868,6 +3353,28 @@ function parseCSV(text){
  let headers=(rows.shift()||[]).map(x=>x.trim());
  return rows.filter(r=>r.some(x=>String(x).trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
 }
+function spxTN(r){
+  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
+  for(const k of keys){const v=String(r?.[k]??"").trim();if(v)return norm(v);}
+  return "";
+}
+function mergeRowsUnique(rows){
+  const map=new Map();
+  for(const r of rows){
+    const k=spxTN(r);
+    // Parcel Count is keyed by SPX TN. Rows without an SPX TN are not parcels
+    // and must not create a new count on every upload.
+    if(k) map.set(k,r);
+  }
+  return [...map.values()];
+}
+function mergeAllBatches(){
+  const ordered=[...(Array.isArray(batches)?batches:[])].sort((a,b)=>(a.time||0)-(b.time||0));
+  const rows=mergeRowsUnique(ordered.flatMap(b=>Array.isArray(b.rows)?b.rows:[]));
+  const z=classify(rows);
+  return {name:"Combined uploads",time:Date.now(),rows,valid:z.valid,mis:z.mis,combined:true};
+}
+
 function classify(rows){
  const map=allowedMap(), valid=[],mis=[];
  for(const r of rows){
@@ -2937,11 +3444,86 @@ function fillStatusFilter(){
   if(statuses.includes(currentValue))el.value=currentValue;
 }
 
+function getParcelCountRows(){
+  const all=Array.isArray(current?.valid)?current.valid:[];
+  const statusOf=r=>{
+    const keys=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status"];
+    for(const k of keys){
+      if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()) return String(r[k]).trim();
+    }
+    const key=Object.keys(r||{}).find(k=>/parcel\s*status\s*to|status\s*to|to\s*status/i.test(k));
+    return key?String(r[key]??"").trim():"";
+  };
+  const statusNorm=v=>norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ");
+  const allowedStatuses=new Set([
+    "RECEIVED","LMHUB RECEIVED","DELIVERING","DELIVERED",
+    "ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD"
+  ]);
+  const base=all.filter(r=>allowedStatuses.has(statusNorm(statusOf(r))));
+  const rows=[...base];
+
+  const keyOf=v=>norm(v).replace(/[\s\-_.]/g,"");
+  const seen=new Set();
+  base.forEach(r=>{
+    const k=keyOf(spxTN(r));
+    if(k)seen.add(k);
+  });
+
+  // IMPORTANT: Linehaul Task data is kept completely separate from Parcel Count.
+  // Parcel Count uses ONLY the uploaded Parcel Records (current.valid).
+  return rows;
+}
+
+let parcelUploadStatusOpen=false;
+function toggleParcelUploadStatus(){
+  parcelUploadStatusOpen=!parcelUploadStatusOpen;
+  const el=$("parcelUploadStatus");
+  if(!el)return;
+  el.classList.toggle("is-open",parcelUploadStatusOpen);
+  const btn=el.querySelector(".pus-toggle");
+  if(btn)btn.setAttribute("aria-expanded",String(parcelUploadStatusOpen));
+}
+function renderParcelUploadStatus(){
+  const el=$("parcelUploadStatus");
+  if(!el)return;
+  const items=Array.isArray(batches)?batches:[];
+  const countFiles=items.length.toLocaleString();
+  const head=`<button type="button" class="pus-toggle" onclick="toggleParcelUploadStatus()" aria-expanded="${parcelUploadStatusOpen}">
+      <span class="pus-head"><span>UPLOAD STATUS</span><span class="pus-total">${countFiles} FILE${items.length===1?"":"S"}</span></span>
+      <span class="pus-chevron">▼</span>
+    </button>`;
+  if(!items.length){
+    el.innerHTML=head+`<div class="pus-body"><div class="pus-empty">No parcel export uploaded.</div></div>`;
+  }else{
+    el.innerHTML=head+`<div class="pus-body">`+items.map(b=>{
+      const file=esc(b?.name||"Exported file");
+      const count=Array.isArray(b?.rows)?b.rows.length:0;
+      const when=b?.time?new Date(b.time).toLocaleString():"";
+      const dupes=Number(b?.duplicates||0);
+      return `<div class="pus-row">
+        <span class="pus-file" title="${file}">📄 ${file}</span>
+        <span class="pus-meta">${count.toLocaleString()} unique · ${dupes.toLocaleString()} duplicate${dupes===1?"":"s"}</span>
+        <span class="pus-ok">UPLOADED</span>
+        <span class="pus-meta">${esc(when)}</span>
+      </div>`;
+    }).join("")+`</div>`;
+  }
+  el.classList.toggle("is-open",parcelUploadStatusOpen);
+}
+
 function render(){
- const v=current?.valid||[],m=current?.mis||[]; $("total").textContent=v.length;$("badocTotal").textContent=v.filter(x=>x._area==="Badoc").length;$("piniliTotal").textContent=v.filter(x=>x._area==="Pinili").length;$("misTotal").textContent=m.length; const ms=$("misroutedSideCount"); if(ms)ms.textContent=m.length;
- renderTownGrid("badocGrid",towns.badoc,v.filter(x=>x._area==="Badoc"));renderTownGrid("piniliGrid",towns.pinili,v.filter(x=>x._area==="Pinili"));
+ const v=getParcelCountRows(),m=current?.mis||[];
+ const badoc=v.filter(x=>x._area==="Badoc");
+ const pinili=v.filter(x=>x._area==="Pinili");
+ $("badocTotal").textContent=badoc.length;
+ $("piniliTotal").textContent=pinili.length;
+ $("total").textContent=badoc.length+pinili.length;
+ $("misTotal").textContent=m.length;
+ const ms=$("misroutedSideCount"); if(ms)ms.textContent=m.length;
+ renderTownGrid("badocGrid",towns.badoc,badoc);
+ renderTownGrid("piniliGrid",towns.pinili,pinili);
  $("batchLabel").textContent="";
- renderRecords();renderMis();renderHistory();renderTownEdits()
+ renderRecords();renderMis();renderHistory();renderTownEdits();renderParcelUploadStatus();window.updateOperationProgress?.()
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
@@ -3135,15 +3717,15 @@ function recordFiltersActive(){
   });
 }
 function updateDashboardFromParcelFilters(){
-  const all=Array.isArray(current?.valid)?current.valid:[];
+  const all=typeof getParcelCountRows==="function"?getParcelCountRows():(Array.isArray(current?.valid)?current.valid:[]);
   const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:all;
   const active=recordFiltersActive();
   const rows=active?filtered:all;
 
   const total=$("total"), badoc=$("badocTotal"), pinili=$("piniliTotal"), mis=$("misTotal");
-  if(total) total.textContent=rows.length.toLocaleString();
   const bc=rows.filter(r=>norm(r?._area)==="BADOC").length;
   const pc=rows.filter(r=>norm(r?._area)==="PINILI").length;
+  if(total) total.textContent=(bc+pc).toLocaleString();
   if(badoc) badoc.textContent=bc.toLocaleString();
   if(pinili) pinili.textContent=pc.toLocaleString();
 
@@ -3280,32 +3862,82 @@ function renderTownEdits(){
 function addTown(key){let n=prompt("Town name:");if(n&&n.trim()){towns[key].push([n.trim().toUpperCase()]);saveTownSettings();render()}}
 function removeTown(key,i){if(role!=="Admin")return alert("Admin only.");if(confirm("Remove this town/spacing row?")){towns[key].splice(i,1);saveTownSettings();render()}}
 function loadBatch(i){current=batches[i];render();showPage("dashboard")}
-async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(confirm("Delete this upload permanently from this browser?")){batches.splice(i,1);current=batches[0]||null;saveTownSettings();render()}}
+async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(confirm("Delete this upload permanently from this browser?")){batches.splice(i,1);current=mergeAllBatches();saveTownSettings();render()}}
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
-function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));$("pageTitle").textContent=p==="dashboard"?"Dashboard":p==="kpi"?"KPI":p.replace(/^\w/,c=>c.toUpperCase()).replace("Misrouted","Misrouted Parcels").replace("Towns","Town Management")}
-$("csvFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=async()=>{try{let rows=parseCSV(rd.result),z=classify(rows);current={name:f.name,time:Date.now(),rows,valid:z.valid,mis:z.mis};batches=[current,...batches.filter(b=>b.name!==f.name)];saveTownSettings();await saveBatches();render();showPage("dashboard")}catch(err){alert("Could not read this CSV: "+err.message)}};rd.readAsText(f)});
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management")}
+$("csvFile").addEventListener("change",e=>{
+  const files=[...(e.target.files||[])]; if(!files.length)return;
+  let remaining=files.length,added=0,updated=0,dupes=0;
+  files.forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=async()=>{
+      try{
+        const rows=parseCSV(rd.result);
+        const existingByKey=new Map();
+        batches.forEach(b=>(Array.isArray(b.rows)?b.rows:[]).forEach(r=>{
+          const k=spxTN(r); if(k) existingByKey.set(k,r);
+        }));
+        const seen=new Set();
+        const uniqueRows=[];
+        rows.forEach(r=>{
+          const k=spxTN(r);
+          // Ignore rows with no SPX TN so they cannot add a phantom parcel.
+          if(!k)return;
+          if(seen.has(k)){
+            // Within the newest upload, keep the last occurrence for the TN.
+            const idx=uniqueRows.findIndex(x=>spxTN(x)===k);
+            if(idx>=0) uniqueRows[idx]=r;
+            updated++;
+            dupes++;
+            return;
+          }
+          if(k && existingByKey.has(k)){
+            // A re-uploaded TN is an update, not a duplicate to discard.
+            // The newest row replaces the older row so its latest status is used.
+            updated++;
+            dupes++;
+          }else if(k){
+            added++;
+          }
+          if(k)seen.add(k);
+          uniqueRows.push(r);
+        });
+        if(uniqueRows.length){
+          const newBatch={name:f.name,time:Date.now(),rows:uniqueRows,duplicates:dupes,updated:updated,uploadedBy:role};
+          batches.unshift(newBatch);
+          undoBatch={batch:newBatch,index:0};
+        }
+        remaining--;
+        if(remaining===0){
+          current=mergeAllBatches();saveTownSettings();await saveBatches();render();showPage("dashboard");
+          alert(`Upload complete\n\nNew unique SPX TN: ${added.toLocaleString()}\nUpdated existing TN: ${updated.toLocaleString()}\nDuplicates/replacements: ${dupes.toLocaleString()}`);
+        }
+      }catch(err){remaining--;alert("Could not read this CSV: "+err.message)}
+    };
+    rd.readAsText(f);
+  });
+  e.target.value="";
+});
 
-$("clearCurrentUpload").onclick=async()=>{
-  if(!current){alert("There is no current upload to clear.");return;}
-  const idx=batches.findIndex(b=>b===current || (b.name===current.name && b.time===current.time));
-  if(idx<0){alert("Current upload was not found.");return;}
-  undoBatch={batch:current,index:idx};
-  batches.splice(idx,1);
-  current=batches[0]||null;
-  await saveBatches();
-  render();
-  showPage("upload");
-};
 $("undoUpload").onclick=async()=>{
   if(!undoBatch){alert("Nothing to undo.");return;}
-  const exists=batches.some(b=>b.name===undoBatch.batch.name && b.time===undoBatch.batch.time);
-  if(!exists)batches.splice(Math.min(undoBatch.index,batches.length),0,undoBatch.batch);
-  current=undoBatch.batch;
-  await saveBatches();
-  undoBatch=null;
-  render();
-  showPage("dashboard");
+  const target=undoBatch.batch;
+  const idx=batches.findIndex(b=>b===target || (b.name===target?.name && b.time===target?.time));
+  try{
+    if(typeof window.__badocUndoLastCloudUpload==="function")
+      await window.__badocUndoLastCloudUpload(target?.rows||[]);
+    if(idx>=0)batches.splice(idx,1);
+    current=mergeAllBatches();
+    await saveBatches();
+    undoBatch=null;
+    render();
+    showPage("dashboard");
+    alert("Last upload undone.");
+  }catch(err){
+    console.error("Undo upload failed:",err);
+    alert("Could not undo the last upload: "+(err?.message||err));
+  }
 };
 
 $("misroutedKpi").onclick=()=>showPage("misrouted");
@@ -3386,7 +4018,7 @@ $("exportValid").onclick=exportValidFiltered;$("exportMis").onclick=()=>current&
 $("addBadoc").onclick=()=>addTown("badoc");$("addPinili").onclick=()=>addTown("pinili");
 $("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({towns,batches},null,2),"application/json");
 $("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
-$("clearData").onclick=async()=>{if(confirm("Clear all local data?\\n\\nThis will remove uploaded files/data from Upload Exported AND Linehaul Task. Your town/station settings will be kept.")){try{const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"))});batches=[];current=null;/* Linehaul Task uses localStorage, not the parcel IndexedDB store. */["badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1","badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1","badoc_linehaul_export_unique_v1"].forEach(k=>localStorage.removeItem(k));if(typeof linehaulTasks!=="undefined")linehaulTasks=[];const lhFile=document.getElementById("linehaulCsvFile");if(lhFile)lhFile.value="";const lhBody=document.getElementById("linehaulBody");if(lhBody)lhBody.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';const lhStatus=document.getElementById("linehaulStatus");if(lhStatus)lhStatus.textContent="0 tasks";const lhTotal=document.getElementById("lhKpiTotal");if(lhTotal)lhTotal.textContent="0";const lhDoid=document.getElementById("lhKpiDoid");if(lhDoid)lhDoid.textContent="0";if(typeof renderLinehaul==="function")renderLinehaul();render();alert("All uploaded files/data cleared from Upload Exported and Linehaul Task.")}catch(err){console.error("Clear local data failed:",err);alert("Could not clear all uploaded data.")}}}; loadBatches().then(render);
+$("clearData").onclick=async()=>{if(confirm("Clear all uploaded data?\n\nThis will remove Upload Exported and Linehaul Task data from the cloud and this device. Your town/station settings will be kept.")){try{const db=await openDB();if(db)await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"))});batches=[];current=null;/* Linehaul Task uses localStorage, not the parcel IndexedDB store. */["badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1","badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1","badoc_linehaul_export_unique_v1"].forEach(k=>localStorage.removeItem(k));if(typeof linehaulTasks!=="undefined")linehaulTasks=[];const lhFile=document.getElementById("linehaulCsvFile");if(lhFile)lhFile.value="";const lhBody=document.getElementById("linehaulBody");if(lhBody)lhBody.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';const lhStatus=document.getElementById("linehaulStatus");if(lhStatus)lhStatus.textContent="0 tasks";const lhTotal=document.getElementById("lhKpiTotal");if(lhTotal)lhTotal.textContent="0";const lhDoid=document.getElementById("lhKpiDoid");if(lhDoid)lhDoid.textContent="0";if(typeof renderLinehaul==="function")renderLinehaul();if(typeof window.__badocClearAllSharedData==="function")await window.__badocClearAllSharedData();render();alert("All uploaded files/data cleared from Upload Exported and Linehaul Task.")}catch(err){console.error("Clear local data failed:",err);alert("Could not clear all uploaded data.")}}};
 
 /*
  V1.10 KPI CONNECTION
@@ -4290,7 +4922,10 @@ $("linehaulCsvFile")?.addEventListener("change",async e=>{
     const map=new Map(linehaulTasks.map(x=>[x.blank?"__BLANK_LINEHAUL__":x.id,x]));
     imported.forEach(x=>map.set(x.blank?"__BLANK_LINEHAUL__":x.id,x));
     linehaulTasks=[...map.values()];
-    saveLinehaul();renderLinehaul();showPage("linehaul");
+    saveLinehaul();renderLinehaul();
+    if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
+    setTimeout(()=>window.updateOperationProgress?.(),50);
+    showPage("linehaul");
 
     const matched=imported.reduce((s,x)=>s+(x.matchedCount||0),0);
     const total=imported.reduce((s,x)=>s+(x.exportRows?.length||0),0);
@@ -4316,7 +4951,7 @@ $("clearLinehaul")?.addEventListener("click",()=>{
     renderLinehaulKpis();
   }
 });
-loadLinehaul();renderLinehaul();
+linehaulTasks=[];renderLinehaul();setTimeout(()=>window.updateOperationProgress?.(),0);
 
 (function(){
   const card=$("lhDoidCard"), close=$("lhDoidClose");
@@ -4350,10 +4985,9 @@ document.getElementById("recordStatus")?.addEventListener("change",renderRecords
 
 
 <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Mobile navigation">
-  <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Home</button><button type="button" data-mobile-page="upload"><span class="mobile-ico">📤</span>Upload</button>
+  <button type="button" data-mobile-page="homeDashboard"><span class="mobile-ico">▣</span>Dashboard</button>
+  <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Parcel Count</button>
   <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul</button>
-  <button type="button" data-mobile-page="records"><span class="mobile-ico">▤</span>Records</button>
-  <button type="button" data-mobile-page="misrouted"><span class="mobile-ico">!</span>Misroute</button>
   <button type="button" data-mobile-page="kpi"><span class="mobile-ico">▣</span>KPI</button>
 </nav>
 <script>
@@ -4486,6 +5120,7 @@ window.DASHBOARD_V2_READY = true;
 
   function findNavTarget(page){
     const aliases={
+      homeDashboard:["homeDashboard","dashboard","home"],
       dashboard:["dashboard","home"],
       parcels:["parcels","parcel","routing"],
       upload:["upload","uploadExported","upload-exported","export"],
@@ -4520,7 +5155,8 @@ window.DASHBOARD_V2_READY = true;
     const title=(document.getElementById("pageTitle")?.textContent||"").toLowerCase();
     [...nav.querySelectorAll("button")].forEach(b=>{
       const p=b.dataset.page;
-      const active=(p==="dashboard" && /dashboard|home/.test(title)) ||
+      const active=(p==="homeDashboard" && /dashboard/.test(title)) ||
+                   (p==="dashboard" && /parcel count/.test(title)) ||
                    (p==="parcels" && /parcel|routing/.test(title)) ||
                    (p==="upload" && /upload|export/.test(title)) ||
                    (p==="kpi" && /kpi/.test(title));
@@ -4686,24 +5322,25 @@ window.DASHBOARD_V2_READY = true;
     const f=document.getElementById("linehaulCsvFile");if(f)f.value="";
     if(typeof renderLinehaul==="function")renderLinehaul();
     if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+    if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
   }
 
   async function applyUpload(){
     const b=await get(P.upload);
-    if(!b){await clearLocalUpload();return}
+    if(!b)return;
     if(typeof parseCSV!=="function"||typeof classify!=="function"||typeof saveBatches!=="function")return;
     const rows=parseCSV(await b.text()),z=classify(rows);
-    const batch={name:"cloud-uploaded.csv",time:Date.now(),rows,valid:z.valid,mis:z.mis};
+    const batch={name:"cloud-uploaded.csv",time:Date.now(),rows,valid:z.valid,mis:z.mis,duplicates:0};
     batches=[batch,...(Array.isArray(batches)?batches:[]).filter(x=>x&&x.name!=="cloud-uploaded.csv")];
     current=batch;await saveBatches();
     if(typeof render==="function")render();
   }
   async function applyLinehaul(){
     const b=await get(P.linehaul);
-    if(!b){await clearLocalLinehaul();return}
+    if(!b)return;
     if(typeof parseLinehaulCSV!=="function")return;
     const imported=parseLinehaulCSV(await b.text());
-    if(!imported.length){await clearLocalLinehaul();return}
+    if(!imported.length)return;
     imported.forEach(task=>{
       if(task.blank){task.townBreakdown={};task.matchedCount=0;return}
       const tb=typeof linehaulTownBreakdown==="function"?linehaulTownBreakdown(task,current?.rows||[]):{};
@@ -4713,7 +5350,9 @@ window.DASHBOARD_V2_READY = true;
         item.x.town=town;item.x.status=item.x.status||task.status;
       }));
     });
-    linehaulTasks=imported;
+    const existing=new Map((Array.isArray(linehaulTasks)?linehaulTasks:[]).map(x=>[x.blank?"__BLANK_LINEHAUL__":x.id,x]));
+    imported.forEach(x=>existing.set(x.blank?"__BLANK_LINEHAUL__":x.id,x));
+    linehaulTasks=[...existing.values()];
     if(typeof saveLinehaul==="function")saveLinehaul();
     if(typeof renderLinehaul==="function")renderLinehaul();
     if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
@@ -4758,9 +5397,48 @@ window.DASHBOARD_V2_READY = true;
     const path=kind==="upload"?P.upload:P.linehaul;
     const field=kind==="upload"?"upload":"linehaul";
     const version=Date.now();
-    // Write the payload first. Only after success does the DB state become
-    // authoritative, so receivers can never pull a half-written file.
-    await put(path,file,file.type||"text/csv");
+
+    // Upload Exported is a MULTI-UPLOAD source. Never replace the previous
+    // cloud upload with the newest file. Merge the new CSV into the existing
+    // cloud CSV and de-duplicate by SPX TN / SLS Tracking Number. This keeps
+    // all previous uploads available to every device.
+    let payload=file;
+    if(kind==="upload"){
+      try{
+        const old=await get(path);
+        if(old){
+          const oldRows=parseCSV(await old.text());
+          const newRows=parseCSV(await file.text());
+          // Merge by TN, with the newest uploaded row winning. This is
+          // important for status updates: re-uploading the same TN must
+          // replace the older row instead of being discarded as a duplicate.
+          const indexByKey=new Map();
+          const merged=[];
+          const addRow=(r)=>{
+            const key=typeof spxTN==="function"?spxTN(r):String(r?.["SLS Tracking Number"]??r?.["SPX TN"]??r?.["Tracking Number"]??"").trim().toUpperCase();
+            if(key){
+              if(indexByKey.has(key)){
+                merged[indexByKey.get(key)]=r;
+                return;
+              }
+              indexByKey.set(key,merged.length);
+            }
+            merged.push(r);
+          };
+          oldRows.forEach(addRow);
+          newRows.forEach(addRow);
+          const text=typeof csv==="function"?csv(merged):([Object.keys(merged[0]||{}).join(","),...merged.map(r=>Object.values(r).map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(","))].join("\n"));
+          payload=new Blob([text],{type:"text/csv"});
+          status(`Merging uploads • ${merged.length.toLocaleString()} unique SPX TN`);
+        }
+      }catch(err){
+        console.warn("Multi-upload merge failed; saving new file only:",err);
+      }
+    }
+
+    // Write the merged payload first. Only after success does the DB state
+    // become authoritative, so receivers never pull a half-written file.
+    await put(path,payload,payload.type||file.type||"text/csv");
     await setState({
       [field+"_exists"]:true,
       [field+"_version"]:version
@@ -4768,6 +5446,36 @@ window.DASHBOARD_V2_READY = true;
     await announce(kind,"upload");
     status((kind==="upload"?"Upload":"Linehaul")+" synced");
   }
+
+  // Undo the last Upload Exported action in the authoritative cloud file.
+  // Only the rows that were actually new in the last upload are removed.
+  window.__badocUndoLastCloudUpload=async function(rows){
+    const removeKeys=new Set((Array.isArray(rows)?rows:[]).map(r=>typeof spxTN==="function"?spxTN(r):String(r?.["SLS Tracking Number"]??r?.["SPX TN"]??r?.["Tracking Number"]??"").trim().toUpperCase()).filter(Boolean));
+    if(!removeKeys.size)return;
+    const b=await get(P.upload);
+    if(!b)return;
+    const oldRows=parseCSV(await b.text());
+    const kept=oldRows.filter(r=>{
+      const k=typeof spxTN==="function"?spxTN(r):String(r?.["SLS Tracking Number"]??r?.["SPX TN"]??r?.["Tracking Number"]??"").trim().toUpperCase();
+      return !removeKeys.has(k);
+    });
+    const version=Date.now();
+    if(kept.length){
+      const text=typeof csv==="function"?csv(kept):([Object.keys(kept[0]||{}).join(","),...kept.map(r=>Object.values(r).map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(","))].join("\n"));
+      await put(P.upload,new Blob([text],{type:"text/csv"}),"text/csv");
+      await setState({upload_exists:true,upload_version:version});
+    }else{
+      await remove(P.upload);
+      await setState({upload_exists:false,upload_version:version});
+    }
+    await announce("upload","undo");
+    status("Last upload undone");
+  };
+
+  window.__badocClearAllSharedData=async function(){
+    await clearShared("upload");
+    await clearShared("linehaul");
+  };
 
   async function clearShared(kind){
     const path=kind==="upload"?P.upload:P.linehaul;
@@ -4794,10 +5502,6 @@ window.DASHBOARD_V2_READY = true;
     uploadShared("linehaul",f).catch(err=>{console.error(err);status("Cloud upload failed: "+err.message)});
   },true);
 
-  document.getElementById("clearCurrentUpload")?.addEventListener("click",()=>{
-    if(!started)return;
-    setTimeout(()=>clearShared("upload").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
-  },true);
   document.getElementById("clearLinehaul")?.addEventListener("click",()=>{
     if(!started)return;
     setTimeout(()=>clearShared("linehaul").catch(err=>{console.error(err);status("Cloud clear failed: "+err.message)}),250);
@@ -4820,7 +5524,9 @@ window.DASHBOARD_V2_READY = true;
     if(started)return;started=true;
     try{
       supa();
-      // Don't block the app while Realtime connects.
+      // Cloud is authoritative. Do not restore persisted uploads on startup.
+      // Start empty, then populate only after the cloud state is checked.
+      batches=[];current=null;linehaulTasks=[];render();renderLinehaul();
       ensureRealtime().catch(e=>console.warn(e));
       setTimeout(()=>pull().catch(()=>{}),150);
       clearInterval(pollTimer);
@@ -4962,5 +5668,232 @@ try{
 }catch(e){console.warn("Filter publish wiring:",e)}
 </script>
 
+<script id="dashboard-operation-runtime">
+window.updateOperationProgress=function(){
+  const allRows=Array.isArray(current?.valid)?current.valid:[];
+  const norm=v=>String(v??"").trim().replace(/[_-]+/g," ").replace(/\s+/g," ").toUpperCase();
+  const statusTo=r=>{
+    const keys=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status"];
+    for(const k of keys) if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()) return String(r[k]).trim();
+    const key=Object.keys(r||{}).find(k=>/parcel\s*status\s*to|status\s*to|to\s*status/i.test(k));
+    return key?String(r[key]??"").trim():"";
+  };
+  const station=r=>norm((r&&r["Current Station"])||"");
+  const destination=r=>norm((r&&r["Destination Station"])||"");
+  const status=r=>norm(statusTo(r));
+  const tnKey=v=>norm(v).replace(/[\s\-_.]/g,"");
+  const now=new Date(), mins=now.getHours()*60+now.getMinutes();
+  // New operating cutoffs: 3:00 AM and 3:00 PM.
+  const after3am=mins>=180;
+  const after3pm=mins>=900;
+  const stations=["BADOC HUB","CAGAYAN DC","SOC 6"];
+  const dayEligible=r=>destination(r)==="BADOC HUB" && stations.includes(station(r));
+  const qualifyingDayRows=allRows.filter(dayEligible);
+
+  // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
+  const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED"]);
+
+  // Optional additions to Today's Volume. Each checkbox adds only its matching status.
+  const TV_STATUS_KEY="badoc_today_volume_status_options_v1";
+  const defaultTvOptions={transporting:false,transported:false,packed:false,packing:false};
+  let tvOptions={...defaultTvOptions};
+  try{
+    const saved=JSON.parse(localStorage.getItem(TV_STATUS_KEY)||"null");
+    if(saved&&typeof saved==="object") tvOptions={...tvOptions,...saved};
+  }catch(e){}
+  const tvOptionStatuses=[];
+  if(tvOptions.transporting) tvOptionStatuses.push("SOC LHTRANSPORTING");
+  if(tvOptions.transported) tvOptionStatuses.push("SOC LHTRANSPORTED");
+  if(tvOptions.packed) tvOptionStatuses.push("SOC PACKED");
+  if(tvOptions.packing) tvOptionStatuses.push("SOC PACKING");
+  const tvExtraStatuses=new Set(tvOptionStatuses);
+  const todayRows=qualifyingDayRows.filter(r=>todayStatuses.has(status(r)) || tvExtraStatuses.has(status(r)));
+
+  // Linehaul Task source.
+  const tasks=(typeof linehaulTasks!=="undefined"&&Array.isArray(linehaulTasks))?linehaulTasks:[];
+  const linehaulIdKeys=new Set();
+  const linehaulSpxKeys=new Set();
+  tasks.forEach(task=>{
+    if(task?.blank || task?.cleared) return;
+    const taskId=String(task?.id||"").trim();
+    const rows=Array.isArray(task?.exportRows)?task.exportRows:[];
+    // For Today's Volume after 3 AM, only Linehaul Task rows belonging to a Linehaul Task ID count.
+    if(taskId){
+      rows.forEach(row=>{
+        // Linehaul Task stores parsed rows using the internal `spxTN` field.
+        // Read that field directly; do not try to read the original CSV headers.
+        const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
+        const tn=String(rawTn).trim();
+        if(tn) linehaulIdKeys.add(tnKey(tn));
+      });
+    }
+    // Estimated Tomorrow uses Linehaul Task rows that have BOTH
+    // a Linehaul Task ID and an SPX TN.
+    if(taskId){
+      rows.forEach(row=>{
+        const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
+        const tn=String(rawTn).trim();
+        if(tn) linehaulSpxKeys.add(tnKey(tn));
+      });
+    }
+  });
+
+  // Linehaul Task uploaded-file rows are NOT included in Today's Volume.
+  // Today's Volume comes only from the Parcel Records upload, plus the
+  // optional hidden hub-status checkbox (Transporting/Transported/Packed/Packing).
+  const todayVolume=todayRows.length;
+
+  // Estimated Volume Tomorrow appears as a card all day. Starting 3 PM it is:
+  // unique Linehaul Task parcels that have BOTH a Linehaul Task ID and an SPX TN.
+  // Received parcels are NOT included in this card.
+  const estimatedTomorrow=linehaulSpxKeys.size && after3pm?linehaulSpxKeys.size:0;
+
+  const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
+  qualifyingDayRows.forEach(r=>{
+    const s=status(r);
+    if(s==="SOC LHTRANSPORTING"||s==="SOC PACKED"||s==="SOC PACKING") counts.TRANSPORTING++;
+    else if(s==="SOC LHTRANSPORTED") counts.TRANSPORTED++;
+    else if(s==="LMHUB RECEIVED") counts.RECEIVED++;
+    else if(s==="LMHUB ASSIGNING") counts.ASSIGNING++;
+    else if(s==="LMHUB ASSIGNED") counts.ASSIGNED++;
+    else if(s==="DELIVERING") counts.DELIVERING++;
+    else if(s==="DELIVERED") counts.DELIVERED++;
+    else if(s==="ONHOLD"||s==="ON HOLD"||s==="LMHUB ONHOLD") counts.ONHOLD++;
+  });
+
+  const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number(v||0).toLocaleString()};
+  const pct=(n,d)=>d?Math.min(100,Math.max(0,n/d*100)):0;
+  const setProgress=(name,n)=>{
+    setText("op"+name,n);
+  };
+  // One master checkbox controls all four optional hub statuses.
+  const tvMaster=document.getElementById("todayVolumeAddHubStatuses");
+  if(tvMaster){
+    tvMaster.checked=!!(tvOptions.transporting&&tvOptions.transported&&tvOptions.packed&&tvOptions.packing);
+    if(!tvMaster.dataset.tvBound){
+      tvMaster.dataset.tvBound="1";
+      tvMaster.addEventListener("change",()=>{
+        const enabled=!!tvMaster.checked;
+        const next={transporting:enabled,transported:enabled,packed:enabled,packing:enabled};
+        try{localStorage.setItem(TV_STATUS_KEY,JSON.stringify(next))}catch(e){}
+        if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
+      });
+    }
+  }
+
+  setText("opTodayVolume",todayVolume);
+  setText("opIncomingVolume",estimatedTomorrow);
+  const card=document.getElementById("incomingVolumeCard");if(card)card.style.display="";
+  const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume).toFixed(1)+"%";
+  setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
+  setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);
+  const onHold=counts.ONHOLD>0?counts.ONHOLD:Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0));setText("opOnHold",onHold);
+  const cutoff=document.getElementById("volumeCutoffStatus");
+  if(cutoff)cutoff.textContent=after3pm
+    ?"CURRENT PERIOD: 3:00 PM–2:00 AM • Estimated Tomorrow = unique Linehaul parcels with Task ID + SPX TN"
+    :after3am
+      ?"CURRENT PERIOD: 3:00 AM–3:00 PM • Linehaul Task upload excluded from Today's Volume"
+      :"CURRENT PERIOD: 2:00 AM–3:00 AM • Base Today's Volume only";
+};
+setInterval(()=>window.updateOperationProgress?.(),30000);
+</script>
+
+<script id="integrated-misrouted-navigation">
+(function(){
+  if(window.__integratedMisroutedNavigation)return;
+  window.__integratedMisroutedNavigation=true;
+  var oldShow=window.showPage;
+  if(typeof oldShow==="function"){
+    window.showPage=function(p){
+      if(p==="misrouted"){
+        oldShow("dashboard");
+        setTimeout(function(){
+          var el=document.getElementById("misroutedIntegrated");
+          if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+        },50);
+        return;
+      }
+      return oldShow.apply(this,arguments);
+    };
+  }
+})();
+</script>
+
+
+<script id="dashboard-kpi-menu-sync">
+(function(){
+  if(window.__dashboardKpiMenuSync)return;
+  window.__dashboardKpiMenuSync=true;
+  function sync(){
+    var score=document.getElementById("sheetScore");
+    var grade=document.getElementById("kpiGrade");
+    var remarks=document.getElementById("kpiRemarks");
+    var ds=document.getElementById("dashboardOverallScore");
+    var dg=document.getElementById("dashboardKpiGrade");
+    var dr=document.getElementById("dashboardKpiRemarks");
+    if(ds)ds.textContent=(score&&score.textContent.trim())||"—";
+    if(dg)dg.textContent=(grade&&grade.textContent.trim())||"—";
+    if(dr)dr.textContent=(remarks&&remarks.textContent.trim())||"—";
+  }
+  sync();
+  setInterval(sync,500);
+})();
+</script>
+
+
+<script id="safe-dashboard-kpi-sync">
+(function(){
+  function updateDashboardKpiSummary(){
+    var score=document.getElementById("sheetScore");
+    var grade=document.getElementById("kpiGrade");
+    var remarks=document.getElementById("kpiRemarks");
+    var dScore=document.getElementById("dashboardOverallScore");
+    var dGrade=document.getElementById("dashboardKpiGrade");
+    var dRemarks=document.getElementById("dashboardKpiRemarks");
+    if(dScore) dScore.textContent=score && score.textContent.trim() ? score.textContent.trim() : "—";
+    if(dGrade) dGrade.textContent=grade && grade.textContent.trim() ? grade.textContent.trim() : "—";
+    if(dRemarks) dRemarks.textContent=remarks && remarks.textContent.trim() ? remarks.textContent.trim() : "—";
+  }
+  updateDashboardKpiSummary();
+  setInterval(updateDashboardKpiSummary,1000);
+})();
+</script>
+<script id="dashboard-live-kpi-click">
+(function(){
+  var b=document.getElementById("dashboardLiveKpi");
+  if(!b)return;
+  b.addEventListener("click",function(){
+    if(typeof showPage==="function") showPage("kpi");
+  });
+})();
+</script>
+
+<script id="dashboard-default-startup">
+(function(){
+  function openDashboard(){
+    try{
+      if(typeof showPage==="function"){
+        showPage("homeDashboard");
+      }else{
+        document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active")});
+        var d=document.getElementById("homeDashboard");
+        if(d)d.classList.add("active");
+        document.querySelectorAll(".nav button").forEach(function(b){
+          b.classList.toggle("active",b.dataset.page==="homeDashboard");
+        });
+        var t=document.getElementById("pageTitle");
+        if(t)t.textContent="Dashboard";
+      }
+      if(typeof render==="function") render();
+      if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
+    }catch(e){console.warn("Dashboard startup:",e)}
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",openDashboard,{once:true});
+  }else{
+    openDashboard();
+  }
+})();
+</script>
 </body>
 </html>
