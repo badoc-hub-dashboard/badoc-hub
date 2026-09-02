@@ -2681,6 +2681,26 @@ html{
 .dashboard-status-card.delivered{border-top:2px solid #4ADE80}
 .dashboard-status-card.onhold{border-top:2px solid #FBBF24}
 .dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}
+
+.parcel-source-row{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:14px;align-items:stretch;margin-bottom:14px}
+.parcel-source-row>.section{margin:0;min-width:0}
+.exception-area{border:1px solid rgba(38,173,255,.30)!important;background:linear-gradient(145deg,#09131d,#070b10)!important}
+.exception-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.exception-title h3{margin:0;font-size:15px;font-weight:900}
+.exception-title small{font-size:10px;color:#7f93a4}
+.exception-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:10px}
+.exception-entry input{width:100%;box-sizing:border-box}
+.exception-list{border:1px solid #1c2a35;border-radius:9px;overflow:hidden;background:#070c11;max-height:150px;overflow-y:auto}
+.exception-empty{padding:11px 12px;color:#667786;font-size:11px}
+.exception-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid #17232d;font-size:11px}
+.exception-row:last-child{border-bottom:0}
+.exception-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6f5ff;font-weight:700}
+.exception-remove{flex:0 0 auto;border:0;background:transparent;color:#ff6475;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px}
+.exception-remove:hover{color:#ff3048}
+.exception-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.exception-note{font-size:10px;color:#708392;line-height:1.35}
+.exception-clear{font-size:10px;padding:6px 9px!important;white-space:nowrap}
+@media(max-width:900px){.parcel-source-row{grid-template-columns:1fr}}
 .parcel-upload-inline{margin-bottom:14px}
 @media(max-width:800px){.dashboard-hub-row{grid-template-columns:1.1fr .6fr 1fr}.dashboard-hub-row .hub-progress{grid-column:1/-1}.dashboard-hub-row.header .hub-progress{grid-column:auto}}
 @media(max-width:700px){.dashboard-summary-grid{grid-template-columns:1fr}.dashboard-overview-head{align-items:flex-start;flex-direction:column}.dashboard-status-grid{grid-template-columns:1fr}.dashboard-hub-row{grid-template-columns:1fr .7fr}.dashboard-hub-row .hub-completed{display:none}.dashboard-hub-row.header .hub-completed{display:none}.dashboard-hub-row .hub-progress{grid-column:1/-1}}
@@ -3000,6 +3020,52 @@ html{
   }
 }
 </style>
+
+<style id="parcel-upload-exception-space-fix">
+/* Compact upload + wider exception area */
+#dashboard .parcel-source-row{
+  grid-template-columns:minmax(300px,0.78fr) minmax(0,1.22fr)!important;
+  gap:14px!important;
+  align-items:stretch!important;
+}
+#dashboard .parcel-source-row>.section{min-width:0!important;box-sizing:border-box!important}
+#dashboard .upload-section{max-width:none!important}
+#dashboard .upload-section .upload-label{margin-bottom:8px!important}
+#dashboard .upload-section .upload-drop{
+  min-height:92px!important;
+  height:92px!important;
+  padding:10px 12px!important;
+}
+#dashboard .upload-section .upload-icon{font-size:25px!important;margin-bottom:5px!important}
+#dashboard .upload-section .upload-main{font-size:13px!important}
+#dashboard .upload-section .upload-sub{font-size:11px!important}
+#dashboard .upload-section .upload-actions{margin-top:8px!important}
+#dashboard .upload-section .upload-actions .btn{padding:7px 10px!important;font-size:11px!important}
+#dashboard .exception-area{
+  min-width:0!important;
+  padding:14px!important;
+}
+#dashboard .exception-title{margin-bottom:8px!important}
+#dashboard .exception-title h3{font-size:14px!important}
+#dashboard .exception-title small{font-size:9px!important}
+#dashboard .exception-entry{margin-bottom:8px!important}
+#dashboard .exception-entry input{min-width:0!important;font-size:12px!important;padding:9px 10px!important}
+#dashboard .exception-entry .btn{padding:8px 14px!important;font-size:11px!important}
+#dashboard .exception-list{max-height:108px!important}
+#dashboard .exception-row{padding:7px 9px!important;font-size:10px!important}
+#dashboard .exception-footer{margin-top:7px!important}
+#dashboard .exception-note{font-size:9px!important}
+#dashboard .exception-clear{padding:5px 8px!important;font-size:9px!important}
+@media(max-width:900px){
+  #dashboard .parcel-source-row{grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr)!important}
+}
+@media(max-width:700px){
+  #dashboard .parcel-source-row{grid-template-columns:1fr!important;gap:10px!important}
+  #dashboard .upload-section .upload-drop{height:82px!important;min-height:82px!important}
+  #dashboard .exception-area{padding:12px!important}
+  #dashboard .exception-list{max-height:120px!important}
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -3106,19 +3172,40 @@ html{
   </section>
 
   <section id="dashboard" class="page">
-    <div class="section upload-section parcel-upload-inline">
-      <div class="upload-label">DATA SOURCE</div>
-      <div class="uploadbox upload-drop" id="uploadDrop">
-        <div class="upload-icon">⇧</div>
-        <div class="upload-main">Drop Exported File Here</div>
-        <div class="upload-sub">or click to browse</div>
-        <label for="csvFile" class="upload-click"></label>
-        <input id="csvFile" type="file" accept=".csv,text/csv">
+    <div class="parcel-source-row">
+      <div class="section upload-section parcel-upload-inline">
+        <div class="upload-label">DATA SOURCE</div>
+        <div class="uploadbox upload-drop" id="uploadDrop">
+          <div class="upload-icon">⇧</div>
+          <div class="upload-main">Drop Exported File Here</div>
+          <div class="upload-sub">or click to browse</div>
+          <label for="csvFile" class="upload-click"></label>
+          <input id="csvFile" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="toolbar upload-actions">
+          <button class="btn" id="undoUpload">Undo last upload</button>
+        </div>
+        <div id="parcelUploadStatus" class="parcel-upload-status" aria-live="polite"></div>
       </div>
-      <div class="toolbar upload-actions">
-        <button class="btn" id="undoUpload">Undo last upload</button>
+
+      <div class="section exception-area parcel-upload-inline" id="exceptionArea">
+        <div class="exception-title">
+          <div>
+            <h3>Exception Area</h3>
+            <small>Tracking numbers excluded from volume</small>
+          </div>
+          <span class="badge" id="exceptionCount">0</span>
+        </div>
+        <div class="exception-entry">
+          <input id="exceptionTrackingInput" type="text" placeholder="Enter tracking number" autocomplete="off">
+          <button class="btn primary" id="addExceptionTracking" type="button">Add</button>
+        </div>
+        <div class="exception-list" id="exceptionTrackingList"></div>
+        <div class="exception-footer">
+          <div class="exception-note">Excluded from Today's Volume, Parcel Count totals, town/barangay counts, and other volume calculations. Records remain visible.</div>
+          <button class="btn exception-clear" id="clearExceptionTracking" type="button">Clear All</button>
+        </div>
       </div>
-      <div id="parcelUploadStatus" class="parcel-upload-status" aria-live="polite"></div>
     </div>
     <div class="kpis">
       <div class="kpi"><div class="num" id="total">0</div><div class="lab">TOTAL VOLUME</div><div class="desc"></div></div>
@@ -3358,6 +3445,55 @@ function spxTN(r){
   for(const k of keys){const v=String(r?.[k]??"").trim();if(v)return norm(v);}
   return "";
 }
+
+const EXCEPTION_TN_KEY="badoc_exception_tracking_numbers_v1";
+let exceptionTrackingNumbers=[];
+function exceptionKey(v){return norm(v).replace(/[\s\-_.]/g,"")}
+function loadExceptionTrackingNumbers(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(EXCEPTION_TN_KEY)||"[]");
+    exceptionTrackingNumbers=Array.isArray(saved)?[...new Set(saved.map(x=>String(x||"").trim()).filter(Boolean))]:[];
+  }catch(e){exceptionTrackingNumbers=[]}
+}
+function saveExceptionTrackingNumbers(){
+  try{localStorage.setItem(EXCEPTION_TN_KEY,JSON.stringify(exceptionTrackingNumbers))}catch(e){console.warn("Could not save exception tracking numbers",e)}
+}
+function exceptionTrackingSet(){return new Set(exceptionTrackingNumbers.map(exceptionKey).filter(Boolean))}
+function isExceptionRow(r){
+  const tn=exceptionKey(spxTN(r));
+  return !!tn && exceptionTrackingSet().has(tn);
+}
+function renderExceptionTracking(){
+  const list=$("exceptionTrackingList"),count=$("exceptionCount");
+  if(count)count.textContent=exceptionTrackingNumbers.length.toLocaleString();
+  if(!list)return;
+  if(!exceptionTrackingNumbers.length){
+    list.innerHTML='<div class="exception-empty">No exception tracking numbers added.</div>';
+    return;
+  }
+  list.innerHTML=exceptionTrackingNumbers.map((tn,i)=>`<div class="exception-row"><span class="exception-tn" title="${esc(tn)}">${esc(tn)}</span><button type="button" class="exception-remove" data-exception-index="${i}" title="Remove">×</button></div>`).join("");
+  list.querySelectorAll(".exception-remove").forEach(btn=>btn.addEventListener("click",()=>{
+    const i=Number(btn.dataset.exceptionIndex);
+    if(Number.isInteger(i)&&i>=0&&i<exceptionTrackingNumbers.length){
+      exceptionTrackingNumbers.splice(i,1);saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
+    }
+  }));
+}
+function addExceptionTrackingNumber(){
+  const input=$("exceptionTrackingInput");
+  const raw=String(input?.value||"").trim();
+  const key=exceptionKey(raw);
+  if(!key){if(input){input.focus()}return;}
+  const exists=exceptionTrackingNumbers.some(x=>exceptionKey(x)===key);
+  if(!exists){exceptionTrackingNumbers.push(norm(raw));saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();}
+  if(input){input.value="";input.focus();}
+}
+function clearExceptionTrackingNumbers(){
+  if(!exceptionTrackingNumbers.length)return;
+  if(!confirm("Clear all exception tracking numbers?"))return;
+  exceptionTrackingNumbers=[];saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
+}
+loadExceptionTrackingNumbers();
 function mergeRowsUnique(rows){
   const map=new Map();
   for(const r of rows){
@@ -3459,7 +3595,7 @@ function getParcelCountRows(){
     "RECEIVED","LMHUB RECEIVED","DELIVERING","DELIVERED",
     "ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD"
   ]);
-  const base=all.filter(r=>allowedStatuses.has(statusNorm(statusOf(r))));
+  const base=all.filter(r=>allowedStatuses.has(statusNorm(statusOf(r))) && !isExceptionRow(r));
   const rows=[...base];
 
   const keyOf=v=>norm(v).replace(/[\s\-_.]/g,"");
@@ -4014,11 +4150,15 @@ function updateRecordExportButton(){
   const filtered=Array.isArray(window.__parcelRecordFiltered)?window.__parcelRecordFiltered:[];
   b.textContent=recordFiltersActive()?`Export filtered CSV (${filtered.length.toLocaleString()})`:"Export valid CSV";
 }
+$("addExceptionTracking").onclick=addExceptionTrackingNumber;
+$("exceptionTrackingInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addExceptionTrackingNumber()}});
+$("clearExceptionTracking").onclick=clearExceptionTrackingNumbers;
+renderExceptionTracking();
 $("exportValid").onclick=exportValidFiltered;$("exportMis").onclick=()=>current&&download("misrouted-parcels.csv",csv(current.mis));
 $("addBadoc").onclick=()=>addTown("badoc");$("addPinili").onclick=()=>addTown("pinili");
 $("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({towns,batches},null,2),"application/json");
 $("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
-$("clearData").onclick=async()=>{if(confirm("Clear all uploaded data?\n\nThis will remove Upload Exported and Linehaul Task data from the cloud and this device. Your town/station settings will be kept.")){try{const db=await openDB();if(db)await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"))});batches=[];current=null;/* Linehaul Task uses localStorage, not the parcel IndexedDB store. */["badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1","badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1","badoc_linehaul_export_unique_v1"].forEach(k=>localStorage.removeItem(k));if(typeof linehaulTasks!=="undefined")linehaulTasks=[];const lhFile=document.getElementById("linehaulCsvFile");if(lhFile)lhFile.value="";const lhBody=document.getElementById("linehaulBody");if(lhBody)lhBody.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';const lhStatus=document.getElementById("linehaulStatus");if(lhStatus)lhStatus.textContent="0 tasks";const lhTotal=document.getElementById("lhKpiTotal");if(lhTotal)lhTotal.textContent="0";const lhDoid=document.getElementById("lhKpiDoid");if(lhDoid)lhDoid.textContent="0";if(typeof renderLinehaul==="function")renderLinehaul();if(typeof window.__badocClearAllSharedData==="function")await window.__badocClearAllSharedData();render();alert("All uploaded files/data cleared from Upload Exported and Linehaul Task.")}catch(err){console.error("Clear local data failed:",err);alert("Could not clear all uploaded data.")}}};
+$("clearData").onclick=async()=>{if(confirm("Clear all uploaded data?\n\nThis will remove Upload Exported and Linehaul Task data from the cloud and this device. Your town/station settings will be kept.")){try{const db=await openDB();if(db)await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"))});batches=[];current=null;exceptionTrackingNumbers=[];saveExceptionTrackingNumbers();renderExceptionTracking();/* Linehaul Task uses localStorage, not the parcel IndexedDB store. */["badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1","badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1","badoc_linehaul_export_unique_v1"].forEach(k=>localStorage.removeItem(k));if(typeof linehaulTasks!=="undefined")linehaulTasks=[];const lhFile=document.getElementById("linehaulCsvFile");if(lhFile)lhFile.value="";const lhBody=document.getElementById("linehaulBody");if(lhBody)lhBody.innerHTML='<tr><td colspan="5" class="empty">No linehaul task and town data.</td></tr>';const lhStatus=document.getElementById("linehaulStatus");if(lhStatus)lhStatus.textContent="0 tasks";const lhTotal=document.getElementById("lhKpiTotal");if(lhTotal)lhTotal.textContent="0";const lhDoid=document.getElementById("lhKpiDoid");if(lhDoid)lhDoid.textContent="0";if(typeof renderLinehaul==="function")renderLinehaul();if(typeof window.__badocClearAllSharedData==="function")await window.__badocClearAllSharedData();render();alert("All uploaded files/data cleared from Upload Exported and Linehaul Task.")}catch(err){console.error("Clear local data failed:",err);alert("Could not clear all uploaded data.")}}};
 
 /*
  V1.10 KPI CONNECTION
@@ -4713,7 +4853,7 @@ function renderLinehaulKpis(){
   const allRows=[];
   linehaulTasks.forEach(task=>{
     if(Array.isArray(task?.exportRows)){
-      allRows.push(...task.exportRows);
+      allRows.push(...task.exportRows.filter(row=>!isExceptionRow({"SPX TN":row?.spxTN??row?.["SPX TN"]??row?.["SPX Tracking Number"]??""})));
     }
   });
   incomingTotal=allRows.length;
@@ -5688,7 +5828,7 @@ window.updateOperationProgress=function(){
   const after3pm=mins>=900;
   const stations=["BADOC HUB","CAGAYAN DC","SOC 6"];
   const dayEligible=r=>destination(r)==="BADOC HUB" && stations.includes(station(r));
-  const qualifyingDayRows=allRows.filter(dayEligible);
+  const qualifyingDayRows=allRows.filter(dayEligible).filter(r=>!isExceptionRow(r));
 
   // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
   const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED"]);
@@ -5724,7 +5864,7 @@ window.updateOperationProgress=function(){
         // Read that field directly; do not try to read the original CSV headers.
         const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
         const tn=String(rawTn).trim();
-        if(tn) linehaulIdKeys.add(tnKey(tn));
+        if(tn && !exceptionTrackingSet().has(tnKey(tn))) linehaulIdKeys.add(tnKey(tn));
       });
     }
     // Estimated Tomorrow uses Linehaul Task rows that have BOTH
@@ -5733,7 +5873,7 @@ window.updateOperationProgress=function(){
       rows.forEach(row=>{
         const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
         const tn=String(rawTn).trim();
-        if(tn) linehaulSpxKeys.add(tnKey(tn));
+        if(tn && !exceptionTrackingSet().has(tnKey(tn))) linehaulSpxKeys.add(tnKey(tn));
       });
     }
   });
