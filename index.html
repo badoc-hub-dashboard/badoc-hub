@@ -3066,6 +3066,191 @@ html{
   #dashboard .exception-list{max-height:120px!important}
 }
 </style>
+
+<style id="operation-progress-compact-final">
+/* Compact Today's Operation / Operation Progress block */
+#homeDashboard .dashboard-overview{
+  margin-top:10px !important;
+  border-radius:12px !important;
+}
+#homeDashboard .dashboard-overview-head{
+  padding:10px 14px !important;
+  min-height:0 !important;
+  border-bottom:1px solid #22313D !important;
+}
+#homeDashboard .dashboard-overview-kicker{
+  font-size:9px !important;
+  letter-spacing:.9px !important;
+}
+#homeDashboard .dashboard-overview h2{
+  margin:2px 0 0 !important;
+  font-size:15px !important;
+  line-height:1.15 !important;
+}
+#homeDashboard .dashboard-summary-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px !important;
+  padding:10px 14px !important;
+  border-bottom:0 !important;
+}
+#homeDashboard .dashboard-summary-card,
+#homeDashboard .dashboard-summary-card.volume,
+#homeDashboard .dashboard-summary-card.clear,
+#homeDashboard .dashboard-summary-card.incoming{
+  grid-column:auto !important;
+  min-height:78px !important;
+  height:auto !important;
+  padding:11px 12px !important;
+  display:block !important;
+  box-shadow:none !important;
+  border-radius:9px !important;
+}
+#homeDashboard .dashboard-summary-card.volume{
+  border-top:2px solid #18B8FF !important;
+}
+#homeDashboard .dashboard-summary-card.clear{
+  border-top:2px solid #4ADE80 !important;
+}
+#homeDashboard .dashboard-summary-card.incoming{
+  border-top:2px solid #2B3A44 !important;
+}
+#homeDashboard .dashboard-summary-card strong,
+#homeDashboard .dashboard-summary-card.volume strong,
+#homeDashboard .dashboard-summary-card.incoming strong{
+  font-size:28px !important;
+  line-height:1 !important;
+  letter-spacing:-.5px !important;
+}
+#homeDashboard .dashboard-summary-card span,
+#homeDashboard .dashboard-summary-card.volume span{
+  margin-top:5px !important;
+  font-size:9px !important;
+  line-height:1.15 !important;
+  letter-spacing:.55px !important;
+}
+#homeDashboard .dashboard-summary-card small,
+#homeDashboard .dashboard-summary-card.volume small,
+#homeDashboard .dashboard-summary-card.incoming small{
+  margin-top:3px !important;
+  font-size:8px !important;
+  line-height:1.15 !important;
+}
+#homeDashboard #volumeCutoffStatus{
+  margin:0 14px 4px !important;
+  font-size:9px !important;
+}
+#homeDashboard .today-volume-options,
+#homeDashboard .dashboard-overview > label{
+  margin-top:3px !important;
+  margin-left:14px !important;
+  font-size:9px !important;
+}
+@media(max-width:700px){
+  #homeDashboard .dashboard-summary-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px !important;
+    padding:8px 10px !important;
+  }
+  #homeDashboard .dashboard-summary-card,
+  #homeDashboard .dashboard-summary-card.volume,
+  #homeDashboard .dashboard-summary-card.clear,
+  #homeDashboard .dashboard-summary-card.incoming{
+    min-height:68px !important;
+    padding:9px 8px !important;
+  }
+  #homeDashboard .dashboard-summary-card strong,
+  #homeDashboard .dashboard-summary-card.volume strong,
+  #homeDashboard .dashboard-summary-card.incoming strong{
+    font-size:22px !important;
+  }
+  #homeDashboard .dashboard-summary-card span{font-size:8px !important}
+  #homeDashboard .dashboard-summary-card small{font-size:7px !important}
+}
+</style>
+
+
+<style id="fleet-status-compact-3">
+/* Compact Fleet Status: three cards in one row */
+.dashboard-fleet-title{
+  margin-top:12px !important;
+  margin-bottom:7px !important;
+}
+.dashboard-status-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:8px !important;
+  width:100% !important;
+}
+.dashboard-status-card{
+  min-height:68px !important;
+  height:auto !important;
+  padding:10px 12px !important;
+  border-radius:9px !important;
+  box-sizing:border-box !important;
+}
+.dashboard-status-card strong{
+  font-size:25px !important;
+  line-height:1 !important;
+}
+.dashboard-status-card span{
+  margin-top:5px !important;
+  font-size:10px !important;
+  line-height:1.1 !important;
+}
+.dashboard-status-card small{
+  margin-top:3px !important;
+  font-size:8px !important;
+  line-height:1.1 !important;
+}
+@media(max-width:700px){
+  .dashboard-status-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px !important;
+  }
+  .dashboard-status-card{
+    padding:9px 8px !important;
+  }
+  .dashboard-status-card strong{font-size:21px !important}
+  .dashboard-status-card span{font-size:9px !important}
+}
+</style>
+
+
+<style id="kpi-summary-more-compact">
+/* More compact KPI Summary */
+#kpiSummary{
+  padding:10px 12px !important;
+  margin-bottom:8px !important;
+}
+#kpiSummary .section-head{
+  margin-bottom:7px !important;
+}
+#kpiSummary .section-head h2,
+#kpiSummary .section-head h3{
+  margin:0 !important;
+  font-size:14px !important;
+}
+#kpiSummary .kpi-grid,
+#kpiSummary .kpi-cards{
+  gap:7px !important;
+}
+#kpiSummary .kpi-card{
+  min-height:60px !important;
+  padding:9px 11px !important;
+  border-radius:8px !important;
+}
+#kpiSummary .kpi-card strong{
+  font-size:20px !important;
+  line-height:1 !important;
+}
+#kpiSummary .kpi-card small,
+#kpiSummary .kpi-card span{
+  font-size:9px !important;
+  line-height:1.15 !important;
+}
+</style>
+
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -3102,7 +3287,6 @@ html{
     <div>
       <div class="dashboard-kpi-kicker">PERFORMANCE</div>
       <div class="dashboard-kpi-title">KPI SUMMARY</div>
-      <div class="dashboard-kpi-subtitle">Overall operational performance</div>
     </div>
     <button type="button" class="dashboard-kpi-badge" id="dashboardLiveKpi" title="Open KPI menu">LIVE KPI</button>
   </div>
@@ -3133,11 +3317,11 @@ html{
         </div>
       </div>
       <div class="dashboard-summary-grid">
-        <div class="dashboard-summary-card volume"><strong id="opTodayVolume">0</strong><span>TODAY'S VOLUME</span><small>Badoc + Pinili parcel volume</small></div>
+        <div class="dashboard-summary-card volume"><strong id="opTodayVolume">0</strong><span>TODAY'S VOLUME</span><small></small></div>
 
 
-<div class="dashboard-summary-card clear"><strong id="opClearFloorRate">0.0%</strong><span>CLEAR FLOOR RATE</span><small>Delivered ÷ today's volume</small></div>
-        <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>ESTIMATED VOLUME TOMORROW</span><small>Next-period estimate</small></div>
+<div class="dashboard-summary-card clear"><strong id="opClearFloorRate">0.0%</strong><span>CLEAR FLOOR RATE</span><small></small></div>
+        <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>ESTIMATED VOLUME TOMORROW</span><small></small></div>
       </div>
       <div id="volumeCutoffStatus" style="margin-top:8px;color:#8fa0ad;font-size:12px">Volume period: checking local time…</div>
       <div class="today-volume-options" style="display:none">
@@ -3147,12 +3331,17 @@ html{
         <input type="checkbox" class="today-volume-status-option" data-status="SOC PACKING">
       </div>
       <label title="Include Transporting, Transported, Packed and Packing in Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
-        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add hub statuses
+        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add transporting to todays volume
       </label>
 
 
       <div class="dashboard-status-section">
-        <div class="dashboard-status-title">IN HUB STATUS <span>filtered by Destination + Current Station</span></div>
+        <div class="dashboard-status-grid">
+          <div class="dashboard-status-card delivering"><strong id="opDelivering">0</strong><span>DELIVERING</span><small></small></div>
+          <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
+          <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
+        </div>
+        <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
           <div class="dashboard-hub-row header"><div>Status</div><div>Volume</div></div>
           <div class="dashboard-hub-row"><strong>Transporting</strong><div class="hub-volume" id="opTransporting">0</div></div>
@@ -3161,12 +3350,7 @@ html{
           <div class="dashboard-hub-row"><strong>Assigning</strong><div class="hub-volume" id="opAssigning">0</div></div>
           <div class="dashboard-hub-row"><strong>Assigned</strong><div class="hub-volume" id="opAssigned">0</div></div>
         </div>
-        <div class="dashboard-status-title dashboard-fleet-title">FLEET STATUS <span>from Parcel Status To</span></div>
-        <div class="dashboard-status-grid">
-          <div class="dashboard-status-card delivering"><strong id="opDelivering">0</strong><span>DELIVERING</span><small>Parcel Status To</small></div>
-          <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small>Parcel Status To</small></div>
-          <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small>Parcel Status To</small></div>
-        </div>
+
       </div>
     </div>
   </section>
@@ -3191,8 +3375,8 @@ html{
       <div class="section exception-area parcel-upload-inline" id="exceptionArea">
         <div class="exception-title">
           <div>
-            <h3>Exception Area</h3>
-            <small>Tracking numbers excluded from volume</small>
+            <h3>Exemption</h3>
+            <small></small>
           </div>
           <span class="badge" id="exceptionCount">0</span>
         </div>
@@ -3202,7 +3386,7 @@ html{
         </div>
         <div class="exception-list" id="exceptionTrackingList"></div>
         <div class="exception-footer">
-          <div class="exception-note">Excluded from Today's Volume, Parcel Count totals, town/barangay counts, and other volume calculations. Records remain visible.</div>
+          <div class="exception-note"></div>
           <button class="btn exception-clear" id="clearExceptionTracking" type="button">Clear All</button>
         </div>
       </div>
@@ -3348,12 +3532,12 @@ html{
 
 <div class="section shared-storage-panel">
   <h2>☁ Shared Files</h2>
-  <p class="hint">Shared storage is built into this version. No setup or login is required for other users.</p>
+  <p class="hint">Shared storage is built into this version.</p>
   
 </div>
 <div class="section">
     <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all data</button></div>
-    <div class="hint">Clear all local data removes uploaded files/data from both Upload Exported and Linehaul Task. Town/station settings are kept.</div>
+    <div class="hint">Clear data from both Parcel Count and Linehaul Task.</div>
   </div></section>
 </main>
 </div>
@@ -5967,10 +6151,10 @@ window.updateOperationProgress=function(){
   const onHold=counts.ONHOLD>0?counts.ONHOLD:Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0));setText("opOnHold",onHold);
   const cutoff=document.getElementById("volumeCutoffStatus");
   if(cutoff)cutoff.textContent=after3pm
-    ?"CURRENT PERIOD: 3:00 PM–2:00 AM • Estimated Tomorrow = unique Linehaul parcels with Task ID + SPX TN"
+    ?"CURRENT PERIOD: 3:00 PM–2:00 AM"
     :after3am
-      ?"CURRENT PERIOD: 3:00 AM–3:00 PM • Linehaul Task upload excluded from Today's Volume"
-      :"CURRENT PERIOD: 2:00 AM–3:00 AM • Base Today's Volume only";
+      ?"CURRENT PERIOD: 3:00 AM–3:00 PM"
+      :"CURRENT PERIOD: 2:00 AM–3:00 AM";
 };
 setInterval(()=>window.updateOperationProgress?.(),30000);
 </script>
@@ -6092,81 +6276,101 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 })();
 </script>
 
+
+
+
 <script>
-/* FINAL OVERRIDE: Estimated Volume Tomorrow uses current uploaded parcel rows,
-   exact destination/station/status filters, exact 57-town list, and exceptions. */
+/* Estimated Tomorrow: recalculate after data/render/load without a periodic reset. */
 (function(){
-  function norm(v){
-    return String(v ?? "").trim().replace(/[_-]+/g," ").replace(/\s+/g," ").toUpperCase();
-  }
-  function field(r, names){
-    for(const k of names){
-      if(r && Object.prototype.hasOwnProperty.call(r,k) && String(r[k] ?? "").trim())
-        return String(r[k]).trim();
-    }
-    return "";
-  }
-  function tn(r){
-    return field(r,[
-      "SLS Tracking Number","SLS Tracking No","Tracking Number",
-      "Tracking No","SPX Tracking Number","SPX Tracking No"
-    ]);
-  }
-  function town(r){
-    return field(r,["Town Name","Town","TOWN NAME"]);
-  }
-  function station(r){
-    return norm(field(r,["Current Station","CURRENT STATION"]));
-  }
-  function destination(r){
-    return norm(field(r,["Destination Station","DESTINATION STATION"]));
-  }
-  function status(r){
-    return norm(field(r,["Status","Parcel Status To","Status To","TO Status","To Status"]));
-  }
-  function exception(r){
+  function runET(){
     try{
-      return typeof window.isExceptionRow==="function" && window.isExceptionRow(r);
-    }catch(e){ return false; }
-  }
-  function recalc(){
-    try{
-      const mins = new Date().getHours()*60 + new Date().getMinutes();
-      const el = document.getElementById("opIncomingVolume");
-      if(!el) return;
-      if(mins < 900){ el.textContent="0"; return; }
-
-      const rows =
-        Array.isArray(window.current?.valid) ? window.current.valid :
-        Array.isArray(window.current?.rows) ? window.current.rows : [];
-
-      const allowedStations = new Set(["BADOC HUB","CAGAYAN DC","SOC 6"]);
-      const allowedStatuses = new Set([
-        "RECEIVED","LMHUB RECEIVED",
-        "SOC LHTRANSPORTING","SOC LHTRANSPORTED",
-        "SOC PACKED","SOC PACKING"
-      ]);
-
-      const seen = new Set();
-      for(const r of rows){
-        if(destination(r)!=="BADOC HUB") continue;
-        if(!allowedStations.has(station(r))) continue;
-        if(!window.BADOC_PINILI_57_TOWN_ALLOWED || !window.BADOC_PINILI_57_TOWN_ALLOWED(town(r))) continue;
-        if(!allowedStatuses.has(status(r))) continue;
-        if(exception(r)) continue;
-        const key = norm(tn(r)).replace(/[\s\-_.]/g,"");
-        if(key) seen.add(key);
+      if(typeof window.recalculateEstimatedTomorrowFinal==="function"){
+        window.recalculateEstimatedTomorrowFinal();
       }
-      el.textContent = String(seen.size);
-    }catch(e){
-      console.warn("Estimated Tomorrow final calculation:",e);
-    }
+    }catch(e){ console.warn("Estimated Tomorrow refresh:",e); }
   }
-  window.recalculateEstimatedTomorrowFinal = recalc;
-  document.addEventListener("DOMContentLoaded", recalc);
-  setInterval(recalc, 30000);
+
+  // Run after the app's normal initialization/render cycle.
+  document.addEventListener("DOMContentLoaded", function(){
+    runET();
+    setTimeout(runET, 300);
+    setTimeout(runET, 1200);
+  });
+
+  // If the app exposes render, wrap it so stored/current data updates refresh the card.
+  var tries=0;
+  function hook(){
+    tries++;
+    if(typeof window.render==="function" && !window.__etRenderHooked){
+      var original=window.render;
+      window.render=function(){
+        var result=original.apply(this, arguments);
+        setTimeout(runET, 0);
+        return result;
+      };
+      window.__etRenderHooked=true;
+      runET();
+      return;
+    }
+    if(tries<20) setTimeout(hook,250);
+  }
+  hook();
+
+  // React to visibility/focus without introducing a repeating timer.
+  window.addEventListener("pageshow", runET);
+  window.addEventListener("focus", runET);
 })();
 </script>
 
+<style id="dashboard-all-compact-final">
+/* Compact entire Dashboard while preserving layout and data */
+#homeDashboard{padding:10px !important}
+#homeDashboard .section{margin:8px 0 !important}
+#homeDashboard .dashboard-kpi-summary{padding:12px !important;margin:0 0 8px !important;border-radius:10px !important}
+#homeDashboard .dashboard-kpi-summary-head{padding:0 0 7px !important}
+#homeDashboard .dashboard-kpi-kicker{font-size:8px !important;letter-spacing:.8px !important}
+#homeDashboard .dashboard-kpi-title{font-size:14px !important;line-height:1.1 !important}
+#homeDashboard .dashboard-kpi-subtitle{font-size:8px !important;margin-top:2px !important}
+#homeDashboard .dashboard-kpi-summary-grid{gap:6px !important;margin-top:6px !important}
+#homeDashboard .dashboard-kpi-card{min-height:58px !important;padding:8px 10px !important;border-radius:8px !important}
+#homeDashboard .dashboard-kpi-card .label{font-size:7px !important}
+#homeDashboard .dashboard-kpi-card strong{font-size:20px !important;line-height:1 !important;margin:3px 0 !important}
+#homeDashboard .dashboard-kpi-card small{font-size:7px !important}
+#homeDashboard .dashboard-overview{margin:8px 0 !important;padding:0 !important;border-radius:10px !important}
+#homeDashboard .dashboard-overview-head{padding:8px 12px !important}
+#homeDashboard .dashboard-summary-grid{padding:7px 10px !important;gap:6px !important}
+#homeDashboard .dashboard-summary-card,#homeDashboard .dashboard-summary-card.volume,#homeDashboard .dashboard-summary-card.clear,#homeDashboard .dashboard-summary-card.incoming{min-height:62px !important;padding:8px 10px !important}
+#homeDashboard .dashboard-summary-card strong,#homeDashboard .dashboard-summary-card.volume strong,#homeDashboard .dashboard-summary-card.incoming strong{font-size:24px !important}
+#homeDashboard .dashboard-summary-card span,#homeDashboard .dashboard-summary-card.volume span{font-size:8px !important;margin-top:3px !important}
+#homeDashboard .dashboard-summary-card small,#homeDashboard .dashboard-summary-card.volume small,#homeDashboard .dashboard-summary-card.incoming small{font-size:7px !important;margin-top:2px !important}
+#homeDashboard .dashboard-status-section{padding:0 10px 8px !important}
+#homeDashboard .dashboard-status-title{font-size:9px !important;margin:5px 0 4px !important}
+#homeDashboard .dashboard-status-title span{font-size:7px !important}
+#homeDashboard .dashboard-status-grid{gap:6px !important}
+#homeDashboard .dashboard-status-card{min-height:58px !important;padding:8px 10px !important;border-radius:8px !important}
+#homeDashboard .dashboard-status-card strong{font-size:22px !important;line-height:1 !important}
+#homeDashboard .dashboard-status-card span{font-size:8px !important;margin-top:3px !important}
+#homeDashboard .dashboard-status-card small{font-size:7px !important;margin-top:2px !important}
+#homeDashboard .dashboard-hub-table{border-radius:8px !important}
+#homeDashboard .dashboard-hub-row{min-height:29px !important;padding:5px 9px !important;font-size:8px !important}
+#homeDashboard .dashboard-hub-row.header{min-height:28px !important;font-size:8px !important}
+#homeDashboard .dashboard-overview #volumeCutoffStatus{margin:0 10px 4px !important;font-size:8px !important}
+#homeDashboard .dashboard-overview > label{margin:2px 10px 4px !important;font-size:8px !important}
+#homeDashboard .dashboard-overview .operation-progress{margin:6px 10px !important}
+#homeDashboard .dashboard-overview .operation-progress-card{min-height:54px !important;padding:7px 9px !important}
+#homeDashboard .dashboard-overview .operation-progress-card strong{font-size:15px !important}
+#homeDashboard .dashboard-overview .operation-progress-card .label{font-size:7px !important}
+#homeDashboard .dashboard-overview .operation-progress-card small{font-size:7px !important}
+@media(max-width:700px){
+ #homeDashboard{padding:6px !important}
+ #homeDashboard .dashboard-kpi-summary-grid,#homeDashboard .dashboard-summary-grid,#homeDashboard .dashboard-status-grid{gap:4px !important}
+ #homeDashboard .dashboard-kpi-card{min-height:52px !important;padding:7px !important}
+ #homeDashboard .dashboard-kpi-card strong{font-size:17px !important}
+ #homeDashboard .dashboard-summary-card,#homeDashboard .dashboard-summary-card.volume,#homeDashboard .dashboard-summary-card.clear,#homeDashboard .dashboard-summary-card.incoming{min-height:56px !important;padding:7px !important}
+ #homeDashboard .dashboard-summary-card strong,#homeDashboard .dashboard-summary-card.volume strong,#homeDashboard .dashboard-summary-card.incoming strong{font-size:20px !important}
+ #homeDashboard .dashboard-status-card{min-height:52px !important;padding:7px !important}
+ #homeDashboard .dashboard-status-card strong{font-size:19px !important}
+}
+</style>
 </body>
 </html>
