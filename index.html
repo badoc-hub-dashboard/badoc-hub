@@ -2672,15 +2672,15 @@ html{
 .dashboard-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#0878FF,#00B8FF,#62E6FF);border-radius:999px;transition:width .2s ease}
 .dashboard-progress-label{min-width:48px;text-align:right;font-size:10px;color:#B9D7E6;font-variant-numeric:tabular-nums}
 .dashboard-fleet-title{margin-top:16px}
-.dashboard-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dashboard-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .dashboard-status-card{padding:15px;border:1px solid #22313D;border-radius:11px;background:linear-gradient(145deg,#0E151B,#080C10);min-height:96px}
 .dashboard-status-card strong{display:block;font-size:30px;line-height:1;color:#fff}
 .dashboard-status-card span{display:block;margin-top:8px;font-size:11px;font-weight:900;letter-spacing:.7px;color:#EAF8FF}
 .dashboard-status-card small{display:block;margin-top:4px;font-size:9px;color:#718695}
 .dashboard-status-card.delivering{border-top:2px solid #18B8FF}
 .dashboard-status-card.delivered{border-top:2px solid #4ADE80}
-.dashboard-status-card.onhold{border-top:2px solid #FBBF24}
-.dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}
+.dashboard-status-card.onhold{border-top:2px solid #FBBF24}.dashboard-status-card.unscanned{border-top:2px solid #A78BFA}
+.dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}.dashboard-status-card.unscanned strong{color:#C4B5FD}
 
 .parcel-source-row{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:14px;align-items:stretch;margin-bottom:14px}
 .parcel-source-row>.section{margin:0;min-width:0}
@@ -3089,7 +3089,7 @@ html{
 }
 #homeDashboard .dashboard-summary-grid{
   display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   gap:8px !important;
   padding:10px 14px !important;
   border-bottom:0 !important;
@@ -3148,7 +3148,7 @@ html{
 }
 @media(max-width:700px){
   #homeDashboard .dashboard-summary-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
     gap:6px !important;
     padding:8px 10px !important;
   }
@@ -3178,7 +3178,7 @@ html{
 }
 .dashboard-status-grid{
   display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
   gap:8px !important;
   width:100% !important;
 }
@@ -3205,7 +3205,7 @@ html{
 }
 @media(max-width:700px){
   .dashboard-status-grid{
-    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
     gap:6px !important;
   }
   .dashboard-status-card{
@@ -3324,14 +3324,8 @@ html{
         <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>VOLUME FORECAST</span><small></small></div>
       </div>
       <div id="volumeCutoffStatus" style="margin-top:8px;color:#8fa0ad;font-size:12px">Volume period: checking local time…</div>
-      <div class="today-volume-options" style="display:none">
-        <input type="checkbox" class="today-volume-status-option" data-status="SOC LHTRANSPORTING">
-        <input type="checkbox" class="today-volume-status-option" data-status="SOC LHTRANSPORTED">
-        <input type="checkbox" class="today-volume-status-option" data-status="SOC PACKED">
-        <input type="checkbox" class="today-volume-status-option" data-status="SOC PACKING">
-      </div>
-      <label title="Include Transporting, Transported, Packed and Packing in Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
-        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add transporting to todays volume
+      <label title="Add Linehaul Task ID volume to Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
+        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add Linehaul Task ID volume
       </label>
 
 
@@ -3340,6 +3334,7 @@ html{
           <div class="dashboard-status-card delivering"><strong id="opDelivering">0</strong><span>DELIVERING</span><small></small></div>
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
+          <div class="dashboard-status-card unscanned"><strong id="opUnscanned">0</strong><span>UNSCANNED</span><small></small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
@@ -6034,55 +6029,46 @@ window.updateOperationProgress=function(){
 
   // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
   const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED"]);
+  const todayRows=qualifyingDayRows.filter(r=>todayStatuses.has(status(r)));
 
-  // Optional additions to Today's Volume. Each checkbox adds only its matching status.
-  const TV_STATUS_KEY="badoc_today_volume_status_options_v1";
-  const defaultTvOptions={transporting:false,transported:false,packed:false,packing:false};
-  let tvOptions={...defaultTvOptions};
-  try{
-    const saved=JSON.parse(localStorage.getItem(TV_STATUS_KEY)||"null");
-    if(saved&&typeof saved==="object") tvOptions={...tvOptions,...saved};
-  }catch(e){}
-  const tvOptionStatuses=[];
-  if(tvOptions.transporting) tvOptionStatuses.push("SOC LHTRANSPORTING");
-  if(tvOptions.transported) tvOptionStatuses.push("SOC LHTRANSPORTED");
-  if(tvOptions.packed) tvOptionStatuses.push("SOC PACKED");
-  if(tvOptions.packing) tvOptionStatuses.push("SOC PACKING");
-  const tvExtraStatuses=new Set(tvOptionStatuses);
-  const todayRows=qualifyingDayRows.filter(r=>todayStatuses.has(status(r)) || tvExtraStatuses.has(status(r)));
-
-  // Linehaul Task source.
+  // Linehaul Task source. When enabled, ADD the same volume represented by
+  // the Linehaul Task dashboard: matched SPX TNs in the configured BADOC/PINILI
+  // towns only. Count each SPX TN only once and exclude exception tracking numbers.
   const tasks=(typeof linehaulTasks!=="undefined"&&Array.isArray(linehaulTasks))?linehaulTasks:[];
-  const linehaulIdKeys=new Set();
-  const linehaulSpxKeys=new Set();
+  const linehaulDisplayTowns=new Set([
+    "TUROD","LABUT","CARAITAN","SAUD","PAGSANAHAN NORTE","PAGSANAHAN SUR",
+    "CANAAN (POB.)","GARRETA (POB.)","PALTIT","LUBIGAN","BATO",
+    "LA VIRGEN MILAGROSA (PAGUETPET)","MORONG","SANTA CRUZ NORTE","SANTA CRUZ SUR",
+    "GABUT NORTE","GABUT SUR","NAPU","MABUSAG NORTE","MABUSAG SUR","PARANG","PASUC",
+    "AR-ARUSIP","ALAY-NANGBABAAN (ALAY 15-B)","NAGREBCAN","BALBALDEZ","ALOGOOG","LACUBEN","ARING",
+    "UGUIS","CAMANGA","MADUPAYAS","LILIPUTEN","LUMBAAN-BICBICA","SACRITAN",
+    "PURITAC","DALAYAP","NAGTRIGOAN","UPON","APATUT-LUBONG","DARAT","CAPANGDANAN","GULPENG",
+    "AGLIPAY","SANTO TOMAS","CABAROAN","BUANGA","VALBUENA (POB.)","PAGDILAO (POB.)",
+    "BADIO","BULBULALA","PUZOL","TARTARABANG","SALANAP","BARBAR","BUNGRO","PUGAOAN"
+  ].map(norm));
+  const linehaulTodayKeys=new Set();
   tasks.forEach(task=>{
     if(task?.blank || task?.cleared) return;
     const taskId=String(task?.id||"").trim();
-    const rows=Array.isArray(task?.exportRows)?task.exportRows:[];
-    // For Today's Volume after 3 AM, only Linehaul Task rows belonging to a Linehaul Task ID count.
-    if(taskId){
-      rows.forEach(row=>{
-        // Linehaul Task stores parsed rows using the internal `spxTN` field.
-        // Read that field directly; do not try to read the original CSV headers.
-        const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
-        const tn=String(rawTn).trim();
-        if(tn && !exceptionTrackingSet().has(tnKey(tn))) linehaulIdKeys.add(tnKey(tn));
+    if(!taskId) return;
+    const matched=typeof linehaulTownBreakdown==="function"
+      ? linehaulTownBreakdown(task,current?.rows||[])
+      : {};
+    Object.entries(matched).forEach(([town,group])=>{
+      if(!linehaulDisplayTowns.has(norm(town))) return;
+      (group?.items||[]).forEach(item=>{
+        const raw=item?.x?.spxTN ?? item?.x?.["SPX TN"] ?? item?.x?.["SPX Tracking Number"] ?? "";
+        const key=String(raw).trim().replace(/\s+/g,"").toUpperCase();
+        if(key && !exceptionTrackingSet().has(tnKey(key))) linehaulTodayKeys.add(key);
       });
-    }
-    // Estimated Tomorrow uses Linehaul Task rows that have BOTH
-    // a Linehaul Task ID and an SPX TN.
-    if(taskId){
-      rows.forEach(row=>{
-        const rawTn=row?.spxTN ?? row?.["SPX TN"] ?? row?.["SPX Tracking Number"] ?? "";
-        const tn=String(rawTn).trim();
-        if(tn && !exceptionTrackingSet().has(tnKey(tn))) linehaulSpxKeys.add(tnKey(tn));
-      });
-    }
+    });
   });
+  const linehaulTodayVolume=linehaulTodayKeys.size;
 
-  // Linehaul Task uploaded-file rows are NOT included in Today's Volume
-  // or Estimated Volume Tomorrow. Both dashboard volumes use Parcel Records.
-  const todayVolume=todayRows.length;
+  const TV_LINEHAUL_KEY="badoc_today_volume_linehaul_filter_v1";
+  let tvLinehaulEnabled=false;
+  try{tvLinehaulEnabled=localStorage.getItem(TV_LINEHAUL_KEY)==="1";}catch(e){}
+  const todayVolume=todayRows.length+(tvLinehaulEnabled?linehaulTodayVolume:0);
 
   // Estimated Volume Tomorrow: starting at 3 PM, count unique Parcel Records
   // that are destined for Badoc Hub, currently at an allowed station, belong
@@ -6127,16 +6113,14 @@ window.updateOperationProgress=function(){
   const setProgress=(name,n)=>{
     setText("op"+name,n);
   };
-  // One master checkbox controls all four optional hub statuses.
+  // Master checkbox adds Linehaul Task ID volume to the normal Today's Volume.
   const tvMaster=document.getElementById("todayVolumeAddHubStatuses");
   if(tvMaster){
-    tvMaster.checked=!!(tvOptions.transporting&&tvOptions.transported&&tvOptions.packed&&tvOptions.packing);
+    tvMaster.checked=tvLinehaulEnabled;
     if(!tvMaster.dataset.tvBound){
       tvMaster.dataset.tvBound="1";
       tvMaster.addEventListener("change",()=>{
-        const enabled=!!tvMaster.checked;
-        const next={transporting:enabled,transported:enabled,packed:enabled,packing:enabled};
-        try{localStorage.setItem(TV_STATUS_KEY,JSON.stringify(next))}catch(e){}
+        try{localStorage.setItem(TV_LINEHAUL_KEY,tvMaster.checked?"1":"0")}catch(e){}
         if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
       });
     }
@@ -6148,7 +6132,13 @@ window.updateOperationProgress=function(){
   const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume).toFixed(1)+"%";
   setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
   setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);
-  const onHold=counts.ONHOLD>0?counts.ONHOLD:Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0));setText("opOnHold",onHold);
+  // On-Hold: count only the actual On-Hold statuses for now.
+  const onHold=counts.ONHOLD||0;
+  setText("opOnHold",onHold);
+
+  // Unscanned: Today's Volume minus Delivering, Delivered and On-Hold.
+  const unscanned=Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0)-onHold);
+  setText("opUnscanned",unscanned);
   const cutoff=document.getElementById("volumeCutoffStatus");
   if(cutoff)cutoff.textContent=after3pm
     ?"CURRENT PERIOD: 3:00 PM–2:00 AM"
