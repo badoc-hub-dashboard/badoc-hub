@@ -3622,13 +3622,10 @@ html{
 
 3AM
 (LMHUB_RECEIVED, SOC_LHTRANSPORTING, SOC_LHTRANSPORTED, SOC_PACKED, SOC_PACKING)
-COMFIRM
 UPLOAD TO - PARCEL COUNT
 
 HOURLY OR AFTER DISPATCH AND EOD
-(DELIVERED, DELIVERING, ONHOLD)
-ASSIGNED TIME - DATE TODAY - 23:00:00
-CONFIRM
+(DELIVERING, DELIVERED, ONHOLD)
 UPLOAD TO PARCEL COUNT
 
 TO LIST
@@ -6241,7 +6238,7 @@ window.updateOperationProgress=function(){
   qualifyingDayRows.forEach(r=>{
     const s=status(r);
     if(s==="SOC LHTRANSPORTING"||s==="SOC PACKED"||s==="SOC PACKING") counts.TRANSPORTING++;
-    else if(s==="SOC LHTRANSPORTED") counts.TRANSPORTED++;
+    else if(s==="SOC LHTRANSPORTED" && station(r)==="BADOC HUB") counts.TRANSPORTED++;
     else if(s==="LMHUB RECEIVED") counts.RECEIVED++;
     else if(s==="LMHUB ASSIGNING") counts.ASSIGNING++;
     else if(s==="LMHUB ASSIGNED") counts.ASSIGNED++;
