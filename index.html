@@ -19,7 +19,7 @@
 .history{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.batch{background:#131313;border:1px solid #222;border-radius:10px;padding:13px}.batch b{display:block;margin-bottom:6px}.batch small{color:var(--muted)}.batch .actions{margin-top:10px;display:flex;gap:6px}
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.listbox{max-height:450px;overflow:auto}.town-edit{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1e1e1e}.town-edit span{font-size:12px}.town-edit button{background:none;border:0;color:#777;cursor:pointer}.town-edit button:hover{color:#f66}
 .mobilebar{display:none}
-@media(max-width:900px){.side{width:70px;padding:15px 9px}.brand{font-size:0;text-align:center}.brand:before{content:"B";font-size:20px}.brand small{display:none}.nav button{font-size:0;text-align:center}.nav .ico{font-size:17px;width:auto}.main{margin-left:70px;width:calc(100% - 70px);padding:20px}.kpis{grid-template-columns:repeat(2,1fr)}.town-grid{grid-template-columns:1fr}.town-column{gap:9px}.settings-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.side{width:118px;padding:15px 8px}.brand{font-size:15px;text-align:center;padding:4px 2px 20px;white-space:nowrap}.brand:before{display:none}.brand small{display:none}.nav button{font-size:10px;text-align:left;padding:10px 7px;white-space:nowrap}.nav .ico{font-size:15px;width:20px}.main{margin-left:118px;width:calc(100% - 118px);padding:20px 14px}.kpis{grid-template-columns:repeat(2,1fr)}.town-grid{grid-template-columns:1fr}.town-column{gap:9px}.settings-grid{grid-template-columns:1fr}}
 @media(max-width:550px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px}.kpi .num{font-size:29px}.main{padding:14px}.top{margin-bottom:15px}.title h1{font-size:20px}.toolbar input{min-width:100%;}}
 
 /* ELECTRIC BLUE THEME */
@@ -3251,6 +3251,41 @@ html{
 }
 </style>
 
+
+<style id="instructions-menu-styles">
+#instructions.page{display:none}
+#instructions.page.active{display:block}
+.instructions-editor{display:grid;gap:14px}
+.instructions-card{padding:18px;border:1px solid rgba(38,173,255,.22);border-radius:12px;background:linear-gradient(145deg,#09131d,#070b10)}
+.instructions-card h2{margin:0 0 6px;font-size:16px;color:#EAF8FF}
+.instructions-card p{margin:0 0 12px;color:#718695;font-size:11px}
+.instructions-content{white-space:pre-wrap;box-sizing:border-box;border:1px solid #1d3542;border-radius:9px;background:#05090d;color:#dcebf3;padding:13px;font:500 12px/1.55 Arial,sans-serif;min-height:260px}
+@media(max-width:600px){.instructions-card{padding:13px}.instructions-content{min-height:220px;font-size:12px;line-height:1.55}}
+</style>
+
+<style id="mobile-six-menu-final">
+@media (max-width: 900px){
+  .mobile-bottom-nav{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:2px!important;
+    padding:5px!important;
+  }
+  .mobile-bottom-nav button{
+    min-width:0!important;
+    min-height:52px!important;
+    padding:4px 1px!important;
+    font-size:8px!important;
+    line-height:1.05!important;
+    white-space:normal!important;
+    text-align:center!important;
+  }
+  .mobile-bottom-nav .mobile-ico{
+    font-size:15px!important;
+    line-height:1!important;
+  }
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -3263,6 +3298,7 @@ html{
     <button data-page="dashboard"><span class="ico">▦</span> Parcel Count</button>
     <button data-page="linehaul"><span class="ico">⇄</span> Linehaul Task</button>
     <button data-page="kpi"><span class="ico">▣</span> KPI</button>
+    <button data-page="instructions"><span class="ico">☷</span> Instructions</button>
     <button data-page="settings"><span class="ico">⚙</span> Settings</button>
   </nav>
 </aside>
@@ -3325,7 +3361,7 @@ html{
       </div>
       <div id="volumeCutoffStatus" style="margin-top:8px;color:#8fa0ad;font-size:12px">Volume period: checking local time…</div>
       <label title="Add Linehaul Task ID volume to Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
-        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add Linehaul Task ID volume
+        <input type="checkbox" id="todayVolumeAddHubStatuses"> Add incoming volume
       </label>
 
 
@@ -3500,6 +3536,30 @@ html{
       <div class="kpi-m1-body" id="m1Body" class="m1-collapsed"></div>
     </div>
     <div class="hint" id="kpiStatus">GOOGLE SHEET • LOADING</div>
+  </div>
+</section>
+
+<section id="instructions" class="page">
+  <div class="section instructions-editor">
+    <div class="instructions-card">
+      <h2>EXPORT INSTRUCTIONS</h2>
+      <!-- EDIT THE TEXT BELOW DIRECTLY IN THIS HTML FILE. -->
+      <div id="instructionsContent" class="instructions-content">ORDER MANAGEMENT &gt; ORDER TRACKING &gt; EXPORT &gt; EXPORT FORWARD ORDER
+
+3AM
+(LMHUB_RECEIVED, SOC_LHTRANSPORTING, SOC_LHTRANSPORTED, SOC_PACKED, SOC_PACKING)
+UPLOAD TO - PARCEL COUNT
+
+HOURLY OR AFTER DISPATCH AND EOD
+(DELIVERING, DELIVERED, ONHOLD)
+UPLOAD TO PARCEL COUNT
+
+TO LIST
+INBOUND &gt; TO LIST &gt; EXPORT &gt; EXPORT &gt;
+CHECK STATUS (CREATED, PARTIALLY RECEIVED, PENDING RECEIVE)
+REMOVE (RECEIVE TIME END)
+CONFIRM - UPLOAD TO LINEHAUL TASK</div>
+    </div>
   </div>
 </section>
 
@@ -4180,7 +4240,7 @@ function loadBatch(i){current=batches[i];render();showPage("dashboard")}
 async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(confirm("Delete this upload permanently from this browser?")){batches.splice(i,1);current=mergeAllBatches();saveTownSettings();render()}}
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
-function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management")}
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management")}
 $("csvFile").addEventListener("change",e=>{
   const files=[...(e.target.files||[])]; if(!files.length)return;
   let remaining=files.length,added=0,updated=0,dupes=0;
@@ -4257,6 +4317,9 @@ $("undoUpload").onclick=async()=>{
 
 $("misroutedKpi").onclick=()=>showPage("misrouted");
 $("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showPage("misrouted")}};
+// Instructions are intentionally static. Edit the text in the #instructionsContent element above.
+
+
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 ["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
   const e=$(id); if(!e)return;
@@ -5306,8 +5369,10 @@ document.getElementById("recordStatus")?.addEventListener("change",renderRecords
 <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Mobile navigation">
   <button type="button" data-mobile-page="homeDashboard"><span class="mobile-ico">▣</span>Dashboard</button>
   <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Parcel Count</button>
-  <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul</button>
+  <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul Task</button>
   <button type="button" data-mobile-page="kpi"><span class="mobile-ico">▣</span>KPI</button>
+  <button type="button" data-mobile-page="instructions"><span class="mobile-ico">☷</span>Instructions</button>
+  <button type="button" data-mobile-page="settings"><span class="mobile-ico">⚙</span>Settings</button>
 </nav>
 <script>
 (function(){
@@ -6364,3 +6429,13 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 </style>
 </body>
 </html>
+</html>
+ong{font-size:19px !important}
+}
+</style>
+</body>
+</html>
+</html>
+ml>
+</html>
+>
