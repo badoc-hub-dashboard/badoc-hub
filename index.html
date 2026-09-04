@@ -3993,9 +3993,32 @@ html{
 </section>
 
 <section id="dailyEod" class="page">
-  <div class="section">
-    <div class="collapseHead"><h2 style="margin:0">EOD Data</h2><span class="hint">Daily Data</span></div>
-    <div class="empty-state" style="padding:28px;color:#8fa0ad">EOD daily data will appear here.</div>
+  <div class="section eod-page">
+    <div class="eod-head">
+      <div><h2>EOD Data</h2><span class="hint">Daily Data • Google Sheet</span></div>
+      <div class="eod-head-actions">
+        <button type="button" class="btn primary" id="eodRefreshBtn">↻ Refresh</button>
+        <a class="btn eod-source-btn" href="https://docs.google.com/spreadsheets/d/11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70/edit?gid=1504659917#gid=1504659917" target="_blank" rel="noopener">↗ Open EOD Sheet</a>
+      </div>
+    </div>
+    <div class="eod-status" id="eodStatus">GOOGLE SHEET • LOADING</div>
+    <div class="eod-grid">
+      <div class="eod-left">
+        <div class="eod-titlebar">Today's Performance</div>
+        <div class="eod-hubline">Hub</div>
+        <div class="eod-dateline" id="eodDate">—</div>
+        <div class="eod-left-top">
+          <div class="eod-panel"><div class="eod-panel-title">Onhold Reasons</div><div class="eod-reasons" id="eodReasons"></div></div>
+          <div class="eod-panel"><div class="eod-panel-title">Dashboard Summary</div><div class="eod-summary" id="eodDashboardSummary"></div><div class="eod-panel-title eod-delivery-title">Delivery Performance</div><div class="eod-big-rate" id="eodBigRate">—</div></div>
+          <div class="eod-panel"><div class="eod-panel-title">Fleet Summary</div><div class="eod-summary" id="eodFleetSummary"></div></div>
+        </div>
+      </div>
+      <div class="eod-right">
+        <div class="eod-titlebar">Leaderboard</div><div class="eod-hubline">Hub</div>
+        <div class="eod-dateline" id="eodLeaderboardDate">—</div>
+        <div class="eod-leader-wrap"><table class="eod-leader-table"><thead id="eodLeaderHead"></thead><tbody id="eodLeaderBody"></tbody></table></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -7495,6 +7518,120 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   setInterval(load,REFRESH_MS);
 })();
 </script>
+<style id="eod-data-ui">
+.eod-page{overflow:hidden}.eod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.eod-head h2{margin:0;font-size:20px}.eod-head .hint{display:block;margin-top:3px}.eod-head-actions{display:flex;gap:8px;align-items:center}.eod-source-btn{text-decoration:none!important;white-space:nowrap}.eod-status{font-size:10px;letter-spacing:.08em;color:#8fa0ad;margin:4px 0 10px}.eod-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:9px}.eod-left,.eod-right{border:1px solid #18242d;background:#fff;color:#101010;min-width:0}.eod-titlebar{height:31px;display:flex;align-items:center;justify-content:center;background:#ff6b00;color:#fff;font-size:20px;font-weight:800;border-bottom:1px solid #111}.eod-hubline,.eod-dateline{text-align:center;background:#fff;font-weight:800;border-bottom:1px dotted #444;padding:3px 6px;font-size:15px}.eod-dateline{font-size:18px;padding:5px 6px;border-bottom:1px solid #111}.eod-left-top{display:grid;grid-template-columns:1.08fr .88fr .7fr}.eod-panel{min-width:0;border-right:1px solid #222}.eod-panel:last-child{border-right:0}.eod-panel-title{text-align:center;font-size:16px;font-weight:800;padding:5px 4px;border-bottom:1px dotted #444;white-space:nowrap}.eod-reasons,.eod-summary{font-size:11px;font-weight:700}.eod-row{display:grid;grid-template-columns:minmax(0,1fr) 48px;border-bottom:1px dotted #555;min-height:20px;align-items:center}.eod-row span:first-child{padding:2px 4px}.eod-row span:last-child{text-align:center;padding:2px 3px}.eod-summary .eod-row{grid-template-columns:minmax(0,1fr) 55px}.eod-delivery-title{border-top:1px solid #111}.eod-big-rate{height:300px;min-height:250px;background:#34a853;display:flex;align-items:center;justify-content:center;font-size:84px;font-weight:800}.eod-leader-wrap{overflow:auto;max-height:650px}.eod-leader-table{width:100%;border-collapse:collapse;font-size:12px;font-weight:700;color:#111}.eod-leader-table th{background:#fff;padding:5px;border:1px solid #555;text-align:center;white-space:nowrap}.eod-leader-table td{padding:4px 5px;border:1px dotted #555;white-space:nowrap}.eod-leader-table td:nth-child(1),.eod-leader-table td:nth-child(4),.eod-leader-table td:nth-child(5),.eod-leader-table td:nth-child(6){text-align:center}.eod-leader-table td.rate-good{background:#34a853}.eod-leader-table td.rate-warn{background:#f6c453}.eod-leader-table td.rate-low{background:#ef7d6f}
+@media(max-width:900px){.eod-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.eod-head{gap:7px;flex-wrap:nowrap}.eod-head h2{white-space:nowrap;font-size:15px}.eod-head .hint{font-size:7px;white-space:nowrap}.eod-head-actions{margin-left:auto;gap:6px}.eod-head-actions .btn{font-size:8px;padding:7px 8px;min-height:31px}.eod-source-btn{max-width:135px;overflow:hidden;text-overflow:ellipsis}.eod-titlebar{font-size:16px}.eod-panel-title{font-size:12px}.eod-reasons,.eod-summary{font-size:9px}.eod-big-rate{height:210px;font-size:54px}.eod-leader-table{font-size:10px}}
+@media(max-width:430px){.eod-left-top{grid-template-columns:1fr}.eod-panel{border-right:0;border-bottom:1px solid #222}.eod-big-rate{height:160px;font-size:48px}}
+</style>
+<script id="eod-data-runtime">
+(function(){
+const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70",GID="1504659917",REFRESH_MS=300000;
+let rows=[];
+const clean=v=>String(v??"").trim(), norm=v=>clean(v).toLowerCase().replace(/[–—]/g,"-").replace(/\s+/g," ");
+const esc=v=>clean(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const num=v=>{const n=parseFloat(clean(v).replace(/,/g,"").replace("%",""));return Number.isFinite(n)?n:null};
+const dateText=v=>{let s=clean(v),m=s.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})/i);if(m)return `${+m[2]+1}-${String(+m[3]).padStart(2,"0")}-${m[1]}`;return s};
+function rowIndex(p){return rows.findIndex(r=>r.some(c=>norm(c).includes(p)))}
+function pairs(p,stops=[]){const hi=rowIndex(p);if(hi<0)return[];const r0=rows[hi],idx=r0.findIndex(c=>norm(c).includes(p)),out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i],j=r.map(norm).join(" | ");if(stops.some(x=>j.includes(x)))break;const label=clean(r[idx]),val=idx>=0?clean(r.slice(idx+1).find(x=>clean(x)!=="")||""):"";if(label&&val)out.push([label,val])}return out}
+function rate(){const hi=rowIndex("delivery performance");if(hi<0)return"";for(let i=hi+1;i<Math.min(rows.length,hi+8);i++)for(const c of rows[i]){if(/\d+(?:\.\d+)?\s*%/.test(clean(c)))return clean(c);const n=num(c);if(n!==null&&n>=0&&n<=100&&clean(c))return n.toFixed(1)+"%"}return""}
+function leaderboard(){
+ const out=[];
+ const header=rows.findIndex(r=>{
+   const n=r.map(norm);
+   return n.some(x=>x==="rank") && n.some(x=>x==="service") && n.some(x=>x==="name") &&
+          n.some(x=>x==="delivered") && n.some(x=>x==="onhold") &&
+          n.some(x=>x.includes("success rate"));
+ });
+ if(header>=0){
+   const h=rows[header];
+   const idx=["rank","service","name","delivered","onhold","success rate"].map(k=>
+     h.findIndex(x=>norm(x)===k||norm(x).includes(k))
+   );
+   for(let i=header+1;i<rows.length;i++){
+     const r=rows[i];
+     if(!r.some(v=>clean(v))) continue;
+     const rank=clean(r[idx[0]]),name=clean(r[idx[2]]);
+     if(/^\d+$/.test(rank)&&name) out.push(idx.map(x=>x>=0?clean(r[x]):""));
+   }
+   if(out.length) return out;
+ }
+ // Fallback for merged/formatted Google Sheet rows:
+ for(const r of rows){
+   const cells=r.map(clean);
+   for(let i=0;i<=cells.length-6;i++){
+     const rank=cells[i],service=norm(cells[i+1]),name=cells[i+2];
+     const delivered=cells[i+3],onhold=cells[i+4],success=cells[i+5];
+     if(/^\d{1,3}$/.test(rank) &&
+        /^(2wh|3wc|3wh|4wh|flexi)$/.test(service) &&
+        name &&
+        /^\d+(?:\.\d+)?$/.test(delivered.replace(/,/g,"")) &&
+        /^\d+(?:\.\d+)?$/.test(onhold.replace(/,/g,"")) &&
+        /^\d+(?:\.\d+)?%$/.test(success)){
+       out.push([rank,cells[i+1],name,delivered,onhold,success]);
+       break;
+     }
+   }
+ }
+ const seen=new Set();
+ return out.filter(r=>{
+   const k=r[0]+"|"+r[2];
+   if(seen.has(k)) return false;
+   seen.add(k); return true;
+ }).sort((a,b)=>parseInt(a[0],10)-parseInt(b[0],10));
+}
+function render(){let ds=[];rows.flat().forEach(v=>{const d=dateText(v);if(/-\d{2}-\d{4}$/.test(d))ds.push(d)});const d=ds[0]||"—";document.getElementById("eodDate").textContent=d;document.getElementById("eodLeaderboardDate").textContent=d;
+const onholdLabels=["Incorrect delivery address","Cannot find address","Inaccessible location","Office closed","SP closed","Risky area of delivery","Recipient unavailable for parcel","Recipient reschedule","Recipient change location","Recipient reject","Reject - Damaged","Reject - Wrong item","Reject - Missing item","Reject - Buyers change their mind","Incorrect/ missing verification","Parcel lost","Parcel damaged, cannot attempt","Shipment under investigation","Wrongly assigned","Insufficient time","Disaster","Severe weather","Vehicular accident","Vehicle breakdown"];
+const findReasonValue=label=>{const target=norm(label);for(const row of rows){const idx=row.findIndex(c=>norm(c)===target);if(idx>=0){for(let j=idx+1;j<row.length;j++){const v=clean(row[j]);if(v!=="")return v}for(let j=idx-1;j>=0;j--){const v=clean(row[j]);if(/^\\d+(?:\\.\\d+)?$/.test(v))return v}}}return "0"};
+const reasons=onholdLabels.map(label=>[label,findReasonValue(label)]),dash=pairs("dashboard summary",["delivery performance"]),fleet=pairs("fleet summary",["delivery performance"]),r=rate(),lb=leaderboard(),rh=a=>a.map(x=>`<div class="eod-row"><span>${esc(x[0])}</span><span>${esc(x[1])}</span></div>`).join("");
+document.getElementById("eodReasons").innerHTML=rh(reasons);document.getElementById("eodDashboardSummary").innerHTML=rh(dash);document.getElementById("eodFleetSummary").innerHTML=rh(fleet);document.getElementById("eodBigRate").textContent=r||"—";
+document.getElementById("eodLeaderHead").innerHTML="<tr>"+["Rank","Service","Name","Delivered","Onhold","Success Rate"].map(x=>"<th>"+esc(x)+"</th>").join("")+"</tr>";
+document.getElementById("eodLeaderBody").innerHTML=lb.map(a=>"<tr>"+a.map((v,j)=>{let c="";if(j===5){const n=num(v);c=n>=98?"rate-good":n>=95?"rate-warn":"rate-low"}return '<td class="'+c+'">'+esc(v)+"</td>"}).join("")+"</tr>").join("");
+document.getElementById("eodStatus").textContent="GOOGLE SHEET • LIVE • "+lb.length+" LEADERBOARD ROWS"}
+function load(){const st=document.getElementById("eodStatus");st.textContent="GOOGLE SHEET • LOADING";const cb="badocEod_"+Date.now(),sc=document.createElement("script");let done=false,t=setTimeout(()=>{if(!done){done=true;st.textContent="GOOGLE SHEET • TIMEOUT";sc.remove()}},15000);window[cb]=d=>{if(done)return;done=true;clearTimeout(t);try{rows=(d.table?.rows||[]).map(x=>(x.c||[]).map(c=>c?(c.f??c.v??""):"")).filter(r=>r.some(v=>clean(v)));render()}catch(e){st.textContent="GOOGLE SHEET • ERROR"}delete window[cb];sc.remove()};sc.onerror=()=>{if(done)return;done=true;clearTimeout(t);st.textContent="GOOGLE SHEET • ERROR";sc.remove()};sc.src="https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?gid="+GID+"&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+"&headers=0&tq="+encodeURIComponent("select *");document.body.appendChild(sc)}
+document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();setInterval(load,REFRESH_MS);
+})();
+</script>
+
+<style id="eod-app-theme">
+.eod-page{background:#050b10!important;color:#dcecff!important;border:1px solid rgba(0,174,255,.22);box-shadow:0 0 28px rgba(0,174,255,.07);border-radius:18px;padding:14px!important}
+.eod-head h2{color:#f3f8ff!important;letter-spacing:.2px}
+.eod-head .hint{color:#7f9bb0!important}
+.eod-status{color:#5e8298!important}
+.eod-grid{gap:12px}
+.eod-left,.eod-right{background:#081119!important;color:#e7f4ff!important;border:1px solid rgba(0,174,255,.28)!important;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 22px rgba(0,174,255,.025)}
+.eod-titlebar{height:38px!important;background:linear-gradient(90deg,#078cff,#00c8ff)!important;color:#fff!important;border:0!important;font-size:18px!important;letter-spacing:.2px;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.eod-hubline,.eod-dateline{background:#0a141d!important;color:#dcecff!important;border-color:rgba(112,166,195,.24)!important}
+.eod-hubline{font-size:14px!important}
+.eod-dateline{font-size:16px!important}
+.eod-panel{background:#081119!important;border-color:rgba(112,166,195,.22)!important}
+.eod-panel-title{background:#0b1822!important;color:#dff3ff!important;border-color:rgba(112,166,195,.24)!important}
+.eod-row{border-color:rgba(112,166,195,.18)!important}
+.eod-row span:first-child{color:#b9d0df!important}
+.eod-row span:last-child{color:#f2f8fc!important}
+.eod-delivery-title{background:#0b1822!important}
+.eod-big-rate{background:linear-gradient(145deg,#123f2b,#159447)!important;color:#eafff1!important;text-shadow:0 2px 18px rgba(0,0,0,.25);font-size:76px!important}
+.eod-leader-wrap{background:#081119!important}
+.eod-leader-table{color:#dcecff!important;background:#081119!important}
+.eod-leader-table th{background:#0b1822!important;color:#dff3ff!important;border-color:rgba(112,166,195,.25)!important}
+.eod-leader-table td{background:#081119!important;color:#c9dce8!important;border-color:rgba(112,166,195,.16)!important}
+.eod-leader-table td.rate-good{background:#145b39!important;color:#e9fff2!important}
+.eod-leader-table td.rate-warn{background:#73551c!important;color:#fff6da!important}
+.eod-leader-table td.rate-low{background:#71332f!important;color:#ffe9e6!important}
+.eod-head-actions .btn{border-radius:10px!important}
+.eod-head-actions .btn.primary{background:linear-gradient(90deg,#078cff,#00c8ff)!important;border-color:#00baff!important;color:#fff!important;box-shadow:0 0 14px rgba(0,174,255,.18)}
+.eod-source-btn{background:#0a151e!important;border-color:rgba(0,174,255,.34)!important;color:#d9efff!important}
+@media(max-width:900px){
+ .eod-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:700px){
+ .eod-page{padding:10px!important;border-radius:14px}
+ .eod-head-actions .btn{font-size:8px!important}
+ .eod-titlebar{font-size:15px!important}
+ .eod-big-rate{font-size:52px!important}
+}
+</style>
+
 </body>
 
 <style id="pickup-mobile-header-final">
@@ -7533,4 +7670,355 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   .performance-head-actions .btn{font-size:8px!important;padding:7px 8px!important;min-height:31px!important}
   .performance-source-btn{max-width:132px!important}
 }
+</style>
+
+
+<style id="eod-ui-final">
+/* EOD UI ONLY — core BADOC HUB logic/data handling unchanged */
+.eod-page{
+  padding:10px!important;
+  background:#050b10!important;
+  color:#e8f6ff!important;
+  border:1px solid rgba(0,174,255,.20)!important;
+  border-radius:16px!important;
+}
+.eod-head{
+  margin:0 0 8px!important;
+  min-height:36px!important;
+}
+.eod-head h2{
+  font-size:18px!important;
+  font-weight:800!important;
+  color:#f5fbff!important;
+}
+.eod-head .hint{
+  color:#6f91a5!important;
+  font-size:9px!important;
+}
+.eod-head-actions{gap:6px!important}
+.eod-head-actions .btn{
+  min-height:32px!important;
+  padding:7px 11px!important;
+  border-radius:8px!important;
+  font-size:9px!important;
+}
+.eod-head-actions .btn.primary{
+  background:linear-gradient(90deg,#087cf0,#00bfff)!important;
+  border:1px solid #00bfff!important;
+  color:#fff!important;
+}
+.eod-source-btn{
+  background:#091722!important;
+  border:1px solid rgba(0,191,255,.38)!important;
+  color:#cdeeff!important;
+}
+.eod-status{
+  margin:2px 0 7px!important;
+  font-size:8px!important;
+  color:#52778d!important;
+}
+.eod-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr)!important;
+  gap:8px!important;
+  align-items:stretch!important;
+}
+.eod-left,.eod-right{
+  min-width:0!important;
+  background:#071019!important;
+  border:1px solid rgba(0,174,255,.32)!important;
+  border-radius:10px!important;
+  overflow:hidden!important;
+  box-shadow:0 0 18px rgba(0,130,255,.05)!important;
+}
+.eod-titlebar{
+  height:34px!important;
+  background:linear-gradient(90deg,#087cf0,#00bfff)!important;
+  color:#fff!important;
+  border:0!important;
+  font-size:18px!important;
+  font-weight:800!important;
+  letter-spacing:.1px!important;
+}
+.eod-hubline{
+  height:25px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:#0a151f!important;
+  color:#e5f5ff!important;
+  border-color:rgba(108,166,198,.22)!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+.eod-dateline{
+  height:28px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:#0a151f!important;
+  color:#d8ecf8!important;
+  border-color:rgba(108,166,198,.22)!important;
+  font-size:16px!important;
+  font-weight:800!important;
+}
+.eod-left-top{
+  display:grid!important;
+  grid-template-columns:44% 31% 25%!important;
+  align-items:stretch!important;
+}
+.eod-panel{
+  min-width:0!important;
+  background:#071019!important;
+  border-right:1px solid rgba(108,166,198,.25)!important;
+}
+.eod-panel:last-child{border-right:0!important}
+.eod-panel-title{
+  height:30px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:#0b1823!important;
+  color:#e4f5ff!important;
+  border-bottom:1px solid rgba(108,166,198,.28)!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+.eod-reasons,.eod-summary{
+  font-size:10px!important;
+  line-height:1.05!important;
+}
+.eod-row{
+  grid-template-columns:minmax(0,1fr) 43px!important;
+  min-height:21px!important;
+  box-sizing:border-box!important;
+  border-bottom:1px dotted rgba(113,163,190,.20)!important;
+}
+.eod-summary .eod-row{grid-template-columns:minmax(0,1fr) 50px!important}
+.eod-row span:first-child{
+  padding:3px 5px!important;
+  color:#b9cfdd!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.eod-row span:last-child{
+  padding:3px 3px!important;
+  text-align:center!important;
+  color:#f3f9fd!important;
+  font-weight:800!important;
+}
+.eod-delivery-title{
+  margin-top:0!important;
+  border-top:1px solid rgba(108,166,198,.28)!important;
+}
+.eod-big-rate{
+  height:335px!important;
+  min-height:335px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:linear-gradient(145deg,#0d5b37,#16a05a)!important;
+  color:#f0fff6!important;
+  font-size:76px!important;
+  font-weight:900!important;
+  letter-spacing:-3px!important;
+  text-shadow:0 3px 15px rgba(0,0,0,.32)!important;
+}
+.eod-leader-wrap{
+  max-height:none!important;
+  overflow:auto!important;
+  background:#071019!important;
+}
+.eod-leader-table{
+  width:100%!important;
+  border-collapse:collapse!important;
+  table-layout:auto!important;
+  color:#dceef8!important;
+  background:#071019!important;
+  font-size:10px!important;
+  font-weight:700!important;
+}
+.eod-leader-table th{
+  height:30px!important;
+  padding:4px 5px!important;
+  background:#0b1823!important;
+  color:#e5f5ff!important;
+  border:1px solid rgba(108,166,198,.28)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+.eod-leader-table th:nth-child(1){width:42px}
+.eod-leader-table th:nth-child(2){width:62px}
+.eod-leader-table th:nth-child(3){width:auto}
+.eod-leader-table th:nth-child(4){width:74px}
+.eod-leader-table th:nth-child(5){width:65px}
+.eod-leader-table th:nth-child(6){width:94px}
+.eod-leader-table td{
+  height:22px!important;
+  padding:3px 5px!important;
+  background:#071019!important;
+  color:#cfe2ec!important;
+  border:1px dotted rgba(108,166,198,.20)!important;
+  white-space:nowrap!important;
+}
+.eod-leader-table td:nth-child(1),
+.eod-leader-table td:nth-child(2),
+.eod-leader-table td:nth-child(4),
+.eod-leader-table td:nth-child(5),
+.eod-leader-table td:nth-child(6){text-align:center!important}
+.eod-leader-table td:nth-child(3){color:#edf7fb!important}
+.eod-leader-table td.rate-good{
+  background:#155c39!important;
+  color:#eafff2!important;
+}
+.eod-leader-table td.rate-warn{
+  background:#73531b!important;
+  color:#fff3cf!important;
+}
+.eod-leader-table td.rate-low{
+  background:#71332f!important;
+  color:#ffe8e5!important;
+}
+@media(max-width:1100px){
+  .eod-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:700px){
+  .eod-page{padding:7px!important;border-radius:12px!important}
+  .eod-head{gap:5px!important}
+  .eod-head h2{font-size:15px!important}
+  .eod-head .hint{font-size:7px!important}
+  .eod-head-actions{margin-left:auto!important}
+  .eod-head-actions .btn{font-size:8px!important;padding:6px 8px!important;min-height:30px!important}
+  .eod-source-btn{max-width:125px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+  .eod-left-top{grid-template-columns:1fr!important}
+  .eod-panel{border-right:0!important;border-bottom:1px solid rgba(108,166,198,.25)!important}
+  .eod-panel:last-child{border-bottom:0!important}
+  .eod-big-rate{height:190px!important;min-height:190px!important;font-size:52px!important}
+  .eod-leader-table{min-width:650px!important}
+}
+</style>
+
+
+<style id="eod-compact-performance">
+/* Compact Today's Performance only */
+.eod-left .eod-titlebar{height:30px!important;font-size:16px!important}
+.eod-left .eod-hubline{height:22px!important;font-size:12px!important}
+.eod-left .eod-dateline{height:24px!important;font-size:14px!important}
+.eod-left .eod-panel-title{height:25px!important;font-size:12px!important;padding:2px 3px!important}
+.eod-left .eod-reasons,.eod-left .eod-summary{font-size:9px!important;line-height:1!important}
+.eod-left .eod-row{min-height:18px!important;height:18px!important}
+.eod-left .eod-row span:first-child,.eod-left .eod-row span:last-child{padding:2px 4px!important}
+.eod-left .eod-big-rate{height:265px!important;min-height:265px!important;font-size:62px!important;letter-spacing:-2px!important}
+.eod-left .eod-delivery-title{height:25px!important}
+@media(max-width:700px){
+  .eod-left .eod-titlebar{height:28px!important;font-size:15px!important}
+  .eod-left .eod-panel-title{font-size:11px!important}
+  .eod-left .eod-reasons,.eod-left .eod-summary{font-size:8px!important}
+  .eod-left .eod-row{min-height:17px!important;height:17px!important}
+  .eod-left .eod-big-rate{height:170px!important;min-height:170px!important;font-size:48px!important}
+}
+</style>
+
+
+<style id="eod-delivery-compact">
+/* Compact Delivery Performance panel too */
+.eod-left .eod-delivery-title{
+  height:23px!important;
+  font-size:11px!important;
+  padding:2px 3px!important;
+}
+.eod-left .eod-big-rate{
+  height:220px!important;
+  min-height:220px!important;
+  font-size:54px!important;
+  letter-spacing:-2px!important;
+}
+@media(max-width:700px){
+  .eod-left .eod-delivery-title{height:22px!important;font-size:10px!important}
+  .eod-left .eod-big-rate{
+    height:145px!important;
+    min-height:145px!important;
+    font-size:43px!important;
+  }
+}
+</style>
+
+
+<style id="eod-delivery-more-compact">
+/* Further compact Delivery Performance */
+.eod-left .eod-delivery-title{
+  height:20px!important;
+  min-height:20px!important;
+  font-size:10px!important;
+  line-height:20px!important;
+  padding:0 3px!important;
+}
+.eod-left .eod-big-rate{
+  height:150px!important;
+  min-height:150px!important;
+  font-size:42px!important;
+  letter-spacing:-1px!important;
+}
+@media(max-width:700px){
+  .eod-left .eod-delivery-title{
+    height:19px!important;
+    min-height:19px!important;
+    font-size:9px!important;
+    line-height:19px!important;
+  }
+  .eod-left .eod-big-rate{
+    height:105px!important;
+    min-height:105px!important;
+    font-size:34px!important;
+  }
+}
+</style>
+
+
+<style id="eod-final-compact-fix">
+/* Final compact sizing */
+.eod-left .eod-big-rate{
+  height:105px!important;
+  min-height:105px!important;
+  font-size:38px!important;
+}
+.eod-left .eod-delivery-title{
+  height:19px!important;
+  min-height:19px!important;
+  font-size:10px!important;
+  line-height:19px!important;
+}
+.eod-left .eod-reasons{
+  max-height:440px!important;
+  overflow-y:auto!important;
+  scrollbar-width:thin;
+}
+.eod-left .eod-reasons .eod-row{
+  min-height:18px!important;
+  height:18px!important;
+}
+@media(max-width:700px){
+  .eod-left .eod-big-rate{
+    height:85px!important;
+    min-height:85px!important;
+    font-size:32px!important;
+  }
+  .eod-left .eod-reasons{
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+</style>
+
+<style id="eod-onhold-list-final">
+.eod-left .eod-reasons{max-height:none!important;overflow:visible!important}
+.eod-left .eod-reasons .eod-row{min-height:18px!important;height:18px!important}
+.eod-left .eod-reasons .eod-row span:first-child{font-weight:700!important}
+@media(max-width:700px){.eod-left .eod-reasons .eod-row{min-height:17px!important;height:17px!important;font-size:8px!important}}
 </style>
