@@ -3573,6 +3573,50 @@ html{
   .pickup-toolbar{display:block !important;margin:10px 0 !important;}
   .pickup-toolbar input{width:100% !important;box-sizing:border-box;}
 </style>
+<style id="consolidated-runtime-css">
+.consolidated-page{overflow:hidden}
+.consolidated-head{align-items:center}
+.consolidated-head-actions{display:flex;align-items:center;gap:7px;margin-left:auto}
+.consolidated-source-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none!important;box-sizing:border-box}
+.consolidated-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0}
+.consolidated-summary>div{border:1px solid rgba(75,211,255,.16);background:rgba(8,17,24,.78);border-radius:8px;padding:8px 10px;min-width:0}
+.consolidated-summary strong{display:block;font-size:18px;line-height:1.1;color:#e8f5ff}
+.consolidated-summary span{display:block;margin-top:4px;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#7e93a3}
+.consolidated-status-line{font-size:8px;letter-spacing:.07em;color:#708696;margin:4px 0 7px;text-transform:uppercase}
+.consolidated-table-wrap{width:100%;overflow:auto;border:1px solid rgba(75,211,255,.12);border-radius:9px}
+.consolidated-table{width:100%;border-collapse:collapse;min-width:780px;font-size:9px}
+.consolidated-table th{position:sticky;top:0;background:#073b49;color:#bfefff;padding:7px 6px;text-align:left;white-space:nowrap;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+.consolidated-table td{padding:6px;border-top:1px solid rgba(255,255,255,.045);color:#b9c7d1;white-space:nowrap}
+.consolidated-table tbody tr:nth-child(even){background:rgba(255,255,255,.018)}
+.consolidated-table .rate-cell{font-weight:700}
+@media(max-width:700px){
+ .consolidated-head{display:block!important}
+ .consolidated-head-actions{width:100%;margin:10px 0 0;display:flex;gap:7px}
+ .consolidated-head-actions .btn{flex:1;min-width:0}
+ .consolidated-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .consolidated-summary>div:last-child{grid-column:1/-1}
+ .consolidated-table{min-width:780px}
+}
+@media(max-width:430px){
+ .consolidated-head-actions .btn{font-size:9px;padding:8px 5px}
+ .consolidated-summary strong{font-size:16px}
+}
+</style>
+
+<style id="consolidated-sheet-header-style">
+.consolidated-sheet-wrap{width:100%;overflow:auto;border:1px solid rgba(75,211,255,.12);border-radius:9px;margin:4px 0 8px}
+.consolidated-summary-sheet{width:100%;min-width:900px;border-collapse:collapse;font-size:9px}
+.consolidated-summary-sheet th{background:#4ea83f;color:#fff;padding:7px 6px;text-align:left;white-space:nowrap;font-size:8px;font-weight:900;text-transform:none;letter-spacing:0}
+.consolidated-summary-sheet td{background:rgba(8,17,24,.82);color:#d9e7ee;padding:7px 6px;white-space:nowrap;border-top:1px solid rgba(255,255,255,.05);font-weight:700}
+.consolidated-summary-sheet td.summary-date{font-weight:800}
+.consolidated-table-wrap{margin-top:8px}
+.consolidated-table{min-width:900px}
+.consolidated-table th{background:#e85b63;color:#fff;text-transform:none;font-weight:900;letter-spacing:0}
+@media(max-width:700px){
+ .consolidated-sheet-wrap,.consolidated-table-wrap{border-radius:7px}
+ .consolidated-summary-sheet,.consolidated-table{min-width:900px}
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -3920,9 +3964,31 @@ html{
 </section>
 
 <section id="dailyConsolidated" class="page">
-  <div class="section">
-    <div class="collapseHead"><h2 style="margin:0">Consolidated</h2><span class="hint">Daily Data</span></div>
-    <div class="empty-state" style="padding:28px;color:#8fa0ad">Consolidated daily data will appear here.</div>
+  <div class="section consolidated-page">
+    <div class="collapseHead consolidated-head">
+      <div>
+        <h2 style="margin:0">Consolidated</h2>
+        <span class="hint">Daily Data • Google Sheet</span>
+      </div>
+      <div class="consolidated-head-actions">
+        <button type="button" class="btn primary" id="consolidatedRefreshBtn">↻ Refresh</button>
+        <a class="btn consolidated-source-btn" id="consolidatedSourceBtn" href="https://docs.google.com/spreadsheets/d/11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70/edit?gid=1191632949#gid=1191632949" target="_blank" rel="noopener">↗ Open Consolidated Sheet</a>
+      </div>
+    </div>
+    <div class="consolidated-sheet-wrap">
+      <table class="consolidated-summary-sheet">
+        <thead id="consolidatedSummaryHead"></thead>
+        <tbody id="consolidatedSummaryBody"></tbody>
+      </table>
+    </div>
+    <div class="consolidated-status-line" id="consolidatedStatus">GOOGLE SHEET • LOADING</div>
+    <div class="consolidated-table-wrap">
+      <table class="consolidated-table">
+        <thead id="consolidatedTableHead"></thead>
+        <tbody id="consolidatedTableBody"></tbody>
+      </table>
+    </div>
+    <div class="consolidated-empty" id="consolidatedEmpty" style="display:none">No consolidated data found.</div>
   </div>
 </section>
 
@@ -7333,6 +7399,102 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 })();
 </script>
 
+<script id="consolidated-runtime">
+(function(){
+  if(window.__badocConsolidatedRuntime)return;
+  window.__badocConsolidatedRuntime=true;
+  const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
+  const GID="1191632949";
+  const REFRESH_MS=5*60*1000;
+  let allRows=[];
+  const clean=v=>String(v??"").trim();
+  const norm=v=>clean(v).toLowerCase().replace(/\s+/g," ");
+  const esc=v=>clean(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const summaryCols=[
+    {i:0,name:"Date"},{i:1,name:"EOD Prod"},{i:2,name:"EOD Dispatched"},{i:3,name:"EOD Delivered"},{i:4,name:"EOD Success Rate"},
+    {i:5,name:"Backlog"},{i:6,name:"Redel"},{i:7,name:"2WH"},{i:8,name:"3WH"},{i:9,name:"4WH"},{i:10,name:"Flexi"}
+  ];
+  const mainCols=[
+    {i:0,name:"Date"},{i:1,name:"Agency"},{i:2,name:"Wheel Type"},{i:3,name:"Rider ID"},{i:4,name:"Rider Name"},
+    {i:5,name:"Dispatched"},{i:6,name:"Delivered"},{i:7,name:"On-Hold"},{i:8,name:"Success Rate"}
+  ];
+  const wheelTypes=new Set(['2wh','3wh','4wh','flexi']);
+  function isRiderHeader(r){
+    const x=r.map(norm);
+    return x.includes('agency')&&x.includes('wheel type')&&x.includes('rider id')&&x.includes('rider name');
+  }
+  function isSummaryHeader(r){
+    const x=r.map(norm);
+    return x.includes('date')&&x.includes('eod prod')&&x.includes('eod dispatched')&&x.includes('eod delivered');
+  }
+  function isRiderRow(r){
+    return wheelTypes.has(norm(r[2])) && norm(r[1])!=='agency' && norm(r[3])!=='rider id' && norm(r[4])!=='rider name';
+  }
+  function findSummary(){
+    let header=-1, riderHeader=-1;
+    for(let i=0;i<allRows.length;i++){
+      if(header<0&&isSummaryHeader(allRows[i]||[]))header=i;
+      if(riderHeader<0&&isRiderHeader(allRows[i]||[]))riderHeader=i;
+    }
+    /* The source sheet has a green EOD header followed immediately by its value row. */
+    if(header>=0){
+      for(let i=header+1;i<allRows.length;i++){
+        const r=allRows[i]||[];
+        if(riderHeader>=0&&i>=riderHeader)break;
+        if(r.some(v=>clean(v)!==''))return r;
+      }
+    }
+    /* Fallback for GViz responses where the green header is not returned. */
+    const limit=riderHeader>=0?riderHeader:allRows.length;
+    for(let i=0;i<limit;i++){
+      const r=allRows[i]||[];
+      const first=norm(r[0]);
+      const second=clean(r[1]);
+      if(first && first!=='date' && second!=='eod prod' && r.some(v=>clean(v)!=='')){
+        if(/date\s*\(/i.test(first)||/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(first)||/^\w+\s+\d{1,2},\s*\d{4}/.test(first)) return r;
+      }
+    }
+    return [];
+  }
+  function render(){
+    const summaryHead=document.getElementById('consolidatedSummaryHead');
+    const summaryBody=document.getElementById('consolidatedSummaryBody');
+    const head=document.getElementById('consolidatedTableHead');
+    const body=document.getElementById('consolidatedTableBody');
+    const sv=findSummary();
+    summaryHead.innerHTML='<tr>'+summaryCols.map(c=>'<th>'+esc(c.name)+'</th>').join('')+'</tr>';
+    summaryBody.innerHTML='<tr>'+summaryCols.map(c=>'<td class="'+(c.i===0?'summary-date':'')+'">'+esc(sv[c.i]??'')+'</td>').join('')+'</tr>';
+    head.innerHTML='<tr>'+mainCols.map(c=>'<th>'+esc(c.name)+'</th>').join('')+'</tr>';
+    const mh=allRows.findIndex(isRiderHeader);
+    const data=(mh>=0?allRows.slice(mh+1):allRows).filter(isRiderRow);
+    body.innerHTML=data.map(r=>'<tr>'+mainCols.map(c=>'<td class="'+(c.i===8?'rate-cell':'')+'">'+esc(r[c.i])+'</td>').join('')+'</tr>').join('');
+    const empty=document.getElementById('consolidatedEmpty'); if(empty)empty.style.display=data.length?'none':'block';
+    const status=document.getElementById('consolidatedStatus'); if(status)status.textContent='GOOGLE SHEET • LIVE • '+data.length+' SHOWN';
+  }
+  function load(){
+    const status=document.getElementById('consolidatedStatus'); if(status)status.textContent='GOOGLE SHEET • LOADING';
+    const cb='badocConsolidated_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script'); let done=false;
+    const timer=setTimeout(()=>{if(!done){done=true;try{delete window[cb]}catch(_){}script.remove();if(status)status.textContent='GOOGLE SHEET • TIMEOUT';}},15000);
+    window[cb]=data=>{
+      if(done)return; done=true; clearTimeout(timer);
+      try{
+        const t=data?.table;
+        if(!t)throw new Error('No table returned');
+        allRows=(t.rows||[]).map(x=>(x.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:'')):'')).filter(r=>r.some(v=>clean(v)!==''));
+        render();
+      }catch(e){if(status)status.textContent='GOOGLE SHEET • ERROR';}
+      try{delete window[cb]}catch(_){} script.remove();
+    };
+    script.onerror=()=>{if(done)return;done=true;clearTimeout(timer);if(status)status.textContent='GOOGLE SHEET • ERROR';try{delete window[cb]}catch(_){}script.remove();};
+    script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?gid='+GID+'&tqx='+encodeURIComponent('out:json;responseHandler:'+cb)+'&headers=0&tq='+encodeURIComponent('select *')+'&_ts='+Date.now();
+    document.body.appendChild(script);
+  }
+  document.getElementById('consolidatedRefreshBtn')?.addEventListener('click',load);
+  load();
+  setInterval(load,REFRESH_MS);
+})();
+</script>
 </body>
 
 <style id="pickup-mobile-header-final">
