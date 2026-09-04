@@ -8022,3 +8022,84 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .eod-left .eod-reasons .eod-row span:first-child{font-weight:700!important}
 @media(max-width:700px){.eod-left .eod-reasons .eod-row{min-height:17px!important;height:17px!important;font-size:8px!important}}
 </style>
+
+<style id="eod-mobile-todays-bottom">
+@media(max-width:700px){
+  .eod-grid{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .eod-grid .eod-right{
+    order:1!important;
+  }
+  .eod-grid .eod-left{
+    order:2!important;
+  }
+  .eod-left-top{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .eod-left-top .eod-panel:nth-child(2){
+    order:1!important;
+  }
+  .eod-left-top .eod-panel:nth-child(3){
+    order:2!important;
+  }
+  .eod-left-top .eod-panel:nth-child(1){
+    order:3!important;
+  }
+}
+</style>
+
+
+<style id="eod-leaderboard-mobile-fit">
+@media(max-width:700px){
+  .eod-right{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  .eod-leader-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box!important;
+  }
+  .eod-leader-table{
+    width:100%!important;
+    min-width:0!important;
+    table-layout:fixed!important;
+    font-size:8px!important;
+  }
+  .eod-leader-table th,
+  .eod-leader-table td{
+    padding:5px 3px!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.15!important;
+    box-sizing:border-box!important;
+  }
+  .eod-leader-table th:nth-child(1),
+  .eod-leader-table td:nth-child(1){width:7%!important;text-align:center!important}
+  .eod-leader-table th:nth-child(2),
+  .eod-leader-table td:nth-child(2){width:11%!important;text-align:center!important}
+  .eod-leader-table th:nth-child(3),
+  .eod-leader-table td:nth-child(3){width:42%!important}
+  .eod-leader-table th:nth-child(4),
+  .eod-leader-table td:nth-child(4){width:12%!important;text-align:center!important}
+  .eod-leader-table th:nth-child(5),
+  .eod-leader-table td:nth-child(5){width:10%!important;text-align:center!important}
+  .eod-leader-table th:nth-child(6),
+  .eod-leader-table td:nth-child(6){width:18%!important;text-align:center!important}
+}
+@media(max-width:430px){
+  .eod-leader-table{
+    font-size:7px!important;
+  }
+  .eod-leader-table th,
+  .eod-leader-table td{
+    padding:4px 2px!important;
+  }
+}
+</style>
