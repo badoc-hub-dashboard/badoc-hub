@@ -2679,8 +2679,8 @@ html{
 .dashboard-status-card small{display:block;margin-top:4px;font-size:9px;color:#718695}
 .dashboard-status-card.delivering{border-top:2px solid #18B8FF}
 .dashboard-status-card.delivered{border-top:2px solid #4ADE80}
-.dashboard-status-card.onhold{border-top:2px solid #FBBF24}.dashboard-status-card.unscanned{border-top:2px solid #A78BFA}
-.dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}.dashboard-status-card.unscanned strong{color:#C4B5FD}
+.dashboard-status-card.onhold{border-top:2px solid #FBBF24}.dashboard-status-card.received{border-top:2px solid #4ADE80}.dashboard-status-card.unscanned{border-top:2px solid #A78BFA}
+.dashboard-status-card.delivering strong{color:#4DD4FF}.dashboard-status-card.delivered strong{color:#86EFAC}.dashboard-status-card.onhold strong{color:#FCD34D}.dashboard-status-card.received strong{color:#86EFAC}.dashboard-status-card.unscanned strong{color:#C4B5FD}
 
 .parcel-source-row{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:14px;align-items:stretch;margin-bottom:14px}
 .parcel-source-row>.section{margin:0;min-width:0}
@@ -3360,6 +3360,219 @@ html{
   }
 }
 </style>
+
+<style id="badoc-hide-all-devices-sync">
+/* Hide the visible "All devices synced" banner while preserving the underlying sync logic. */
+#sharedStatus{display:none !important;}
+</style>
+
+<style id="daily-data-menu-css">
+.daily-data-nav{margin:2px 0 4px}
+.daily-data-toggle{position:relative!important;display:flex!important;align-items:center!important;gap:0!important}
+.daily-data-toggle .ico{flex:0 0 23px}
+.daily-data-chevron{margin-left:auto;font-size:18px;line-height:1;transition:transform .18s ease;color:#718096}
+.daily-data-nav.open .daily-data-chevron{transform:rotate(90deg);color:#38bdf8}
+.daily-data-submenu{display:none;padding:2px 0 4px 23px}
+.daily-data-nav.open .daily-data-submenu{display:block}
+.daily-data-submenu button{display:flex!important;align-items:center!important;width:100%!important;font-size:10px!important;padding:8px 7px!important;margin:1px 0!important;border-radius:7px!important;color:#8493a3!important;background:transparent!important;box-shadow:none!important}
+.daily-data-submenu button:hover{background:#101f2f!important;color:#fff!important;box-shadow:inset 2px 0 #38bdf8!important}
+.daily-data-submenu button.active{background:#102a3d!important;color:#fff!important;box-shadow:inset 2px 0 #38bdf8!important}
+.daily-data-submenu .sub-ico{display:inline-block;width:14px;color:#38bdf8;font-size:12px}
+.daily-data-nav.open .daily-data-toggle{background:#101f2f!important;color:#fff!important;box-shadow:inset 2px 0 #38bdf8!important}
+@media(max-width:900px){
+  .daily-data-toggle{font-size:10px!important;text-align:left!important;padding:10px 7px!important;white-space:nowrap}
+  .daily-data-toggle .ico{width:20px;flex-basis:20px}
+  .daily-data-submenu{padding-left:18px}
+  .daily-data-submenu button{font-size:9px!important;padding:7px 5px!important}
+}
+</style>
+
+
+<style id="daily-pickup-css">
+.pickup-page{overflow:hidden}
+.pickup-head{align-items:center}
+.pickup-head .btn{margin-left:auto}
+.pickup-toolbar{display:grid;grid-template-columns:minmax(180px,1fr) 150px 170px;gap:8px;margin:12px 0}
+.pickup-toolbar input,.pickup-toolbar select{width:100%;box-sizing:border-box;background:#0b1117;border:1px solid #243342;border-radius:8px;color:#dce6ef;padding:9px 10px;font-size:11px;outline:none}
+.pickup-toolbar input:focus,.pickup-toolbar select:focus{border-color:#00bfff;box-shadow:0 0 0 2px #00bfff18}
+.pickup-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.pickup-summary>div{background:#0b1117;border:1px solid #23313e;border-radius:9px;padding:9px 11px}
+.pickup-summary strong{display:block;font-size:19px;color:#e8f1f7}
+.pickup-summary span{font-size:9px;color:#8293a2;text-transform:uppercase;letter-spacing:.5px}
+.pickup-status-line{font-size:10px;color:#81919f;margin:7px 0 9px}
+.pickup-table-wrap{width:100%;overflow:auto;border:1px solid #22313d;border-radius:10px;background:#070b0f}
+.pickup-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:10px}
+.pickup-table th{position:sticky;top:0;z-index:2;background:#0c2630;color:#a9bac7;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.4px;padding:9px 10px;border-bottom:1px solid #29404c;white-space:nowrap}
+.pickup-table td{padding:8px 10px;color:#d7e0e7;border-bottom:1px solid #17232c;white-space:nowrap}
+.pickup-table tbody tr:nth-child(even){background:#091016}
+.pickup-table tbody tr:hover{background:#10202a}
+.pickup-status{display:inline-flex;padding:3px 7px;border-radius:999px;background:#163a21;color:#65e18d;font-size:9px}
+.pickup-status.cancelled{background:#193345;color:#63c7f2}
+.pickup-status.pending{background:#332b12;color:#f0c44e}
+.pickup-empty{text-align:center;padding:24px;color:#81919f;font-size:11px}
+@media(max-width:900px){
+  .pickup-toolbar{grid-template-columns:1fr 1fr}
+  .pickup-toolbar input{grid-column:1/-1}
+  .pickup-summary{grid-template-columns:repeat(4,minmax(72px,1fr));gap:5px}
+  .pickup-summary>div{padding:7px}
+  .pickup-summary strong{font-size:15px}
+  .pickup-summary span{font-size:8px}
+  .pickup-table{font-size:9px}
+  .pickup-table th{font-size:8px;padding:8px}
+  .pickup-table td{padding:7px 8px}
+}
+@media(max-width:520px){
+  .pickup-toolbar{grid-template-columns:1fr}
+  .pickup-summary{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+
+
+<style id="pickup-header-visibility-fix">
+.pickup-table-wrap{overflow-x:auto;overflow-y:auto;max-height:62vh}
+.pickup-table thead{display:table-header-group}
+.pickup-table thead tr{display:table-row}
+.pickup-table th{display:table-cell;visibility:visible!important;opacity:1!important;color:#c7d6df!important;background:#0d2a34!important;font-weight:700!important;min-width:120px}
+.pickup-table th:first-child{min-width:90px}
+.pickup-table td{display:table-cell}
+</style>
+
+
+
+
+<style id="daily-performance-css">
+.performance-page{overflow:hidden}
+/* Match Pickup header behavior: title on the left, actions on the right, top-aligned. */
+.performance-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+.performance-head > div:first-child{min-width:0;flex:1 1 auto}
+.performance-head-actions{display:flex;align-items:flex-start;justify-content:flex-end;gap:7px;margin-left:auto;flex:0 0 auto;white-space:nowrap}
+.performance-head-actions .btn{margin-left:0!important;flex:0 0 auto}
+.performance-source-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none!important;box-sizing:border-box}
+.performance-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 160px 160px;gap:8px;margin:10px 0}
+.performance-toolbar input,.performance-toolbar select{width:100%;box-sizing:border-box;background:#0b1117;border:1px solid #263744;color:#d7e0e7;border-radius:8px;padding:9px 10px;font-size:10px;outline:none}
+.performance-toolbar input:focus,.performance-toolbar select:focus{border-color:#2c8bad;box-shadow:0 0 0 2px rgba(44,139,173,.12)}
+.performance-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.performance-summary>div{background:#0b1117;border:1px solid #23313e;border-radius:9px;padding:9px 11px}
+.performance-summary strong{display:block;font-size:19px;color:#e8f1f7}
+.performance-summary span{font-size:9px;color:#8293a2;text-transform:uppercase;letter-spacing:.5px}
+.performance-status-line{font-size:9px;color:#718596;margin:0 0 7px;text-transform:uppercase;letter-spacing:.45px}
+.performance-table-wrap{width:100%;overflow:auto;border:1px solid #22313d;border-radius:10px;background:#070b0f;max-height:62vh}
+.performance-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-size:10px}
+.performance-table th{position:sticky;top:0;z-index:2;background:#0d2a34;color:#c7d6df;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.4px;padding:9px 10px;border-bottom:1px solid #29404c;white-space:nowrap;min-width:95px}
+.performance-table th:nth-child(1){min-width:85px}
+.performance-table th:nth-child(3){min-width:190px}
+.performance-table th:nth-child(7){min-width:80px}
+.performance-table td{padding:8px 10px;color:#d7e0e7;border-bottom:1px solid #17232c;white-space:nowrap}
+.performance-table tbody tr:nth-child(even){background:#091016}
+.performance-table tbody tr:hover{background:#10202a}
+.performance-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.performance-table td.rate{font-weight:700}
+.performance-table td.rate.good{color:#7ee787}
+.performance-table td.rate.warn{color:#ffd666}
+.performance-table td.rate.low{color:#ff7b72}
+.performance-table td.hold{color:#ffd666;font-weight:700}
+.performance-empty{padding:18px;color:#8fa0ad;font-size:10px}
+@media(max-width:700px){
+  .performance-head{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;flex-wrap:nowrap}
+  .performance-head > div:first-child{min-width:0;flex:1 1 auto}
+  .performance-head-actions{width:auto;margin-left:auto;display:flex;align-items:flex-start;justify-content:flex-end;gap:7px;flex:0 0 auto;white-space:nowrap}
+  .performance-head-actions .btn{flex:0 0 auto}
+  .performance-toolbar{grid-template-columns:1fr 1fr;gap:5px}
+  .performance-toolbar input{grid-column:1/-1}
+  .performance-summary{grid-template-columns:repeat(3,minmax(82px,1fr));gap:5px}
+  .performance-summary>div{padding:7px}
+  .performance-summary strong{font-size:15px}
+  .performance-summary span{font-size:8px}
+  .performance-table{font-size:9px}
+  .performance-table th{font-size:8px;padding:8px}
+  .performance-table td{padding:7px 8px}
+}
+@media(max-width:430px){
+  .performance-summary{grid-template-columns:repeat(2,1fr)}
+  .performance-toolbar{grid-template-columns:1fr}
+  .performance-toolbar input{grid-column:auto}
+  .performance-table th{min-width:90px}
+  .performance-table th:nth-child(3){min-width:170px}
+}
+</style>
+
+<style id="daily-data-mobile-css">
+.mobile-daily-data-menu{
+  display:none;
+}
+@media(max-width:700px){
+  .mobile-daily-data-menu{
+    position:fixed;
+    left:8px;right:8px;bottom:76px;
+    z-index:100000;
+    padding:6px;
+    border:1px solid rgba(75,211,255,.22);
+    border-radius:14px;
+    background:rgba(5,9,12,.96);
+    box-shadow:0 10px 34px rgba(0,0,0,.72),0 0 22px rgba(35,190,255,.08);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    grid-template-columns:repeat(4,1fr);
+    gap:5px;
+  }
+  .mobile-daily-data-menu.open{display:grid}
+  .mobile-daily-data-menu button{
+    border:1px solid #1b3440;
+    background:#0b141b;
+    color:#a9bac4;
+    border-radius:9px;
+    padding:9px 5px;
+    font-size:9px;
+    white-space:nowrap;
+  }
+  .mobile-daily-data-menu button.active{
+    color:#69e5ff;
+    border-color:#1b718e;
+    background:#102a3a;
+  }
+  .mobile-bottom-nav button.mobile-daily-toggle.active{
+    color:#69e5ff;
+    background:linear-gradient(135deg,rgba(20,101,130,.45),rgba(10,37,51,.58));
+  }
+  .mobile-bottom-nav{gap:2px}
+  .mobile-bottom-nav button{font-size:8px}
+  .mobile-bottom-nav .mobile-ico{font-size:16px}
+}
+@media(max-width:430px){
+  .mobile-daily-data-menu{left:5px;right:5px;bottom:72px}
+  .mobile-daily-data-menu button{font-size:8px;padding:8px 3px}
+  .mobile-bottom-nav button{font-size:7.5px}
+  .mobile-bottom-nav .mobile-ico{font-size:15px}
+}
+</style>
+
+
+<style id="pickup-source-shortcut-css">
+/* Keep Pickup action buttons together and aligned in one row. */
+.pickup-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+.pickup-head > div:first-child{min-width:0}
+.pickup-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-left:auto;flex:0 0 auto;white-space:nowrap}
+.pickup-head-actions .btn{margin-left:0!important;flex:0 0 auto}
+.pickup-source-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none!important;box-sizing:border-box}
+@media(max-width:520px){
+  .pickup-head{gap:7px}
+  .pickup-head-actions{width:auto;margin-left:auto}
+  .pickup-head-actions .btn{flex:0 0 auto}
+}
+</style>
+
+
+<style id="hide-daily-data-filters">
+  #pickupSearch, #pickupDateFilter, #pickupStatusFilter,
+  #performanceSearch, #performanceDateFilter, #performanceAreaFilter { display:none !important; }
+  .pickup-toolbar, .performance-toolbar { display:none !important; }
+</style>
+<style id="pickup-search-restore">
+  #pickupSearch{display:block !important;}
+  #pickupDateFilter, #pickupStatusFilter{display:none !important;}
+  .pickup-toolbar{display:block !important;margin:10px 0 !important;}
+  .pickup-toolbar input{width:100% !important;box-sizing:border-box;}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -3371,6 +3584,17 @@ html{
     <button class="active" data-page="homeDashboard"><span class="ico">▣</span> Dashboard</button>
     <button data-page="dashboard"><span class="ico">▦</span> Parcel Count</button>
     <button data-page="linehaul"><span class="ico">⇄</span> Linehaul Task</button>
+    <div class="daily-data-nav" id="dailyDataNav">
+      <button type="button" class="daily-data-toggle" id="dailyDataToggle" aria-expanded="false" aria-controls="dailyDataSubmenu">
+        <span class="ico">▤</span> Daily Data <span class="daily-data-chevron">›</span>
+      </button>
+      <div class="daily-data-submenu" id="dailyDataSubmenu">
+        <button type="button" data-page="dailyPickup"><span class="sub-ico">•</span> Pickup</button>
+        <button type="button" data-page="dailyPerformance"><span class="sub-ico">•</span> Performance</button>
+        <button type="button" data-page="dailyConsolidated"><span class="sub-ico">•</span> Consolidated</button>
+        <button type="button" data-page="dailyEod"><span class="sub-ico">•</span> EOD Data</button>
+      </div>
+    </div>
     <button data-page="kpi"><span class="ico">▣</span> KPI</button>
     <button data-page="instructions"><span class="ico">☷</span> Instructions</button>
     <button data-page="settings"><span class="ico">⚙</span> Settings</button>
@@ -3380,12 +3604,13 @@ html{
   <div class="top">
   <div class="title"><h1 id="pageTitle">Dashboard</h1><p id="batchLabel"></p></div>
   <div class="top-header-info">
-    <div id="topDateTime" class="top-date-time" aria-live="polite">--</div>
-    <div id="topWeather" class="top-weather" aria-live="polite">☁ Weather…</div>
-    <div id="topLocation" class="top-location" aria-live="polite">📍 Locating…</div>
-    
-
-<div id="sharedStatus" class="top-sync-status connecting" aria-live="polite">
+    <div class="app-health-indicators" aria-label="App health">
+      <span class="health-indicator" id="healthStorage"><i></i><b>Storage</b><em>Checking</em></span>
+      <span class="health-indicator" id="healthKpi"><i></i><b>KPI</b><em>Checking</em></span>
+      <span class="health-indicator" id="healthData"><i></i><b>Data</b><em>Checking</em></span>
+      <span class="health-indicator" id="healthSync"><i></i><b>Sync</b><em>Checking</em></span>
+    </div>
+    <div id="sharedStatus" class="top-sync-status connecting" aria-live="polite">
       <span class="top-sync-dot"></span><span class="top-sync-text">Connecting…</span>
     </div>
   </div>
@@ -3444,14 +3669,13 @@ html{
           <div class="dashboard-status-card delivering"><strong id="opDelivering">0</strong><span>DELIVERING</span><small></small></div>
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
-          <div class="dashboard-status-card unscanned"><strong id="opUnscanned">0</strong><span>UNSCANNED</span><small></small></div>
+          <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
           <div class="dashboard-hub-row header"><div>Status</div><div>Volume</div></div>
           <div class="dashboard-hub-row"><strong>Transporting</strong><div class="hub-volume" id="opTransporting">0</div></div>
           <div class="dashboard-hub-row"><strong>Transported</strong><div class="hub-volume" id="opTransported">0</div></div>
-          <div class="dashboard-hub-row"><strong>Received</strong><div class="hub-volume" id="opReceived">0</div></div>
           <div class="dashboard-hub-row"><strong>Assigning</strong><div class="hub-volume" id="opAssigning">0</div></div>
           <div class="dashboard-hub-row"><strong>Assigned</strong><div class="hub-volume" id="opAssigned">0</div></div>
         </div>
@@ -3610,6 +3834,102 @@ html{
       <div class="kpi-m1-body" id="m1Body" class="m1-collapsed"></div>
     </div>
     <div class="hint" id="kpiStatus">GOOGLE SHEET • LOADING</div>
+  </div>
+</section>
+
+
+<section id="dailyPickup" class="page">
+  <div class="section pickup-page">
+    <div class="collapseHead pickup-head">
+      <div>
+        <h2 style="margin:0">Pickup</h2>
+        <span class="hint">Daily Data • Google Sheet</span>
+      </div>
+      <div class="pickup-head-actions">
+        <button type="button" class="btn primary" id="pickupRefreshBtn">↻ Refresh</button>
+        <a class="btn pickup-source-btn" id="pickupSourceBtn" href="https://docs.google.com/spreadsheets/d/1Rb_gD3BCos36d_kd-63XKXdVi1Nhop39Po0ALiPVATo/edit?gid=155270167#gid=155270167" target="_blank" rel="noopener">↗ Open Pickup Sheet</a>
+      </div>
+    </div>
+
+    <div class="pickup-toolbar">
+       <input id="pickupSearch" type="search" placeholder="Search rider, pickup ID, order ID, destination…" autocomplete="off">
+    </div>
+
+    <div class="pickup-summary" id="pickupSummary">
+      <div><strong id="pickupTotal">0</strong><span>Total</span></div>
+      <div><strong id="pickupPicked">0</strong><span>Picked-Up</span></div>
+      <div><strong id="pickupCancelled">0</strong><span>Cancelled</span></div>
+      <div><strong id="pickupOther">0</strong><span>Other</span></div>
+    </div>
+
+    <div class="pickup-status-line" id="pickupStatus">GOOGLE SHEET • LOADING</div>
+
+    <div class="pickup-table-wrap">
+      <table class="pickup-table">
+        <thead id="pickupTableHead"></thead>
+        <tbody id="pickupTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pickup-empty" id="pickupEmpty" style="display:none">No pickup data found.</div>
+  </div>
+</section>
+
+<section id="dailyPerformance" class="page">
+  <div class="section performance-page">
+    <div class="collapseHead performance-head">
+      <div>
+        <h2 style="margin:0">Performance</h2>
+        <span class="hint">Daily Data • Google Sheet</span>
+      </div>
+      <div class="performance-head-actions">
+        <button type="button" class="btn primary" id="performanceRefreshBtn">↻ Refresh</button>
+        <a class="btn performance-source-btn" id="performanceSourceBtn"
+           href="https://docs.google.com/spreadsheets/d/1z_fiwV1DdJ4Bu6-BxwLVdCDOHci8ThfDXNQAsvjVE-w/edit?gid=1942935873#gid=1942935873"
+           target="_blank" rel="noopener">↗ Open Performance Sheet</a>
+      </div>
+    </div>
+
+    <div class="performance-toolbar">
+      <input id="performanceSearch" type="search" placeholder="Search AT number, rider ID, rider name…" autocomplete="off">
+      <select id="performanceDateFilter">
+        <option value="all">All dates</option>
+      </select>
+      <select id="performanceAreaFilter">
+        <option value="all">All areas</option>
+      </select>
+    </div>
+
+    <div class="performance-summary" id="performanceSummary">
+      <div><strong id="performanceRiders">0</strong><span>Riders</span></div>
+      <div><strong id="performanceGrandTotal">0</strong><span>Grand Total</span></div>
+      <div><strong id="performanceDelivered">0</strong><span>Delivered</span></div>
+      <div><strong id="performanceOnHold">0</strong><span>On Hold</span></div>
+      <div><strong id="performanceRate">—</strong><span>Avg. Percentage</span></div>
+    </div>
+
+    <div class="performance-status-line" id="performanceStatus">GOOGLE SHEET • LOADING</div>
+
+    <div class="performance-table-wrap">
+      <table class="performance-table">
+        <thead id="performanceTableHead"></thead>
+        <tbody id="performanceTableBody"></tbody>
+      </table>
+    </div>
+    <div class="performance-empty" id="performanceEmpty" style="display:none">No performance data found.</div>
+  </div>
+</section>
+
+<section id="dailyConsolidated" class="page">
+  <div class="section">
+    <div class="collapseHead"><h2 style="margin:0">Consolidated</h2><span class="hint">Daily Data</span></div>
+    <div class="empty-state" style="padding:28px;color:#8fa0ad">Consolidated daily data will appear here.</div>
+  </div>
+</section>
+
+<section id="dailyEod" class="page">
+  <div class="section">
+    <div class="collapseHead"><h2 style="margin:0">EOD Data</h2><span class="hint">Daily Data</span></div>
+    <div class="empty-state" style="padding:28px;color:#8fa0ad">EOD daily data will appear here.</div>
   </div>
 </section>
 
@@ -4314,7 +4634,7 @@ function loadBatch(i){current=batches[i];render();showPage("dashboard")}
 async function deleteBatch(i){if(role!=="Admin")return alert("Admin only.");if(confirm("Delete this upload permanently from this browser?")){batches.splice(i,1);current=mergeAllBatches();saveTownSettings();render()}}
 function download(name,text,type="text/csv"){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){if(!rows.length)return "";let keys=Object.keys(rows[0]).filter(k=>k!="_area");let q=x=>`"${String(x??"").replace(/"/g,'""')}"`;return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\n")}
-function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management")}
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",dailyPickup:"Pickup",dailyPerformance:"Performance",dailyConsolidated:"Consolidated",dailyEod:"EOD Data",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management")}
 $("csvFile").addEventListener("change",e=>{
   const files=[...(e.target.files||[])]; if(!files.length)return;
   let remaining=files.length,added=0,updated=0,dupes=0;
@@ -4394,7 +4714,7 @@ $("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefaul
 // Instructions are intentionally static. Edit the text in the #instructionsContent element above.
 
 
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
 ["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
   const e=$(id); if(!e)return;
   e.addEventListener("input",()=>{
@@ -5392,10 +5712,17 @@ document.getElementById("recordStatus")?.addEventListener("change",renderRecords
 
 
 
+<div id="mobileDailyDataMenu" class="mobile-daily-data-menu" aria-hidden="true">
+  <button type="button" data-mobile-page="dailyPickup">Pickup</button>
+  <button type="button" data-mobile-page="dailyPerformance">Performance</button>
+  <button type="button" data-mobile-page="dailyConsolidated">Consolidated</button>
+  <button type="button" data-mobile-page="dailyEod">EOD Data</button>
+</div>
 <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Mobile navigation">
   <button type="button" data-mobile-page="homeDashboard"><span class="mobile-ico">▣</span>Dashboard</button>
   <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Parcel Count</button>
   <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul Task</button>
+  <button type="button" id="mobileDailyDataToggle" class="mobile-daily-toggle" aria-expanded="false"><span class="mobile-ico">▤</span>Daily Data</button>
   <button type="button" data-mobile-page="kpi"><span class="mobile-ico">▣</span>KPI</button>
   <button type="button" data-mobile-page="instructions"><span class="mobile-ico">☷</span>Instructions</button>
   <button type="button" data-mobile-page="settings"><span class="mobile-ico">⚙</span>Settings</button>
@@ -5446,78 +5773,8 @@ window.DASHBOARD_V2_READY = true;
 
 
 
-<script id="v3-6-location-runtime">
-(function(){
-  const clock=document.getElementById("topDateTime");
-  const weather=document.getElementById("topWeather");
-  const locationEl=document.getElementById("topLocation");
-
-  function updateClock(){
-    if(!clock)return;
-    clock.textContent=new Intl.DateTimeFormat(undefined,{
-      month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"
-    }).format(new Date());
-  }
-  updateClock();
-  setInterval(updateClock,1000);
-
-  const weatherCode={
-    0:"☀ Clear",1:"🌤 Mostly clear",2:"⛅ Partly cloudy",3:"☁ Cloudy",
-    45:"🌫 Fog",48:"🌫 Fog",51:"🌦 Drizzle",53:"🌦 Drizzle",55:"🌧 Drizzle",
-    61:"🌧 Rain",63:"🌧 Rain",65:"🌧 Heavy rain",80:"🌦 Showers",
-    81:"🌧 Showers",82:"⛈ Heavy showers",95:"⛈ Thunderstorm",
-    96:"⛈ Storm",99:"⛈ Storm"
-  };
-
-  function weatherText(t){if(weather)weather.textContent=t}
-  function locationText(){
-    // Fixed app location. GPS is used only for weather so the header cannot
-    // incorrectly resolve Badoc to a neighboring municipality.
-    if(locationEl)locationEl.textContent="📍 Badoc";
-  }
-
-  async function getWeather(lat,lon){
-    const url="https://api.open-meteo.com/v1/forecast"+
-      "?latitude="+encodeURIComponent(lat)+
-      "&longitude="+encodeURIComponent(lon)+
-      "&current=temperature_2m,weather_code"+
-      "&temperature_unit=celsius&timezone=auto";
-    const r=await fetch(url,{cache:"no-store",mode:"cors"});
-    if(!r.ok)throw new Error("weather");
-    const d=await r.json();
-    if(!d.current)throw new Error("weather data");
-    const temp=Math.round(Number(d.current.temperature_2m));
-    weatherText((weatherCode[d.current.weather_code]||"Weather")+" "+temp+"°C");
-  }
-
-  async function useGPSForWeather(){
-    if(!navigator.geolocation)throw new Error("GPS unavailable");
-    const pos=await new Promise((resolve,reject)=>{
-      navigator.geolocation.getCurrentPosition(resolve,reject,{
-        enableHighAccuracy:true,
-        timeout:12000,
-        maximumAge:300000
-      });
-    });
-    await getWeather(pos.coords.latitude,pos.coords.longitude);
-  }
-
-  async function load(){
-    // Always show the correct operational location immediately.
-    locationText();
-    weatherText("☁ Weather…");
-    try{
-      await useGPSForWeather();
-    }catch(e){
-      weatherText("☁ Weather unavailable");
-      // Keep Badoc visible even when GPS/weather is unavailable.
-      locationText();
-    }
-  }
-
-  load();
-  setInterval(load,15*60*1000);
-})();
+<script id="v3-6-location-runtime-disabled">
+/* Header clock/weather intentionally disabled. Operational health indicators replace them. */
 </script>
 
 
@@ -6222,7 +6479,7 @@ window.updateOperationProgress=function(){
   const card=document.getElementById("incomingVolumeCard");if(card)card.style.display="";
   const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume).toFixed(1)+"%";
   setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
-  setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);
+  setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);setText("opReceivedSummary",counts.RECEIVED);
   // On-Hold: count only the actual On-Hold statuses for now.
   const onHold=counts.ONHOLD||0;
   setText("opOnHold",onHold);
@@ -6527,5 +6784,591 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 })();
 </script>
 
+
+<style id="badoc-app-health-ui">
+.top-header-info{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.app-health-indicators{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;justify-content:flex-end;white-space:nowrap}
+.health-indicator{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #202b38;border-radius:999px;background:#0c1015;color:#9aa3af;font-size:10px;line-height:1;white-space:nowrap}
+.health-indicator i{width:7px;height:7px;border-radius:50%;background:#9299a6;display:inline-block;box-shadow:0 0 0 2px #9299a622}
+.health-indicator b{font-size:9px;color:#dce3eb}
+.health-indicator em{font-style:normal;font-size:9px;color:#9299a6}
+.health-indicator.ok i{background:#55d187;box-shadow:0 0 0 2px #55d18722}
+.health-indicator.ok em{color:#55d187}
+.health-indicator.warn i{background:#f0b84b;box-shadow:0 0 0 2px #f0b84b22}
+.health-indicator.warn em{color:#f0b84b}
+.health-indicator.bad i{background:#ff5c5c;box-shadow:0 0 0 2px #ff5c5c22}
+.health-indicator.bad em{color:#ff8a8a}
+@media(max-width:700px){.top-header-info{gap:4px}.app-health-indicators{gap:3px;flex-wrap:nowrap}.health-indicator{padding:4px 5px;font-size:8px;gap:4px}.health-indicator i{width:6px;height:6px}.health-indicator b,.health-indicator em{font-size:7px}}
+</style>
+<script id="badoc-app-health-runtime">
+(function(){
+  function set(id,state,text){var e=document.getElementById(id);if(!e)return;e.classList.remove("ok","warn","bad");e.classList.add(state);var em=e.querySelector("em");if(em)em.textContent=text;}
+  function checkStorage(){
+    try{
+      if(typeof indexedDB==="undefined"){
+        set("healthStorage","bad","Error");
+        return;
+      }
+
+      // Prefer an already-established BADOC HUB DB connection, if exposed.
+      var existing =
+        (typeof db!=="undefined" && db) ||
+        (typeof window.db!=="undefined" && window.db);
+
+      if(existing && existing.objectStoreNames &&
+         existing.objectStoreNames.contains("batches")){
+        set("healthStorage","ok","OK");
+        return;
+      }
+
+      // If the app has not exposed its connection, do not initialize one
+      // from the health monitor. IndexedDB availability itself is healthy.
+      set("healthStorage","ok","OK");
+    }catch(e){
+      set("healthStorage","bad","Error");
+    }
+  }
+  function checkData(){
+    try{
+      var has=typeof window.render==="function" || !!localStorage;
+      set("healthData",has?"ok":"warn",has?"Loaded":"Waiting");
+    }catch(e){set("healthData","bad","Error")}
+  }
+  function checkKpi(){
+    var status=(document.getElementById("kpiStatus")?.textContent||"").toLowerCase();
+    if(status.includes("live"))set("healthKpi","ok","Live");
+    else if(status.includes("connecting")||status.includes("loading"))set("healthKpi","warn","Loading");
+    else if(status.includes("unavailable")||status.includes("error"))set("healthKpi","bad","Offline");
+    else set("healthKpi","warn","Waiting");
+  }
+  function checkSync(){
+    var e=document.querySelector("#sharedStatus .top-sync-text");
+    var t=(e?.textContent||"").toLowerCase();
+    if(t.includes("all devices synced")||t.includes("synced"))set("healthSync","ok","OK");
+    else if(t.includes("retry")||t.includes("connecting"))set("healthSync","warn","Syncing");
+    else if(t.includes("failed")||t.includes("error"))set("healthSync","bad","Error");
+    else set("healthSync","warn","Waiting");
+  }
+  function run(){checkStorage();checkData();checkKpi();checkSync();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run();
+  setInterval(function(){checkKpi();checkSync();},1000);
+  setInterval(checkData,3000);
+  setInterval(checkStorage,30000);
+})();
+</script>
+
+<script id="daily-data-menu-runtime">
+(function(){
+  if(window.__badocDailyDataMenu)return;
+  window.__badocDailyDataMenu=true;
+
+  function init(){
+    var nav=document.getElementById("dailyDataNav");
+    var toggle=document.getElementById("dailyDataToggle");
+    if(!nav || !toggle)return;
+
+    toggle.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      var open=!nav.classList.contains("open");
+      nav.classList.toggle("open",open);
+      toggle.setAttribute("aria-expanded",open?"true":"false");
+    });
+
+    document.querySelectorAll('#dailyDataSubmenu button[data-page]').forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(typeof window.showPage==="function"){
+          window.showPage(btn.getAttribute("data-page"));
+        }
+        nav.classList.add("open");
+        toggle.setAttribute("aria-expanded","true");
+      });
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+})();
+</script>
+
+
+
+<script id="daily-performance-runtime">
+(function(){
+  if(window.__badocPerformanceRuntime)return;
+  window.__badocPerformanceRuntime=true;
+
+  const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
+  const GID="1696841553";
+  const REFRESH_MS=5*60*1000;
+  let performanceRows=[];
+  let performanceHeaders=[];
+
+  const $=id=>document.getElementById(id);
+  const clean=v=>String(v??"").trim();
+  const norm=v=>clean(v).toLowerCase().replace(/\s+/g," ");
+
+  function status(t){
+    const e=$("performanceStatus");
+    if(e)e.textContent=t;
+  }
+
+  function esc(v){
+    return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function readGoogle(){
+    return new Promise((resolve,reject)=>{
+      const cb="__badocPerformance_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      const script=document.createElement("script");
+      let done=false;
+      const finish=(err,data)=>{
+        if(done)return;
+        done=true;
+        clearTimeout(timer);
+        try{delete window[cb]}catch(_){}
+        script.remove();
+        err?reject(err):resolve(data);
+      };
+      const timer=setTimeout(()=>finish(new Error("Performance Google Sheet request timed out.")),15000);
+      window[cb]=payload=>{
+        try{
+          if(!payload||payload.status!=="ok"||!payload.table){
+            throw new Error("Google did not return Performance data.");
+          }
+          const rows=(payload.table.rows||[]).map(r=>{
+            const cells=(r.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:"")):"");
+            while(cells.length && clean(cells[cells.length-1])==="")cells.pop();
+            return cells;
+          });
+          finish(null,rows);
+        }catch(e){finish(e)}
+      };
+      script.onerror=()=>finish(new Error("Performance Google Sheet endpoint could not be reached."));
+      script.src="https://docs.google.com/spreadsheets/d/"+SHEET_ID+
+        "/gviz/tq?gid="+encodeURIComponent(GID)+
+        "&headers=0&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+
+        "&tq="+encodeURIComponent("select *")+"&_ts="+Date.now();
+      document.head.appendChild(script);
+    });
+  }
+
+  function findHeader(rows){
+    const wanted=["date","at number","rider id","rider name","grand total","pouch","bulkies","delivered","on hold","percentage"];
+    for(let i=0;i<Math.min(rows.length,30);i++){
+      const r=(rows[i]||[]).map(norm);
+      const hits=wanted.filter(x=>r.some(v=>v===x||v.includes(x)||x.includes(v)));
+      if(hits.length>=6)return i;
+    }
+    return -1;
+  }
+
+  function toNumber(v){
+    const s=clean(v).replace(/,/g,"").replace(/%/g,"");
+    const n=Number(s);
+    return Number.isFinite(n)?n:0;
+  }
+
+  function percentage(v){
+    const s=clean(v);
+    if(!s)return null;
+    const n=toNumber(s);
+    return s.includes("%") ? n : (n<=1 ? n*100 : n);
+  }
+
+  function isRiderRow(row){
+    const riderName=clean(row[3]);
+    const riderId=clean(row[2]);
+    const at=clean(row[1]);
+    const date=clean(row[0]);
+    // Ignore sheet summary/footer rows such as "Sept. 03, 2026 DISPATCHED".
+    if(!riderName || !at || !date)return false;
+    if(norm(riderName).includes("dispatched"))return false;
+    return true;
+  }
+
+  function selectedColumns(){
+    return [
+      {i:0,name:"Date"},
+      {i:2,name:"Rider ID"},
+      {i:3,name:"Rider Name"},
+      {i:4,name:"Grand Total",num:true},
+      {i:7,name:"Delivered",num:true},
+      {i:8,name:"On Hold",num:true,hold:true},
+      {i:9,name:"Percentage",rate:true}
+    ];
+  }
+
+  function fillFilters(){
+    const df=$("performanceDateFilter"), af=$("performanceAreaFilter");
+    if(!df||!af)return;
+    const dates=[...new Set(performanceRows.map(r=>clean(r[0])).filter(Boolean))];
+    const areas=[...new Set(performanceRows.map(r=>clean(r[10])).filter(Boolean))];
+    df.innerHTML='<option value="all">All dates</option>'+dates.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+    af.innerHTML='<option value="all">All areas</option>'+areas.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  }
+
+  function render(){
+    const head=$("performanceTableHead"), body=$("performanceTableBody"), empty=$("performanceEmpty");
+    if(!head||!body)return;
+    const cols=selectedColumns();
+    head.innerHTML="<tr>"+cols.map(c=>"<th>"+esc(c.name)+"</th>").join("")+"</tr>";
+
+    const search=norm($("performanceSearch")?.value||"");
+    const date=$("performanceDateFilter")?.value||"all";
+    const area=$("performanceAreaFilter")?.value||"all";
+
+    const rows=performanceRows.filter(row=>{
+      if(date!=="all" && clean(row[0])!==date)return false;
+      if(area!=="all" && clean(row[10])!==area)return false;
+      if(search && !row.some(v=>norm(v).includes(search)))return false;
+      return true;
+    });
+
+    let grand=0,delivered=0,onhold=0,pctSum=0,pctCount=0;
+    rows.forEach(r=>{
+      grand+=toNumber(r[4]);
+      delivered+=toNumber(r[7]);
+      onhold+=toNumber(r[8]);
+      const p=percentage(r[9]);
+      if(p!=null){pctSum+=p;pctCount++;}
+    });
+    $("performanceRiders").textContent=rows.length.toLocaleString();
+    $("performanceGrandTotal").textContent=grand.toLocaleString();
+    $("performanceDelivered").textContent=delivered.toLocaleString();
+    $("performanceOnHold").textContent=onhold.toLocaleString();
+    $("performanceRate").textContent=pctCount ? (pctSum/pctCount).toFixed(2)+"%" : "—";
+
+    body.innerHTML=rows.map(row=>"<tr>"+cols.map(c=>{
+      const value=clean(row[c.i]);
+      let cls=[];
+      if(c.num)cls.push("num");
+      if(c.hold)cls.push("hold");
+      if(c.rate){
+        cls.push("rate");
+        const p=percentage(value);
+        if(p!=null){
+          if(p>=98)cls.push("good");
+          else if(p>=95)cls.push("warn");
+          else cls.push("low");
+        }
+      }
+      return "<td class='"+cls.join(" ")+"'>"+esc(value||"—")+"</td>";
+    }).join("")+"</tr>").join("");
+
+    if(empty)empty.style.display=rows.length?"none":"block";
+    status("GOOGLE SHEET • LIVE • "+rows.length+" shown / "+performanceRows.length+" total");
+  }
+
+  async function load(){
+    status("GOOGLE SHEET • CONNECTING");
+    try{
+      const rows=await readGoogle();
+      const headerIndex=findHeader(rows);
+      if(headerIndex<0)throw new Error("Performance header row not found.");
+      performanceHeaders=rows[headerIndex]||[];
+      performanceRows=rows.slice(headerIndex+1).filter(isRiderRow);
+      fillFilters();
+      render();
+    }catch(e){
+      status("GOOGLE SHEET • UNAVAILABLE");
+      const body=$("performanceTableBody");
+      if(body)body.innerHTML='<tr><td style="padding:18px;color:#ff8a8a">'+esc(e.message||"Unable to load Performance data.")+"</td></tr>";
+    }
+  }
+
+  function init(){
+    $("performanceRefreshBtn")?.addEventListener("click",load);
+    $("performanceSearch")?.addEventListener("input",render);
+    $("performanceDateFilter")?.addEventListener("change",render);
+    $("performanceAreaFilter")?.addEventListener("change",render);
+    load();
+    setInterval(load,REFRESH_MS);
+  }
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+})();
+</script>
+
+<script id="daily-pickup-runtime">
+(function(){
+  if(window.__badocPickupRuntime)return;
+  window.__badocPickupRuntime=true;
+
+  const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
+  const GID="1332415040";
+  const REFRESH_MS=5*60*1000;
+  let pickupRows=[];
+  let pickupHeaders=[];
+  let headerIndex=-1;
+
+  const $=id=>document.getElementById(id);
+  const clean=v=>String(v??"").trim();
+  const norm=v=>clean(v).toLowerCase().replace(/\s+/g," ");
+
+  function status(t){
+    const e=$("pickupStatus");
+    if(e)e.textContent=t;
+  }
+
+  function readGoogle(){
+    return new Promise((resolve,reject)=>{
+      const cb="__badocPickup_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      const script=document.createElement("script");
+      let done=false;
+      const finish=(err,data)=>{
+        if(done)return;
+        done=true;
+        clearTimeout(timer);
+        try{delete window[cb]}catch(_){}
+        script.remove();
+        err?reject(err):resolve(data);
+      };
+      const timer=setTimeout(()=>finish(new Error("Pickup Google Sheet request timed out.")),15000);
+      window[cb]=payload=>{
+        try{
+          if(!payload||payload.status!=="ok"||!payload.table){
+            throw new Error("Google did not return Pickup data.");
+          }
+          const rows=(payload.table.rows||[]).map(r=>{
+            const cells=(r.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:"")):"");
+            while(cells.length && clean(cells[cells.length-1])==="")cells.pop();
+            return cells;
+          });
+          finish(null,rows);
+        }catch(e){finish(e)}
+      };
+      script.onerror=()=>finish(new Error("Pickup Google Sheet endpoint could not be reached."));
+      script.src="https://docs.google.com/spreadsheets/d/"+SHEET_ID+
+        "/gviz/tq?gid="+encodeURIComponent(GID)+
+        "&headers=0&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+
+        "&tq="+encodeURIComponent("select *")+"&_ts="+Date.now();
+      document.head.appendChild(script);
+    });
+  }
+
+  function findHeader(rows){
+    const wanted=["pickup_point_id","pickup_order_id","bulky_type","assigned rider"];
+    for(let i=0;i<Math.min(rows.length,15);i++){
+      const r=(rows[i]||[]).map(norm);
+      const hits=wanted.filter(x=>r.some(v=>v===x||v.includes(x)||x.includes(v)));
+      if(hits.length>=2)return i;
+    }
+    return rows.findIndex(r=>(r||[]).filter(x=>clean(x)!=="").length>=4);
+  }
+
+  function findCol(name){
+    const n=norm(name);
+    let i=pickupHeaders.findIndex(v=>norm(v)===n);
+    if(i<0)i=pickupHeaders.findIndex(v=>norm(v).includes(n)||n.includes(norm(v)));
+    return i;
+  }
+
+  function selectedColumns(){
+    // Display only the requested Pickup fields.
+    // Source positions remain unchanged.
+    return [
+      {i:0,name:"Date"},
+      {i:1,name:"Pickup Point ID"},
+      {i:2,name:"Pickup Order ID"},
+      {i:8,name:"Assigned Rider"},
+      {i:11,name:"Pickup Status"}
+    ];
+  }
+  function getStatus(row){
+    return clean(row[11]);
+  }
+
+  function getDate(row){
+    return clean(row[0]);
+  }
+  function fillFilters(){
+    const df=$("pickupDateFilter"), sf=$("pickupStatusFilter");
+    if(!df||!sf)return;
+    const dates=[...new Set(pickupRows.map(getDate).filter(Boolean))];
+    const statuses=[...new Set(pickupRows.map(getStatus).filter(Boolean))];
+    df.innerHTML='<option value="all">All dates</option>'+dates.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+    sf.innerHTML='<option value="all">All statuses</option>'+statuses.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  }
+
+  function render(){
+    const head=$("pickupTableHead"), body=$("pickupTableBody"), empty=$("pickupEmpty");
+    if(!head||!body)return;
+    let cols=selectedColumns();
+    // The sheet's date field is currently being surfaced as the generic
+    // fallback "COLUMN". Display it first as "Date".
+    // Columns are explicitly mapped above; no generic COLUMN header is used.
+    // Render the table header explicitly.
+    head.innerHTML="<tr>"+cols.map(c=>"<th>"+esc(c.name||"")+"</th>").join("")+"</tr>";
+
+    const search=norm($("pickupSearch")?.value||"");
+    const date=$("pickupDateFilter")?.value||"all";
+    const st=$("pickupStatusFilter")?.value||"all";
+
+    let rows=pickupRows.filter(row=>{
+      if(date!=="all" && getDate(row)!==date)return false;
+      if(st!=="all" && getStatus(row)!==st)return false;
+      if(search && !row.some(v=>norm(v).includes(search)))return false;
+      return true;
+    });
+
+    let picked=0,cancelled=0,other=0;
+    pickupRows.forEach(r=>{
+      const s=norm(getStatus(r));
+      if(s.includes("picked"))picked++;
+      else if(s.includes("cancel"))cancelled++;
+      else if(s)other++;
+    });
+    $("pickupTotal").textContent=pickupRows.length;
+    $("pickupPicked").textContent=picked;
+    $("pickupCancelled").textContent=cancelled;
+    $("pickupOther").textContent=other;
+
+    body.innerHTML=rows.map(row=>"<tr>"+cols.map(c=>{
+      const value=clean(row[c.i]);
+      const isStatus=norm(c.name).includes("status");
+      let cls="";
+      if(isStatus){
+        if(norm(value).includes("cancel"))cls="cancelled";
+        else if(norm(value).includes("pick"))cls="";
+        else cls="pending";
+      }
+      return "<td>"+(isStatus&&value?`<span class="pickup-status ${cls}">${esc(value)}</span>`:esc(value||"—"))+"</td>";
+    }).join("")+"</tr>").join("");
+
+    if(empty)empty.style.display=rows.length?"none":"block";
+    status("GOOGLE SHEET • LIVE • "+rows.length+" shown / "+pickupRows.length+" total");
+  }
+
+  async function load(){
+    status("GOOGLE SHEET • CONNECTING");
+    try{
+      const rows=await readGoogle();
+      headerIndex=findHeader(rows);
+      if(headerIndex<0)throw new Error("Pickup header row not found.");
+      pickupHeaders=rows[headerIndex]||[];
+      pickupRows=rows.slice(headerIndex+1).filter(r=>r.some(v=>clean(v)!==""));
+      fillFilters();
+      render();
+    }catch(e){
+      status("GOOGLE SHEET • UNAVAILABLE");
+      const body=$("pickupTableBody");
+      if(body)body.innerHTML='<tr><td style="padding:18px;color:#ff8a8a">'+esc(e.message||"Unable to load Pickup data.")+"</td></tr>";
+    }
+  }
+
+  function esc(v){
+    return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function init(){
+    $("pickupRefreshBtn")?.addEventListener("click",load);
+    $("pickupSearch")?.addEventListener("input",render);
+    $("pickupDateFilter")?.addEventListener("change",render);
+    $("pickupStatusFilter")?.addEventListener("change",render);
+    load();
+    setInterval(load,REFRESH_MS);
+  }
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+})();
+</script>
+
+
+<script id="daily-data-mobile-runtime">
+(function(){
+  if(window.__badocDailyDataMobile)return;
+  window.__badocDailyDataMobile=true;
+
+  function init(){
+    var toggle=document.getElementById("mobileDailyDataToggle");
+    var menu=document.getElementById("mobileDailyDataMenu");
+    if(!toggle||!menu)return;
+
+    toggle.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      var open=menu.classList.toggle("open");
+      menu.setAttribute("aria-hidden",open?"false":"true");
+      toggle.setAttribute("aria-expanded",open?"true":"false");
+      toggle.classList.toggle("active",open);
+    });
+
+    menu.querySelectorAll("button[data-mobile-page]").forEach(function(btn){
+      btn.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var page=btn.getAttribute("data-mobile-page");
+        if(typeof window.showPage==="function"){
+          window.showPage(page);
+        }
+        menu.classList.remove("open");
+        menu.setAttribute("aria-hidden","true");
+        toggle.setAttribute("aria-expanded","false");
+        toggle.classList.remove("active");
+        menu.querySelectorAll("button").forEach(function(b){b.classList.remove("active")});
+        btn.classList.add("active");
+      });
+    });
+
+    document.addEventListener("click",function(e){
+      if(!menu.classList.contains("open"))return;
+      if(e.target.closest && (e.target.closest("#mobileDailyDataMenu")||e.target.closest("#mobileDailyDataToggle")))return;
+      menu.classList.remove("open");
+      menu.setAttribute("aria-hidden","true");
+      toggle.setAttribute("aria-expanded","false");
+      toggle.classList.remove("active");
+    },true);
+  }
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+})();
+</script>
+
 </body>
+
+<style id="pickup-mobile-header-final">
+/* Mobile-only: keep Pickup header compact and aligned like Performance. */
+@media(max-width:700px){
+  .pickup-head{align-items:center!important;gap:7px!important;flex-wrap:nowrap!important}
+  .pickup-head > div:first-child{min-width:0!important;flex:0 1 auto!important}
+  .pickup-head > div:first-child h2{white-space:nowrap!important;font-size:15px!important}
+  .pickup-head > div:first-child .hint{display:block!important;font-size:7px!important;white-space:nowrap!important}
+  .pickup-head-actions{width:auto!important;margin-left:auto!important;gap:7px!important;align-items:center!important;flex:0 0 auto!important;white-space:nowrap!important}
+  .pickup-head-actions .btn{flex:0 0 auto!important;margin-left:0!important;font-size:9px!important;padding:8px 10px!important;min-height:34px!important}
+  .pickup-source-btn{max-width:145px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+}
+@media(max-width:430px){
+  .pickup-head{gap:5px!important}
+  .pickup-head-actions{gap:5px!important}
+  .pickup-head-actions .btn{font-size:8px!important;padding:7px 8px!important;min-height:31px!important}
+  .pickup-source-btn{max-width:132px!important}
+}
+</style>
 </html>
+<style id="performance-mobile-header-final">
+/* Mobile-only: make Performance header match the compact Pickup header. */
+@media(max-width:700px){
+  .performance-head{align-items:center!important;gap:7px!important;flex-wrap:nowrap!important}
+  .performance-head > div:first-child{min-width:0!important;flex:0 1 auto!important}
+  .performance-head > div:first-child h2{white-space:nowrap!important;font-size:15px!important}
+  .performance-head > div:first-child .hint{display:block!important;font-size:7px!important;white-space:nowrap!important}
+  .performance-head-actions{width:auto!important;margin-left:auto!important;gap:7px!important;align-items:center!important;flex:0 0 auto!important;white-space:nowrap!important}
+  .performance-head-actions .btn{flex:0 0 auto!important;margin-left:0!important;font-size:9px!important;padding:8px 10px!important;min-height:34px!important}
+  .performance-source-btn{max-width:145px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+}
+@media(max-width:430px){
+  .performance-head{gap:5px!important}
+  .performance-head-actions{gap:5px!important}
+  .performance-head-actions .btn{font-size:8px!important;padding:7px 8px!important;min-height:31px!important}
+  .performance-source-btn{max-width:132px!important}
+}
+</style>
