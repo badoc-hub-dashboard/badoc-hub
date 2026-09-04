@@ -3618,9 +3618,7 @@ html{
     <div class="instructions-card">
       <h2>EXPORT INSTRUCTIONS</h2>
       <!-- EDIT THE TEXT BELOW DIRECTLY IN THIS HTML FILE. -->
-      <div id="instructionsContent" class="instructions-content">3 AM CLEAR ALL IN SETTINGS
-
-ORDER MANAGEMENT &gt; ORDER TRACKING &gt; EXPORT &gt; EXPORT FORWARD ORDER
+      <div id="instructionsContent" class="instructions-content">ORDER MANAGEMENT &gt; ORDER TRACKING &gt; EXPORT &gt; EXPORT FORWARD ORDER
 
 3AM
 (LMHUB_RECEIVED, SOC_LHTRANSPORTING, SOC_LHTRANSPORTED, SOC_PACKED, SOC_PACKING)
@@ -4502,6 +4500,7 @@ async function loadLiveKPI(){
   const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
   const GID="0";
   const REFRESH_MS=5*60*1000;
+  const STATION_NAME="Badoc Hub";
 
   const status=t=>{const e=$("kpiStatus");if(e)e.textContent=t};
   const setText=(id,v)=>{const e=$(id);if(e)e.textContent=(v==null||String(v).trim()==="")?"—":String(v).trim()};
@@ -4520,13 +4519,14 @@ async function loadLiveKPI(){
     "Success Rate (LM + RTS + NSS)":["Success Rate (LM + RTS + NSS)"]
   };
 
+  const cleanCell=v=>String(v??"").trim();
   const col=(row,label)=>{
     const want=norm(label);
-    let i=row.findIndex(v=>norm(v)===want);
-    if(i<0)i=row.findIndex(v=>norm(v).includes(want)||want.includes(norm(v)));
+    if(!want)return -1;
+    let i=row.findIndex(v=>{const n=norm(v); return n!==""&&n===want});
+    if(i<0)i=row.findIndex(v=>{const n=norm(v); return n!==""&&(n.includes(want)||want.includes(n))});
     return i;
   };
-
   const metricCol=(row,name)=>{
     for(const x of (aliases[name]||[name])){
       const i=col(row,x);
@@ -4536,83 +4536,130 @@ async function loadLiveKPI(){
   };
 
   const readGoogle=()=>new Promise((resolve,reject)=>{
-    const cb="__badocKpiV24_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    const cb="__badocKpiPull_"+Date.now()+"_"+Math.random().toString(36).slice(2);
     const script=document.createElement("script");
     let finished=false;
     const timer=setTimeout(()=>finish(new Error("Google KPI request timed out.")),15000);
-
     function finish(err,data){
       if(finished)return;
       finished=true;
       clearTimeout(timer);
-      try{delete window[cb]}catch(_){}
+      try{delete window[cb]}catch(_){ }
       script.remove();
       err?reject(err):resolve(data);
     }
-
     window[cb]=payload=>{
       try{
         if(!payload||payload.status!=="ok"||!payload.table){
           throw new Error((payload?.errors||[]).map(x=>x.message||x.reason||"").filter(Boolean).join("; ")||"Google did not return KPI data.");
         }
-        const rows=[(payload.table.cols||[]).map(c=>c.label||"")];
+        /* IMPORTANT: the first rows of this sheet are month/title rows, not
+           column headers. Keep the complete returned matrix exactly as-is. */
+        const rows=[];
         (payload.table.rows||[]).forEach(r=>{
-          rows.push((r.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:"")):""));
+          const cells=(r.c||[]).map(c=>c?(c.f!=null?c.f:(c.v!=null?c.v:"")):"");
+          while(cells.length && cleanCell(cells[cells.length-1])==="")cells.pop();
+          rows.push(cells);
         });
-        finish(null,rows);
+        resolve(rows);
       }catch(err){finish(err)}
     };
-
     script.onerror=()=>finish(new Error("Google KPI endpoint could not be reached."));
     script.src=
       "https://docs.google.com/spreadsheets/d/"+SHEET_ID+
       "/gviz/tq?gid="+encodeURIComponent(GID)+
-      "&headers=1"+
+      "&headers=0"+
       "&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+
       "&tq="+encodeURIComponent("select *")+
       "&_ts="+Date.now();
     document.head.appendChild(script);
   });
 
-  const findHeader=rows=>rows.findIndex(r=>{
-    const x=r.map(norm);
-    return x.includes("region")&&x.includes("subregion")&&x.includes("current station")&&x.includes("score");
-  });
+  const monthFromRow=row=>{
+    const m=String((row||[]).join(" ")).match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/i);
+    return m?m[0]:"";
+  };
+  const dateFromRow=row=>{
+    const m=String((row||[]).join(" ")).match(/\b20\d{2}-\d{2}-\d{2}\b/);
+    return m?m[0]:"";
+  };
+  const parseMonthDate=month=>{
+    const t=Date.parse(month+" 1");
+    return Number.isFinite(t)?t:0;
+  };
 
   /*
-   * Exact structure from the imported KPI CSV:
-   * Row 5 contains the metric names and then a fixed block:
+   * Actual sheet structure returned by Google:
+   *   month marker row
+   *   month start-date / metric-name row
+   *   PIC row
+   *   dashboard-name row
+   *   metric group row: overall | am prod | br prod | 3w_hc ...
+   *   metadata/value header row: Region | Score | Grade | Remarks | Actual ...
+   *   station KPI values row
    *
-   * Metric | Actual | Target B+ | Target A+ | Weight | ...
-   *
-   * Therefore we DO NOT search for "Target..." globally.
-   * We find the metric name's exact column and read the cells immediately
-   * beside it. This prevents one metric from stealing another metric's
-   * target/weight.
+   * The sheet does NOT contain a "Current Station" column. It is the
+   * Badoc Hub KPI sheet, so the station label is kept as the app context.
    */
+  const findMonthBlocks=rows=>{
+    const blocks=[];
+    for(let i=0;i<rows.length;i++){
+      const month=monthFromRow(rows[i]);
+      if(!month)continue;
+
+      let meta=-1;
+      for(let j=i+1;j<Math.min(rows.length,i+7);j++){
+        const x=(rows[j]||[]).map(norm);
+        const hasRegion=x.includes("region");
+        const hasScore=x.includes("score");
+        const hasGrade=x.includes("grade");
+        const hasRemarks=x.includes("remarks");
+        const hasActual=x.includes("actual");
+        if(hasRegion&&hasScore&&hasGrade&&hasRemarks&&hasActual){meta=j;break;}
+      }
+      if(meta<0)continue;
+
+      let metricHeader=-1;
+      for(let j=i+1;j<meta;j++){
+        const x=(rows[j]||[]).map(norm);
+        if(x.some(v=>v.includes("fleet productivity")) ||
+           x.some(v=>v.includes("backroom productivity")) ||
+           x.some(v=>v.includes("3wh mtd headcount"))){
+          metricHeader=j;
+          break;
+        }
+      }
+      let data=-1;
+      for(let j=meta+1;j<Math.min(rows.length,meta+4);j++){
+        const r=rows[j]||[];
+        const nonEmpty=r.filter(v=>cleanCell(v)!=="").length;
+        if(nonEmpty>=3){data=j;break;}
+      }
+      if(data<0)continue;
+
+      blocks.push({
+        month,
+        monthDate:parseMonthDate(month),
+        marker:i,
+        startDate:dateFromRow(rows[i+1]||[]),
+        metricHeader,
+        meta,
+        data
+      });
+    }
+    return blocks;
+  };
+
   const getMetricValue=(rows,dataIndex,metricHeaderIndex,name)=>{
     const metricRow=rows[metricHeaderIndex]||[];
     const data=rows[dataIndex]||[];
     const start=metricCol(metricRow,name);
     if(start<0)return {actual:"",target:"",targetB:"",targetA:"",weight:""};
-    const simpleMetrics=['Loss Rate','FM No Successful Pickup','FM Partial Pickup','LM POD Tier Performance','LM Onhold Validation','Hub Compliance Score','Feeder Fraud','Linehaul Arrival Points','Hub BSC Additional Points'];
+    const simpleMetrics=["Loss Rate","FM No Successful Pickup","FM Partial Pickup","LM POD Tier Performance","LM Onhold Validation","Hub Compliance Score","Feeder Fraud","Linehaul Arrival Points","Hub BSC Additional Points"];
     if(simpleMetrics.includes(name)){
       return {actual:data[start]??"",target:data[start+1]??"",targetB:"",targetA:"",weight:data[start+2]??""};
     }
     return {actual:data[start]??"",target:"",targetB:data[start+1]??"",targetA:data[start+2]??"",weight:data[start+3]??""};
-  };
-
-  const monthFromRow=row=>{
-    const m=String(row.join(" ")).match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/i);
-    return m?m[0]:"";
-  };
-
-  const monthForRow=(rows,index)=>{
-    for(let i=index;i>=0;i--){
-      const m=monthFromRow(rows[i]);
-      if(m)return m;
-    }
-    return "";
   };
 
   const numeric=v=>{
@@ -4623,33 +4670,19 @@ async function loadLiveKPI(){
   const makeHealthSummary=(rows,mh,bi)=>{
     const metrics=rows[mh]||[], data=rows[bi]||[];
     let on=0,near=0,below=0,total=0;
-
-    groups.forEach(([,names])=>{
-      names.forEach(name=>{
-        const st=metricCol(metrics,name);
-        if(st<0)return;
-
-        const actual=numeric(data[st]);
-        const b=numeric(data[st+1]);
-        const a=numeric(data[st+2]);
-        if(actual===null)return;
-
-        total++;
-        if(b===null){
-          return;
-        }
-
-        // KPI blocks in the supplied sheet use B+ as the minimum target and
-        // A+ as the higher target. For metrics where lower is better, the
-        // sheet's displayed targets are still preserved; health is therefore
-        // intentionally a simple proximity indicator rather than a universal
-        // "higher is better" assumption.
-        if(a!==null && actual>=a) on++;
-        else if(actual>=b) near++;
-        else below++;
-      });
-    });
-
+    groups.forEach(([,names])=>names.forEach(name=>{
+      const st=metricCol(metrics,name);
+      if(st<0)return;
+      const actual=numeric(data[st]);
+      const b=numeric(data[st+1]);
+      const a=numeric(data[st+2]);
+      if(actual===null)return;
+      total++;
+      if(b===null)return;
+      if(a!==null&&actual>=a)on++;
+      else if(actual>=b)near++;
+      else below++;
+    }));
     return {on,near,below,total};
   };
 
@@ -4664,24 +4697,22 @@ async function loadLiveKPI(){
     container.appendChild(box);
   };
 
-  const renderMonth=(container,title,rows,h,mh,bi,summary)=>{
-    const headers=rows[h]||[];
-    const data=rows[bi]||[];
+  const renderMonth=(container,title,rows,block,summary)=>{
+    const headers=rows[block.meta]||[];
+    const data=rows[block.data]||[];
     const scoreColLocal=col(headers,"Score");
 
     const section=document.createElement("section");
     section.className="kpi-month-section";
-    section.innerHTML=
-      `<div class="kpi-month-title">${esc(title)}</div>`+
-      `<div class="kpi-month-content"></div>`;
+    section.innerHTML=`<div class="kpi-month-title">${esc(title)}</div><div class="kpi-month-content"></div>`;
     const content=section.querySelector(".kpi-month-content");
 
     if(summary){
-      setText("kpiMonth",title);
-      setText("sheetScore",data[scoreColLocal]);
+      setText("kpiMonth",block.month);
+      setText("sheetScore",scoreColLocal>=0?data[scoreColLocal]:"");
       setText("kpiRegion",data[col(headers,"Region")]);
       setText("kpiSubregion",data[col(headers,"Subregion")]);
-      setText("kpiStation",data[col(headers,"Current Station")]);
+      setText("kpiStation",STATION_NAME);
       setText("kpiGrade",data[col(headers,"Grade")]);
       setText("kpiRemarks",data[col(headers,"Remarks")]);
     }
@@ -4689,43 +4720,36 @@ async function loadLiveKPI(){
     groups.forEach(([group,names])=>{
       const cat=document.createElement("div");
       cat.className="kpi-category";
-      cat.innerHTML=
-        `<div class="kpi-category-title">${esc(group)}</div>`+
-        `<div class="kpi-metric-grid"></div>`;
+      cat.innerHTML=`<div class="kpi-category-title">${esc(group)}</div><div class="kpi-metric-grid"></div>`;
       const grid=cat.querySelector(".kpi-metric-grid");
-
       names.forEach(name=>{
-        const v=getMetricValue(rows,bi,mh,name); const card=document.createElement("div"); card.className="kpi-metric v3-kpi-card";
-      const simpleMetrics=['Loss Rate','FM No Successful Pickup','FM Partial Pickup','LM POD Tier Performance','LM Onhold Validation','Hub Compliance Score','Feeder Fraud','Linehaul Arrival Points','Hub BSC Additional Points']; const simple=simpleMetrics.includes(name);
-      card.innerHTML= `<h3>${esc(name)}</h3>`+
-        `<div class="kpi-actual">${esc(v.actual||"—")}</div>`+
-        `<div class="kpi-target-row">`+
-        (simple
-          ? `<div><span>Target</span><strong>${esc(v.target||"—")}</strong></div>`
-          : `<div><span>Target to hit B+</span><strong>${esc(v.targetB||"—")}</strong></div>`+
-            `<div><span>Target to hit A+</span><strong>${esc(v.targetA||"—")}</strong></div>`) +
-        `<div><span>Weight</span><strong>${esc(v.weight||"—")}</strong></div>`+
-        `</div>`; grid.appendChild(card);
+        const v=getMetricValue(rows,block.data,block.metricHeader,name);
+        const card=document.createElement("div");
+        card.className="kpi-metric v3-kpi-card";
+        const simple=["Loss Rate","FM No Successful Pickup","FM Partial Pickup","LM POD Tier Performance","LM Onhold Validation","Hub Compliance Score","Feeder Fraud","Linehaul Arrival Points","Hub BSC Additional Points"].includes(name);
+        card.innerHTML=`<h3>${esc(name)}</h3>`+
+          `<div class="kpi-actual">${esc(v.actual||"—")}</div>`+
+          `<div class="kpi-target-row">`+
+          (simple
+            ? `<div><span>Target</span><strong>${esc(v.target||"—")}</strong></div>`
+            : `<div><span>Target to hit B+</span><strong>${esc(v.targetB||"—")}</strong></div>`+
+              `<div><span>Target to hit A+</span><strong>${esc(v.targetA||"—")}</strong></div>`)+
+          `<div><span>Weight</span><strong>${esc(v.weight||"—")}</strong></div>`+
+          `</div>`;
+        grid.appendChild(card);
       });
-
       content.appendChild(cat);
     });
 
+    if(summary){
+    }
     container.appendChild(section);
-  };
-
-
-  const dataForV3Hero=id=>{
-    const e=$(id);
-    return e?e.textContent:"";
   };
 
   const showError=msg=>{
     status("GOOGLE SHEET • UNAVAILABLE");
     const c=$("kpiCategories");
-    if(c)c.innerHTML=
-      `<div class="kpi-data-error">${esc(msg)}<br>`+
-      `<button type="button" class="btn primary" id="kpiRetryBtn" style="margin-top:12px">↻ Retry KPI</button></div>`;
+    if(c)c.innerHTML=`<div class="kpi-data-error">${esc(msg)}<br><button type="button" class="btn primary" id="kpiRetryBtn" style="margin-top:12px">↻ Retry KPI</button></div>`;
     $("kpiRetryBtn")?.addEventListener("click",loadLiveKPI);
   };
 
@@ -4733,121 +4757,46 @@ async function loadLiveKPI(){
     status("GOOGLE SHEET • CONNECTING");
     try{
       const rows=await readGoogle();
-      if(!rows||rows.length<2)throw new Error("Google KPI sheet returned no data.");
+      if(!rows||!rows.length)throw new Error("Google KPI sheet returned no data.");
 
-      const h=findHeader(rows);
-      if(h<0)throw new Error("KPI header row not found.");
+      const blocks=findMonthBlocks(rows);
+      if(!blocks.length)throw new Error("KPI month/value block not found.");
 
-      // The imported CSV has the metric header directly above the Badoc data.
-      // Find the row containing both requested metric names.
-      let mh=-1;
-      for(let i=0;i<rows.length;i++){
-        const x=rows[i].map(norm);
-        if(x.some(v=>v.includes("fleet productivity"))&&x.some(v=>v.includes("backroom productivity"))){
-          mh=i;break;
-        }
-      }
-      if(mh<0)throw new Error("KPI metric header row not found.");
-
-      // IMPORTANT: select the KPI row by the actual "Current Station"
-      // column, not by searching every cell for "Badoc Hub". This prevents
-      // another cell (remarks, destination, notes, etc.) from being mistaken
-      // for the station row and changing the Overall Score.
-      const stationCol=col(rows[h],"Current Station");
-      const scoreCol=col(rows[h],"Score");
-      if(stationCol<0)throw new Error("Current Station column not found.");
-      if(scoreCol<0)throw new Error("Score column not found.");
-
-      const badocs=[];
-      for(let i=h+1;i<rows.length;i++){
-        if(norm(rows[i]?.[stationCol])==="badoc hub")badocs.push(i);
-      }
-      if(!badocs.length)throw new Error("Badoc Hub row not found.");
-
-      // Prefer the row for the current calendar month. If the sheet does not
-      // expose a month on that row, fall back to the latest dated Badoc row.
-      const now=new Date();
-      const wantedMonth=now.toLocaleString("en-US",{month:"long",year:"numeric"});
-      const dated=badocs.map(index=>({
-        index,
-        month:monthForRow(rows,index),
-        score:rows[index]?.[scoreCol]??""
-      }));
-
-      const currentMonthRows=dated.filter(x=>norm(x.month)===norm(wantedMonth));
-      const pool=currentMonthRows.length?currentMonthRows:dated;
-
-      pool.sort((a,b)=>{
-        const da=Date.parse(a.month+" 1"),db=Date.parse(b.month+" 1");
-        if(!isNaN(da)&&!isNaN(db)){
-          if(db!==da)return db-da;
-        }
-        return b.index-a.index;
-      });
-
-      const current=pool[0];
-      const previousPool=dated
-        .filter(x=>x.index!==current.index)
-        .sort((a,b)=>{
-          const da=Date.parse(a.month+" 1"),db=Date.parse(b.month+" 1");
-          if(!isNaN(da)&&!isNaN(db)){
-            if(db!==da)return db-da;
-          }
-          return b.index-a.index;
-        });
-      const previous=previousPool[0];
+      blocks.sort((a,b)=>b.monthDate-a.monthDate||b.data-a.data);
+      const current=blocks[0];
+      const previous=blocks[1];
       const container=$("kpiCategories");
+      if(!container)throw new Error("KPI display container not found.");
       container.innerHTML="";
 
-      renderMonth(
-        container,
-        current.month?"CURRENT KPI • "+current.month:"CURRENT KPI",
-        rows,h,mh,current.index,true
-      );
+      renderMonth(container,"CURRENT KPI • "+current.month,rows,current,true);
 
       if(previous){
         const details=document.createElement("details");
         details.className="kpi-v3-m1";
-        // Collapsed by default: no .open assignment.
         const summary=document.createElement("summary");
         summary.className="m1-summary-toggle";
+        const m1Headers=rows[previous.meta]||[];
+        const m1Data=rows[previous.data]||[];
+        const score=col(m1Headers,"Score");
+        summary.innerHTML=`<span class="m1-summary-title">M-1 • ${esc(previous.month)}</span><span class="m1-summary-score"><small>OVERALL SCORE</small><strong>${esc(score>=0?(m1Data[score]||"—"):"—")}</strong></span>`;
         details.appendChild(summary);
 
         const inner=document.createElement("div");
         inner.className="kpi-m1-inner";
-
-        // Summary card reads directly from the M-1 row already returned
-        // from the Google Sheet. Existing KPI rendering remains unchanged.
-        const m1Headers=rows[h]||[];
-        const m1Data=rows[previous.index]||[];
-        const exact=label=>m1Headers.findIndex(v=>norm(v)===norm(label));
-        const val=label=>{const i=exact(label);return i>=0?(m1Data[i]??""):"";};
-
-        summary.innerHTML=`<span class="m1-summary-title">M-1 • ${esc(previous.month||"")}</span>
-          <span class="m1-summary-score"><small>OVERALL SCORE</small><strong>${esc(val("Score")||"—")}</strong></span>`;
-
         const card=document.createElement("div");
         card.className="kpi-m1-summary-card";
-        card.innerHTML=`<div class="kpi-m1-summary-head">
-          <div class="kpi-m1-summary-kicker">SHOWING SCORE FOR THE MONTH OF:</div>
-          <div class="kpi-m1-summary-month">${esc(previous.month||"M-1")}</div>
-          <div class="kpi-m1-summary-score"><span>OVERALL SCORE</span><strong>${esc(val("Score")||"—")}</strong></div>
-        </div>
-        <div class="kpi-m1-summary-meta">
-          <div><span>REGION</span><b>${esc(val("Region")||"—")}</b></div>
-          <div><span>SUBREGION</span><b>${esc(val("Subregion")||"—")}</b></div>
-          <div><span>CURRENT STATION</span><b>${esc(val("Current Station")||"—")}</b></div>
-          <div><span>GRADE</span><b>${esc(val("Grade")||"—")}</b></div>
-          <div><span>REMARKS</span><b>${esc(val("Remarks")||"—")}</b></div>
-        </div>`;
+        const grade=col(m1Headers,"Grade"), remarks=col(m1Headers,"Remarks"), region=col(m1Headers,"Region"), sub=col(m1Headers,"Subregion");
+        card.innerHTML=`<div class="kpi-m1-summary-head"><div class="kpi-m1-summary-kicker">SHOWING SCORE FOR THE MONTH OF:</div><div class="kpi-m1-summary-month">${esc(previous.month)}</div><div class="kpi-m1-summary-score"><span>OVERALL SCORE</span><strong>${esc(score>=0?(m1Data[score]||"—"):"—")}</strong></div></div><div class="kpi-m1-summary-meta"><div><span>REGION</span><b>${esc(region>=0?(m1Data[region]||"—"):"—")}</b></div><div><span>SUBREGION</span><b>${esc(sub>=0?(m1Data[sub]||"—"):"—")}</b></div><div><span>CURRENT STATION</span><b>${esc(STATION_NAME)}</b></div><div><span>GRADE</span><b>${esc(grade>=0?(m1Data[grade]||"—"):"—")}</b></div><div><span>REMARKS</span><b>${esc(remarks>=0?(m1Data[remarks]||"—"):"—")}</b></div></div>`;
         inner.appendChild(card);
         details.appendChild(inner);
         container.appendChild(details);
-        renderMonth(inner,previous.month?"M-1 • "+previous.month:"M-1",rows,h,mh,previous.index,false); }
+        renderMonth(inner,"M-1 • "+previous.month,rows,previous,false);
+      }
 
       status("GOOGLE SHEET • LIVE • AUTO REFRESH 5 MIN");
     }catch(err){
-      console.warn("V3.0 KPI load failed:",err);
+      console.warn("KPI pull failed:",err);
       showError(err?.message||"Unable to read the public KPI sheet.");
     }
   };
@@ -4856,6 +4805,7 @@ async function loadLiveKPI(){
   clearInterval(window.__kpiRefreshTimer);
   window.__kpiRefreshTimer=setInterval(run,REFRESH_MS);
 }
+
 loadLiveKPI();
 const uploadDrop=$("uploadDrop"),csvInput=$("csvFile");
 ["dragenter","dragover"].forEach(ev=>uploadDrop?.addEventListener(ev,e=>{e.preventDefault();uploadDrop.classList.add("dragover")}));
@@ -6516,5 +6466,66 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   min-width:0 !important;
 }
 </style>
+
+<script id="badoc-kpi-menu-final-fix">
+(function(){
+  if(window.__badocKpiMenuFinalFix)return;
+  window.__badocKpiMenuFinalFix=true;
+
+  function openKpi(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); }
+    var page=document.getElementById("kpi");
+    if(!page)return;
+
+    if(typeof window.showPage==="function"){
+      try{ window.showPage("kpi"); }catch(err){}
+    }
+
+    document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active")});
+    page.classList.add("active");
+
+    document.querySelectorAll(".nav button").forEach(function(b){
+      b.classList.toggle("active",b.getAttribute("data-page")==="kpi");
+    });
+
+    var title=document.getElementById("pageTitle");
+    if(title)title.textContent="KPI";
+
+    window.scrollTo(0,0);
+
+    if(typeof window.loadLiveKPI==="function"){
+      try{ window.loadLiveKPI(); }catch(err){}
+    }
+  }
+
+  function bind(){
+    document.querySelectorAll('.side .nav button[data-page="kpi"]').forEach(function(btn){
+      if(btn.__badocKpiBound)return;
+      btn.__badocKpiBound=true;
+      btn.addEventListener("click",openKpi,true);
+      btn.addEventListener("keydown",function(e){
+        if(e.key==="Enter"||e.key===" ")openKpi(e);
+      },true);
+    });
+  }
+
+  document.addEventListener("click",function(e){
+    var btn=e.target.closest && e.target.closest('.side .nav button[data-page="kpi"]');
+    if(btn)openKpi(e);
+  },true);
+
+  document.addEventListener("keydown",function(e){
+    var btn=e.target.closest && e.target.closest('.side .nav button[data-page="kpi"]');
+    if(btn && (e.key==="Enter"||e.key===" "))openKpi(e);
+  },true);
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",bind,{once:true});
+  }else{
+    bind();
+  }
+})();
+</script>
+
 </body>
 </html>
