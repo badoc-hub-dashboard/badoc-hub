@@ -7770,7 +7770,30 @@ const num=v=>{const n=parseFloat(clean(v).replace(/,/g,"").replace("%",""));retu
 const dateText=v=>{let s=clean(v),m=s.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})/i);if(m)return `${+m[2]+1}-${String(+m[3]).padStart(2,"0")}-${m[1]}`;return s};
 function rowIndex(p){return rows.findIndex(r=>r.some(c=>norm(c).includes(p)))}
 function pairs(p,stops=[]){const hi=rowIndex(p);if(hi<0)return[];const r0=rows[hi],idx=r0.findIndex(c=>norm(c).includes(p)),out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i],j=r.map(norm).join(" | ");if(stops.some(x=>j.includes(x)))break;const label=clean(r[idx]),val=idx>=0?clean(r.slice(idx+1).find(x=>clean(x)!=="")||""):"";if(label&&val)out.push([label,val])}return out}
-function rate(){const hi=rowIndex("delivery performance");if(hi<0)return"";for(let i=hi+1;i<Math.min(rows.length,hi+8);i++)for(const c of rows[i]){if(/\d+(?:\.\d+)?\s*%/.test(clean(c)))return clean(c);const n=num(c);if(n!==null&&n>=0&&n<=100&&clean(c))return n.toFixed(1)+"%"}return""}
+function rate(){
+  const hi=rowIndex("delivery performance");
+  if(hi>=0){
+    // Prefer an explicit percentage. Do not accept an unrelated numeric 0/1/etc.
+    // that may appear in the rows between the label and the merged green rate cell.
+    for(let i=hi+1;i<Math.min(rows.length,hi+12);i++){
+      for(const c of rows[i]){
+        const v=clean(c);
+        if(/\d+(?:\.\d+)?\s*%/.test(v)) return v;
+      }
+    }
+  }
+  // Fallback: calculate Delivery Performance from Dashboard Summary.
+  // This matches the sheet's displayed rate (Delivered / Dispatched).
+  let dispatched=null,delivered=null;
+  for(const row of rows){
+    const idx=row.findIndex(c=>norm(c)==="total dispatched");
+    if(idx>=0){for(let j=idx+1;j<row.length;j++){const n=num(row[j]);if(n!==null){dispatched=n;break}}}
+    const idx2=row.findIndex(c=>norm(c)==="total delivered");
+    if(idx2>=0){for(let j=idx2+1;j<row.length;j++){const n=num(row[j]);if(n!==null){delivered=n;break}}}
+  }
+  if(dispatched>0&&delivered!==null) return ((delivered/dispatched)*100).toFixed(1)+"%";
+  return"";
+}
 function leaderboard(){
  const out=[];
  const header=rows.findIndex(r=>{
