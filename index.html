@@ -6689,7 +6689,19 @@ window.updateOperationProgress=function(){
   setText("opTodayVolume",todayVolume);
   setText("opIncomingVolume",estimatedTomorrow);
   const card=document.getElementById("incomingVolumeCard");if(card)card.style.display="";
-  const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume).toFixed(1)+"%";
+  const clearFloorCurrentPct=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume);
+  // Clear Floor Rate: retain the highest percentage observed today.
+  // The value resets automatically when the calendar date changes.
+  const CFR_MAX_KEY="badoc_clear_floor_rate_max_v1";
+  const cfrMaxDate=new Date().toISOString().slice(0,10);
+  let cfrMaxPct=0;
+  try{
+    const saved=JSON.parse(localStorage.getItem(CFR_MAX_KEY)||"null");
+    if(saved && saved.date===cfrMaxDate && Number.isFinite(Number(saved.pct))) cfrMaxPct=Number(saved.pct);
+    cfrMaxPct=Math.max(cfrMaxPct,clearFloorCurrentPct);
+    localStorage.setItem(CFR_MAX_KEY,JSON.stringify({date:cfrMaxDate,pct:cfrMaxPct}));
+  }catch(e){ cfrMaxPct=clearFloorCurrentPct; }
+  const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=cfrMaxPct.toFixed(1)+"%";
   setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
   setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);setText("opReceivedSummary",counts.RECEIVED);
 
