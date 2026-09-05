@@ -3716,6 +3716,10 @@ html{
           <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
           <div class="dashboard-status-card cfr1" title="Clear Floor Rate 1 • Received by 4:00 AM / scanned by 7:00 AM"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
         </div>
+        <div class="cfr1-test-wrap">
+          <button id="cfr1TestNotifBtn" type="button" class="btn primary cfr1-test-btn">🔔 Test CFR1 Notification</button>
+          <span id="cfr1TestNotifStatus" class="cfr1-test-status"></span>
+        </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
           <div class="dashboard-hub-row header"><div>Status</div><div>Volume</div></div>
@@ -8093,6 +8097,83 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
+
+<style id="cfr1-test-mode-style">
+.cfr1-test-wrap{display:flex;align-items:center;gap:9px;margin:8px 0 12px}
+.cfr1-test-btn{font-size:12px!important;padding:7px 10px!important}
+.cfr1-test-status{font-size:11px;color:#8fa8b7}
+@media(max-width:600px){
+  .cfr1-test-wrap{gap:6px;margin:6px 0 9px}
+  .cfr1-test-btn{font-size:9px!important;padding:7px 9px!important}
+  .cfr1-test-status{font-size:9px}
+}
+</style>
+<!-- BADOC HUB CFR1 notification test mode -->
+<script>
+(function(){
+  const btn=document.getElementById("cfr1TestNotifBtn");
+  const status=document.getElementById("cfr1TestNotifStatus");
+  if(!btn) return;
+
+  function nativeReady(){
+    return !!(window.Capacitor &&
+      window.Capacitor.Plugins &&
+      window.Capacitor.Plugins.LocalNotifications);
+  }
+
+  async function permission(){
+    if(!nativeReady()) return false;
+    try{
+      const p=await window.Capacitor.Plugins.LocalNotifications.checkPermissions();
+      if(p.display==="granted") return true;
+      const r=await window.Capacitor.Plugins.LocalNotifications.requestPermissions();
+      return r.display==="granted";
+    }catch(e){
+      console.warn("CFR1 test notification permission failed",e);
+      return false;
+    }
+  }
+
+  btn.addEventListener("click",async function(){
+    btn.disabled=true;
+    if(status) status.textContent="Sending test notification…";
+
+    if(!nativeReady()){
+      if(status) status.textContent="Open this page inside the BADOC HUB Android app.";
+      alert("Native notification plugin is not available. Open this page inside the BADOC HUB Android app.");
+      btn.disabled=false;
+      return;
+    }
+
+    if(!await permission()){
+      if(status) status.textContent="Notification permission was not granted.";
+      alert("Notification permission is not granted. Please allow BADOC HUB notifications in Android settings.");
+      btn.disabled=false;
+      return;
+    }
+
+    try{
+      await window.Capacitor.Plugins.LocalNotifications.schedule({
+        notifications:[{
+          id:6499,
+          title:"CFR1 TEST ALERT",
+          body:"Test notification — CFR1 is 50.0% (5 / 10). 5 parcels still need to be cleared before 7:00 AM.",
+          schedule:{at:new Date(Date.now()+1000)},
+          sound:"default",
+          smallIcon:"ic_launcher"
+        }]
+      });
+      if(status) status.textContent="Test sent — check the notification center.";
+    }catch(e){
+      console.error("CFR1 test notification failed",e);
+      if(status) status.textContent="Test failed — check Android notification permission.";
+      alert("CFR1 test notification failed. Check Android notification permission.");
+    }finally{
+      setTimeout(()=>{btn.disabled=false},1200);
+    }
+  });
+})();
+</script>
 
 <!-- BADOC HUB native 6:40 AM CFR1 notification bridge -->
 <script>
