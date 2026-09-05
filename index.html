@@ -8093,6 +8093,84 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
+
+<!-- BADOC HUB native 6:40 AM CFR1 notification bridge -->
+<script>
+(function(){
+  const CFR1_NOTIF_KEY = "badoc_cfr1_native_notified_v1";
+  const CFR1_NOTIF_HOUR = 6;
+  const CFR1_NOTIF_MINUTE = 40;
+
+  function cfr1NativeNotificationReady(){
+    return !!(window.Capacitor &&
+      window.Capacitor.Plugins &&
+      window.Capacitor.Plugins.LocalNotifications);
+  }
+
+  async function ensureCfr1NotificationPermission(){
+    if(!cfr1NativeNotificationReady()) return false;
+    try{
+      const p = await window.Capacitor.Plugins.LocalNotifications.checkPermissions();
+      if(p.display === "granted") return true;
+      const r = await window.Capacitor.Plugins.LocalNotifications.requestPermissions();
+      return r.display === "granted";
+    }catch(e){
+      console.warn("CFR1 notification permission check failed", e);
+      return false;
+    }
+  }
+
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  async function getCfr1Values(){
+    const scanned = Number(document.getElementById("opCfr1Scanned")?.textContent || 0);
+    const total = Number(document.getElementById("opCfr1Total")?.textContent || 0);
+    return {scanned:Number.isFinite(scanned)?scanned:0,total:Number.isFinite(total)?total:0};
+  }
+
+  async function checkCfr1At640(){
+    const now = new Date();
+    if(now.getHours() !== CFR1_NOTIF_HOUR || now.getMinutes() !== CFR1_NOTIF_MINUTE) return;
+
+    const key = todayKey();
+    if(localStorage.getItem(CFR1_NOTIF_KEY) === key) return;
+
+    const {scanned,total} = await getCfr1Values();
+    if(total <= 0 || scanned >= total) {
+      localStorage.setItem(CFR1_NOTIF_KEY,key);
+      return;
+    }
+
+    if(!await ensureCfr1NotificationPermission()) return;
+
+    try{
+      await window.Capacitor.Plugins.LocalNotifications.schedule({
+        notifications:[{
+          id:6401,
+          title:"CFR1 ALERT",
+          body:`CFR1 is ${((scanned/total)*100).toFixed(1)}% (${scanned} / ${total}). ${total-scanned} parcels still need to be cleared before 7:00 AM.`,
+          schedule:{at:new Date(Date.now()+1000)},
+          sound:"default",
+          smallIcon:"ic_launcher"
+        }]
+      });
+      localStorage.setItem(CFR1_NOTIF_KEY,key);
+    }catch(e){
+      console.warn("CFR1 notification scheduling failed",e);
+    }
+  }
+
+  // Check frequently while the app is open. The notification is generated
+  // only during the 6:40 AM minute and only when CFR1 is below 100%.
+  setInterval(checkCfr1At640,1000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden) checkCfr1At640();
+  });
+})();
+</script>
 </body>
 
 <style id="pickup-mobile-header-final">
