@@ -1925,6 +1925,23 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 @media(max-width:600px){.top-sync-status{padding:6px 8px;font-size:9px}}
 </style>
 
+<style id="app-refresh-button">
+.app-refresh-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:30px;padding:6px 9px;border:1px solid rgba(75,211,255,.28);
+  border-radius:8px;background:rgba(10,24,34,.82);color:#dff7ff;
+  font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap;
+  box-shadow:inset 0 1px rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.16);
+}
+.app-refresh-btn:hover{border-color:rgba(75,211,255,.58);background:rgba(12,31,43,.95)}
+.app-refresh-btn:active{transform:translateY(1px)}
+.app-refresh-btn span{font-size:9px;letter-spacing:.02em}
+@media(max-width:600px){
+  .app-refresh-btn{min-height:28px;padding:5px 7px;font-size:10px;border-radius:7px}
+  .app-refresh-btn span{display:none}
+}
+</style>
+
 <style id="v3-5-7-header-info">
 .top-header-info{
   display:flex;
@@ -3648,6 +3665,7 @@ html{
   <div class="top">
   <div class="title"><h1 id="pageTitle">Dashboard</h1><p id="batchLabel"></p></div>
   <div class="top-header-info">
+    <button type="button" class="app-refresh-btn" id="appRefreshBtn" title="Refresh BADOC HUB" aria-label="Refresh BADOC HUB">↻ <span>Refresh</span></button>
     <div class="app-health-indicators" aria-label="App health">
       <span class="health-indicator" id="healthStorage"><i></i><b>Storage</b><em>Checking</em></span>
       <span class="health-indicator" id="healthKpi"><i></i><b>KPI</b><em>Checking</em></span>
@@ -4221,8 +4239,16 @@ function saveExceptionTrackingNumbers(){
 }
 function exceptionTrackingSet(){return new Set(exceptionTrackingNumbers.map(exceptionKey).filter(Boolean))}
 function isExceptionRow(r){
-  const tn=exceptionKey(spxTN(r));
-  return !!tn && exceptionTrackingSet().has(tn);
+  // An exemption may be entered using any tracking-number field shown by the
+  // exported parcel data. Match ALL supported identifiers, not only the first
+  // populated field, so an SLS Tracking Number is exempted even when an SPX TN
+  // is also present on the same row.
+  const set=exceptionTrackingSet();
+  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
+  return keys.some(k=>{
+    const v=exceptionKey(r?.[k]);
+    return !!v && set.has(v);
+  });
 }
 function renderExceptionTracking(){
   const list=$("exceptionTrackingList"),count=$("exceptionCount");
@@ -6693,7 +6719,11 @@ window.updateOperationProgress=function(){
   // Clear Floor Rate: retain the highest percentage observed today.
   // The value resets automatically when the calendar date changes.
   const CFR_MAX_KEY="badoc_clear_floor_rate_max_v1";
-  const cfrMaxDate=new Date().toISOString().slice(0,10);
+  // Reset the daily maximum at the start of each local calendar day (12:00 AM).
+  // The stored date is compared with the browser/device local date, so a new day
+  // starts fresh even if the app was not open exactly at midnight.
+  const nowLocal=new Date();
+  const cfrMaxDate=nowLocal.getFullYear()+"-"+String(nowLocal.getMonth()+1).padStart(2,"0")+"-"+String(nowLocal.getDate()).padStart(2,"0");
   let cfrMaxPct=0;
   try{
     const saved=JSON.parse(localStorage.getItem(CFR_MAX_KEY)||"null");
@@ -6719,7 +6749,7 @@ window.updateOperationProgress=function(){
   const cfr1DateKey=[cfr1Now.getFullYear(),String(cfr1Now.getMonth()+1).padStart(2,"0"),String(cfr1Now.getDate()).padStart(2,"0")].join("-");
   const cfr1Four=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),4,0,0,0);
   const cfr1Seven=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),7,0,0,0);
-  const cfr1Rows=Array.isArray(current?.rows)?current.rows:allRows;
+  const cfr1Rows=mergeRowsUnique((Array.isArray(batches)?batches:[]).flatMap(b=>Array.isArray(b?.rows)?b.rows:[]));
   const cfr1AllByTn=new Map();
   cfr1Rows.forEach(r=>{
     if(cfr1IsExempt(r))return;
@@ -6751,22 +6781,18 @@ window.updateOperationProgress=function(){
   try{cfr1Freeze=JSON.parse(localStorage.getItem(CFR1_KEY)||"null");}catch(e){cfr1Freeze=null;}
   if(!cfr1Freeze || cfr1Freeze.date!==cfr1DateKey) cfr1Freeze=null;
 
-  // Create the frozen denominator only once the 4:00 AM cutoff has passed.
-  // The snapshot stores tracking numbers only; the existing exception list is
-  // checked again during the scan calculation so an exemption added later is
-  // still respected by CFR1.
-  if(cfr1Now>=cfr1Four && !cfr1Freeze){
+  // Build/refresh the CFR1 4:00 AM population from the latest loaded parcel
+  // data. This is important because the export may be refreshed after 4:00 AM.
+  // A parcel is eligible only when its Current Station Received Time is at or
+  // before 4:00 AM. Once an eligible tracking number is captured, it remains
+  // in today's frozen population and cannot be removed during the day.
+  {
     const eligible=[];
     cfr1Rows.forEach(r=>{
       if(cfr1IsExempt(r))return;
       const stationName=norm(r?.["Current Station"]||"");
       const destinationName=norm(r?.["Destination Station"]||"");
       const statusName=norm(statusTo(r));
-      // CFR1 eligibility is based on the parcel's state AT THE 4:00 AM FREEZE.
-      // A file may be uploaded after 7:00 AM, so the current status can already
-      // be Delivering/Delivered/On-Hold. In that case, infer the 4:00 AM state
-      // from the first downstream event timestamp rather than requiring the
-      // current status to still be LMHub_Received.
       if(stationName!=="BADOC HUB" || destinationName!=="BADOC HUB")return;
       const rt=cfr1ReceivedTime(r);
       if(!rt || rt>cfr1Four)return;
@@ -6777,15 +6803,16 @@ window.updateOperationProgress=function(){
         r?.["On Hold Time"]
       ].map(cfr1ParseTime).filter(Boolean).sort((a,b)=>a-b);
       const firstDownstream=downstream[0]||null;
-      // At the 4:00 AM freeze the parcel must still be LMHub_Received.
-      // If its current status has changed, its first downstream event must
-      // have happened AFTER 4:00 AM.
+      // If the latest export already shows a downstream event before/equal to
+      // 4:00 AM, it was not still waiting at the cutoff and must not be added.
       if(statusName!=="LMHUB RECEIVED" && firstDownstream && firstDownstream<=cfr1Four)return;
       if(statusName!=="LMHUB RECEIVED" && !firstDownstream)return;
       const tn=tnKey(spxTN(r));
       if(tn)eligible.push(tn);
     });
-    cfr1Freeze={date:cfr1DateKey,cutoff:cfr1Four.getTime(),eligible:[...new Set(eligible)]};
+    const merged=new Set(Array.isArray(cfr1Freeze?.eligible)?cfr1Freeze.eligible:[]);
+    eligible.forEach(tn=>merged.add(tn));
+    cfr1Freeze={date:cfr1DateKey,cutoff:cfr1Four.getTime(),eligible:[...merged]};
     try{localStorage.setItem(CFR1_KEY,JSON.stringify(cfr1Freeze));}catch(e){}
   }
 
@@ -6794,11 +6821,11 @@ window.updateOperationProgress=function(){
     const eligibleSet=new Set(cfr1Freeze.eligible);
     // Keep the frozen denominator fixed, while allowing the scan result to
     // update until/after the 7:00 AM target.
-    cfr1Total=cfr1Freeze.eligible.filter(tn=>!exceptionTrackingSet().has(tn)).length;
+    // Re-check exemptions against the CURRENT parcel row, not only against the frozen tracking-number string.
+    cfr1Total=cfr1Freeze.eligible.reduce((n,tn)=>{ const r=cfr1AllByTn.get(tn); return n+(r&&!cfr1IsExempt(r)?1:0); },0);
     cfr1Freeze.eligible.forEach(tn=>{
-      if(exceptionTrackingSet().has(tn))return;
       const r=cfr1AllByTn.get(tn);
-      if(!r)return;
+      if(!r || cfr1IsExempt(r))return;
       const scan=cfr1ScanTime(r);
       if(scan && scan>=cfr1Four && scan<=cfr1Seven)cfr1Scanned++;
     });
@@ -7772,27 +7799,16 @@ function rowIndex(p){return rows.findIndex(r=>r.some(c=>norm(c).includes(p)))}
 function pairs(p,stops=[]){const hi=rowIndex(p);if(hi<0)return[];const r0=rows[hi],idx=r0.findIndex(c=>norm(c).includes(p)),out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i],j=r.map(norm).join(" | ");if(stops.some(x=>j.includes(x)))break;const label=clean(r[idx]),val=idx>=0?clean(r.slice(idx+1).find(x=>clean(x)!=="")||""):"";if(label&&val)out.push([label,val])}return out}
 function rate(){
   const hi=rowIndex("delivery performance");
-  if(hi>=0){
-    // Prefer an explicit percentage. Do not accept an unrelated numeric 0/1/etc.
-    // that may appear in the rows between the label and the merged green rate cell.
-    for(let i=hi+1;i<Math.min(rows.length,hi+12);i++){
-      for(const c of rows[i]){
-        const v=clean(c);
-        if(/\d+(?:\.\d+)?\s*%/.test(v)) return v;
-      }
+  if(hi<0) return "";
+  // Use ONLY the exact displayed percentage from the Delivery Performance section.
+  // No calculation or fallback is used.
+  for(let i=hi+1;i<Math.min(rows.length,hi+12);i++){
+    for(const c of rows[i]){
+      const v=clean(c);
+      if(/^\d+(?:\.\d+)?\s*%$/.test(v)) return v;
     }
   }
-  // Fallback: calculate Delivery Performance from Dashboard Summary.
-  // This matches the sheet's displayed rate (Delivered / Dispatched).
-  let dispatched=null,delivered=null;
-  for(const row of rows){
-    const idx=row.findIndex(c=>norm(c)==="total dispatched");
-    if(idx>=0){for(let j=idx+1;j<row.length;j++){const n=num(row[j]);if(n!==null){dispatched=n;break}}}
-    const idx2=row.findIndex(c=>norm(c)==="total delivered");
-    if(idx2>=0){for(let j=idx2+1;j<row.length;j++){const n=num(row[j]);if(n!==null){delivered=n;break}}}
-  }
-  if(dispatched>0&&delivered!==null) return ((delivered/dispatched)*100).toFixed(1)+"%";
-  return"";
+  return "";
 }
 function leaderboard(){
  const out=[];
@@ -8197,6 +8213,20 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   // to trigger the CFR1 check even if the WebView starts a few seconds after 6:40.
   window.addEventListener("badoc-cfr1-alarm",()=>{
     checkCfr1At640(true);
+  });
+})();
+</script>
+<script id="app-refresh-button-script">
+(function(){
+  const btn=document.getElementById("appRefreshBtn");
+  if(!btn || btn.dataset.bound)return;
+  btn.dataset.bound="1";
+  btn.addEventListener("click",()=>{
+    // Cache-bust the remote GitHub Pages HTML so the app loads the newest published version.
+    const base=window.location.pathname || "/";
+    const q=new URLSearchParams(window.location.search);
+    q.set("v",Date.now().toString());
+    window.location.replace(base+"?"+q.toString());
   });
 })();
 </script>
