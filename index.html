@@ -4226,6 +4226,38 @@ function spxTN(r){
 }
 
 const EXCEPTION_TN_KEY="badoc_exception_tracking_numbers_v1";
+
+/* Optional cloud exemption sync. Core dashboard/CFR1 logic is untouched. */
+const EXEMPTION_SYNC_URL="PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+async function syncExceptionsFromCloud(){
+  const url=String(EXEMPTION_SYNC_URL||"").trim();
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/i.test(url))return false;
+  try{
+    const r=await fetch(url+"?action=list&_="+Date.now(),{cache:"no-store"});
+    if(!r.ok)return false;
+    const data=await r.json();
+    if(!data || data.ok!==true || !Array.isArray(data.items))return false;
+    const incoming=[...new Set(data.items.map(x=>String(x||"").trim()).filter(Boolean))];
+    exceptionTrackingNumbers=incoming;
+    try{localStorage.setItem(EXCEPTION_TN_KEY,JSON.stringify(incoming))}catch(e){}
+    renderExceptionTracking();
+    render();
+    if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();
+    if(typeof updateRecordExportButton==="function")updateRecordExportButton();
+    return true;
+  }catch(e){console.warn("Cloud exemption sync failed",e);return false}
+}
+
+function cloudExceptionWrite(action,value){
+  const url=String(EXEMPTION_SYNC_URL||"").trim();
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/i.test(url))return;
+  try{
+    const body=new URLSearchParams({action:String(action),value:String(value||"")});
+    fetch(url,{method:"POST",mode:"no-cors",body,keepalive:true}).catch(()=>{});
+  }catch(e){}
+}
+
 let exceptionTrackingNumbers=[];
 function exceptionKey(v){return norm(v).replace(/[\s\-_.]/g,"")}
 function loadExceptionTrackingNumbers(){
@@ -4262,7 +4294,8 @@ function renderExceptionTracking(){
   list.querySelectorAll(".exception-remove").forEach(btn=>btn.addEventListener("click",()=>{
     const i=Number(btn.dataset.exceptionIndex);
     if(Number.isInteger(i)&&i>=0&&i<exceptionTrackingNumbers.length){
-      exceptionTrackingNumbers.splice(i,1);saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
+      const removed=exceptionTrackingNumbers[i];
+      exceptionTrackingNumbers.splice(i,1);saveExceptionTrackingNumbers();cloudExceptionWrite("remove",removed);renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
     }
   }));
 }
@@ -4272,15 +4305,16 @@ function addExceptionTrackingNumber(){
   const key=exceptionKey(raw);
   if(!key){if(input){input.focus()}return;}
   const exists=exceptionTrackingNumbers.some(x=>exceptionKey(x)===key);
-  if(!exists){exceptionTrackingNumbers.push(norm(raw));saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();}
+  if(!exists){exceptionTrackingNumbers.push(norm(raw));saveExceptionTrackingNumbers();cloudExceptionWrite("add",norm(raw));renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();}
   if(input){input.value="";input.focus();}
 }
 function clearExceptionTrackingNumbers(){
   if(!exceptionTrackingNumbers.length)return;
   if(!confirm("Clear all exception tracking numbers?"))return;
-  exceptionTrackingNumbers=[];saveExceptionTrackingNumbers();renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
+  exceptionTrackingNumbers=[];saveExceptionTrackingNumbers();cloudExceptionWrite("clear","");renderExceptionTracking();render();if(typeof window.updateOperationProgress==="function")window.updateOperationProgress();if(typeof updateRecordExportButton==="function")updateRecordExportButton();
 }
 loadExceptionTrackingNumbers();
+setTimeout(()=>{if(EXEMPTION_SYNC_URL && EXEMPTION_SYNC_URL.indexOf("PASTE_")!==0)syncExceptionsFromCloud();},250);
 function mergeRowsUnique(rows){
   const map=new Map();
   for(const r of rows){
@@ -6744,7 +6778,15 @@ window.updateOperationProgress=function(){
   const CFR1_KEY="badoc_cfr1_freeze_v2";
   // CFR1 uses the SAME manual Parcel Count exemption list: a tracking number
   // added in Parcel Count > Exemption is excluded from CFR1 as well.
-  const cfr1IsExempt=r=>isExceptionRow(r);
+  function cfr1IsExempt(r){
+  if(!r)return false;
+  const set=exceptionTrackingSet();
+  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
+  return keys.some(k=>{
+    const v=exceptionKey(r?.[k]);
+    return !!v && set.has(v);
+  });
+}
   const cfr1Now=new Date();
   const cfr1DateKey=[cfr1Now.getFullYear(),String(cfr1Now.getMonth()+1).padStart(2,"0"),String(cfr1Now.getDate()).padStart(2,"0")].join("-");
   const cfr1Four=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),4,0,0,0);
@@ -6752,7 +6794,6 @@ window.updateOperationProgress=function(){
   const cfr1Rows=mergeRowsUnique((Array.isArray(batches)?batches:[]).flatMap(b=>Array.isArray(b?.rows)?b.rows:[]));
   const cfr1AllByTn=new Map();
   cfr1Rows.forEach(r=>{
-    if(cfr1IsExempt(r))return;
     const tn=tnKey(spxTN(r));
     if(tn && !cfr1AllByTn.has(tn)) cfr1AllByTn.set(tn,r);
   });
@@ -6821,8 +6862,10 @@ window.updateOperationProgress=function(){
     const eligibleSet=new Set(cfr1Freeze.eligible);
     // Keep the frozen denominator fixed, while allowing the scan result to
     // update until/after the 7:00 AM target.
-    // Re-check exemptions against the CURRENT parcel row, not only against the frozen tracking-number string.
-    cfr1Total=cfr1Freeze.eligible.reduce((n,tn)=>{ const r=cfr1AllByTn.get(tn); return n+(r&&!cfr1IsExempt(r)?1:0); },0);
+    cfr1Total=cfr1Freeze.eligible.reduce((n,tn)=>{
+      const r=cfr1AllByTn.get(tn);
+      return n+(r && !cfr1IsExempt(r) ? 1 : 0);
+    },0);
     cfr1Freeze.eligible.forEach(tn=>{
       const r=cfr1AllByTn.get(tn);
       if(!r || cfr1IsExempt(r))return;
