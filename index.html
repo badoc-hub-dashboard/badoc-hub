@@ -8094,18 +8094,6 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-
-<style>
-#cfr1TestNotificationBtn{
-  position:fixed;right:16px;bottom:16px;z-index:99999;
-  background:#006BFF;color:#fff;border:1px solid #19C2FF;
-  border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;
-  box-shadow:0 0 16px rgba(0,168,255,.22);
-}
-#cfr1TestNotificationBtn:active{transform:scale(.98)}
-</style>
-<button id="cfr1TestNotificationBtn" type="button">🔔 Test CFR1 Notification</button>
-
 <!-- BADOC HUB native 6:40 AM CFR1 notification bridge -->
 <script>
 (function(){
@@ -8174,44 +8162,6 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
       console.warn("CFR1 notification scheduling failed",e);
     }
   }
-
-
-  async function sendCfr1TestNotification(){
-    if(!cfr1NativeNotificationReady()){
-      alert("Native notification plugin is not available. Open this page inside the BADOC HUB Android app.");
-      return;
-    }
-
-    const allowed = await ensureCfr1NotificationPermission();
-    if(!allowed){
-      alert("Notification permission is not allowed for BADOC HUB.");
-      return;
-    }
-
-    const {scanned,total} = await getCfr1Values();
-    const safeTotal = total > 0 ? total : 10;
-    const safeScanned = total > 0 ? scanned : 5;
-    const remaining = Math.max(0,safeTotal-safeScanned);
-
-    try{
-      await window.Capacitor.Plugins.LocalNotifications.schedule({
-        notifications:[{
-          id:6402,
-          title:"CFR1 TEST ALERT",
-          body:`Test notification — CFR1 is ${((safeScanned/safeTotal)*100).toFixed(1)}% (${safeScanned} / ${safeTotal}). ${remaining} parcels still need to be cleared before 7:00 AM.`,
-          schedule:{at:new Date(Date.now()+1000)},
-          sound:"default",
-          smallIcon:"ic_launcher"
-        }]
-      });
-      alert("Test notification scheduled. Check your Android notification bar.");
-    }catch(e){
-      console.error("CFR1 test notification failed",e);
-      alert("Test notification failed. Check the browser/app console for details.");
-    }
-  }
-
-  document.getElementById("cfr1TestNotificationBtn")?.addEventListener("click",sendCfr1TestNotification);
 
   // Check frequently while the app is open. The notification is generated
   // only during the 6:40 AM minute and only when CFR1 is below 100%.
