@@ -3714,6 +3714,7 @@ html{
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
           <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
+          <div class="dashboard-status-card cfr1" title="Clear Floor Rate 1 • Received by 4:00 AM / scanned by 7:00 AM"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
@@ -3726,7 +3727,45 @@ html{
 
       </div>
     </div>
-  </section>
+  
+
+<div class="section dashboard-eod-summary" id="dashboardEodSummary">
+  <div class="dashboard-eod-titlebar">Today's Performance</div>
+  <div class="dashboard-eod-hub" id="dashEodHub">Hub</div>
+  <div class="dashboard-eod-date" id="dashEodDate">—</div>
+
+  <div class="dashboard-eod-panel dashboard-eod-summary-panel">
+    <div class="dashboard-eod-panel-title">Dashboard Summary</div>
+    <div class="dashboard-eod-rows">
+      <div><span>Total Dispatched</span><strong id="dashEodDispatched">—</strong></div>
+      <div><span>Total Delivered</span><strong id="dashEodDelivered">—</strong></div>
+      <div><span>Total Onhold</span><strong id="dashEodOnhold">—</strong></div>
+      <div><span>Total Redelivery</span><strong id="dashEodRedelivery">—</strong></div>
+      <div><span>Total RTS</span><strong id="dashEodRts">—</strong></div>
+    </div>
+  </div>
+
+  <div class="dashboard-eod-panel dashboard-eod-performance-panel">
+    <div class="dashboard-eod-panel-title">Delivery Performance</div>
+    <div class="dashboard-eod-rate" id="dashEodRate">—</div>
+  </div>
+
+  <div class="dashboard-eod-panel dashboard-eod-fleet-panel">
+    <div class="dashboard-eod-panel-title">Fleet Summary</div>
+    <div class="dashboard-eod-rows">
+      <div><span>4W</span><strong id="dashEodFleet4w">—</strong></div>
+      <div><span>3W</span><strong id="dashEodFleet3w">—</strong></div>
+      <div><span>2W</span><strong id="dashEodFleet2w">—</strong></div>
+      <div><span>Flexi</span><strong id="dashEodFleetFlexi">—</strong></div>
+    </div>
+  </div>
+
+  <div class="dashboard-eod-footer">
+    <span>EOD DATA</span>
+    
+  </div>
+</div>
+</section>
 
   <section id="dashboard" class="page">
     <div class="parcel-source-row">
@@ -6653,6 +6692,107 @@ window.updateOperationProgress=function(){
   const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume).toFixed(1)+"%";
   setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
   setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);setText("opReceivedSummary",counts.RECEIVED);
+
+  // CFR1 — Clear Floor Rate 1.
+  // Freeze the eligible population at 4:00 AM so parcels arriving after the
+  // cutoff can never increase that day's denominator. Backlog from prior
+  // days is included when its Current Station Received Time is already at
+  // or before today's 4:00 AM cutoff. Reuse the SAME exception classification
+  // used by the rest of the app so exempt tracking numbers are excluded.
+  const CFR1_KEY="badoc_cfr1_freeze_v2";
+  // CFR1 uses the SAME manual Parcel Count exemption list: a tracking number
+  // added in Parcel Count > Exemption is excluded from CFR1 as well.
+  const cfr1IsExempt=r=>isExceptionRow(r);
+  const cfr1Now=new Date();
+  const cfr1DateKey=[cfr1Now.getFullYear(),String(cfr1Now.getMonth()+1).padStart(2,"0"),String(cfr1Now.getDate()).padStart(2,"0")].join("-");
+  const cfr1Four=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),4,0,0,0);
+  const cfr1Seven=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),7,0,0,0);
+  const cfr1Rows=Array.isArray(current?.rows)?current.rows:allRows;
+  const cfr1AllByTn=new Map();
+  cfr1Rows.forEach(r=>{
+    if(cfr1IsExempt(r))return;
+    const tn=tnKey(spxTN(r));
+    if(tn && !cfr1AllByTn.has(tn)) cfr1AllByTn.set(tn,r);
+  });
+  const cfr1ParseTime=v=>{
+    const raw=String(v??"").trim();
+    if(!raw)return null;
+    const d=new Date(raw.replace(" ","T"));
+    return Number.isNaN(d.getTime())?null:d;
+  };
+  const cfr1ReceivedTime=r=>cfr1ParseTime(
+    r?.["Current Station Received Time"] ?? r?.["Current Station Received time"] ?? r?.["Current station received time"]
+  );
+  const cfr1ScanTime=r=>{
+    // A scan/clear is represented by the first downstream operational event;
+    // never use Current Station Received Time itself as the scan timestamp.
+    const candidates=[
+      r?.["Delivering Time"],
+      r?.["Delivered Time"],
+      r?.["OnHold Time"],
+      r?.["On Hold Time"]
+    ].map(cfr1ParseTime).filter(Boolean);
+    if(!candidates.length)return null;
+    return candidates.reduce((a,b)=>a<b?a:b);
+  };
+  let cfr1Freeze=null;
+  try{cfr1Freeze=JSON.parse(localStorage.getItem(CFR1_KEY)||"null");}catch(e){cfr1Freeze=null;}
+  if(!cfr1Freeze || cfr1Freeze.date!==cfr1DateKey) cfr1Freeze=null;
+
+  // Create the frozen denominator only once the 4:00 AM cutoff has passed.
+  // The snapshot stores tracking numbers only; the existing exception list is
+  // checked again during the scan calculation so an exemption added later is
+  // still respected by CFR1.
+  if(cfr1Now>=cfr1Four && !cfr1Freeze){
+    const eligible=[];
+    cfr1Rows.forEach(r=>{
+      if(cfr1IsExempt(r))return;
+      const stationName=norm(r?.["Current Station"]||"");
+      const destinationName=norm(r?.["Destination Station"]||"");
+      const statusName=norm(statusTo(r));
+      // CFR1 eligibility is based on the parcel's state AT THE 4:00 AM FREEZE.
+      // A file may be uploaded after 7:00 AM, so the current status can already
+      // be Delivering/Delivered/On-Hold. In that case, infer the 4:00 AM state
+      // from the first downstream event timestamp rather than requiring the
+      // current status to still be LMHub_Received.
+      if(stationName!=="BADOC HUB" || destinationName!=="BADOC HUB")return;
+      const rt=cfr1ReceivedTime(r);
+      if(!rt || rt>cfr1Four)return;
+      const downstream=[
+        r?.["Delivering Time"],
+        r?.["Delivered Time"],
+        r?.["OnHold Time"],
+        r?.["On Hold Time"]
+      ].map(cfr1ParseTime).filter(Boolean).sort((a,b)=>a-b);
+      const firstDownstream=downstream[0]||null;
+      // At the 4:00 AM freeze the parcel must still be LMHub_Received.
+      // If its current status has changed, its first downstream event must
+      // have happened AFTER 4:00 AM.
+      if(statusName!=="LMHUB RECEIVED" && firstDownstream && firstDownstream<=cfr1Four)return;
+      if(statusName!=="LMHUB RECEIVED" && !firstDownstream)return;
+      const tn=tnKey(spxTN(r));
+      if(tn)eligible.push(tn);
+    });
+    cfr1Freeze={date:cfr1DateKey,cutoff:cfr1Four.getTime(),eligible:[...new Set(eligible)]};
+    try{localStorage.setItem(CFR1_KEY,JSON.stringify(cfr1Freeze));}catch(e){}
+  }
+
+  let cfr1Total=0,cfr1Scanned=0;
+  if(cfr1Freeze && Array.isArray(cfr1Freeze.eligible)){
+    const eligibleSet=new Set(cfr1Freeze.eligible);
+    // Keep the frozen denominator fixed, while allowing the scan result to
+    // update until/after the 7:00 AM target.
+    cfr1Total=cfr1Freeze.eligible.filter(tn=>!exceptionTrackingSet().has(tn)).length;
+    cfr1Freeze.eligible.forEach(tn=>{
+      if(exceptionTrackingSet().has(tn))return;
+      const r=cfr1AllByTn.get(tn);
+      if(!r)return;
+      const scan=cfr1ScanTime(r);
+      if(scan && scan>=cfr1Four && scan<=cfr1Seven)cfr1Scanned++;
+    });
+  }
+  setText("opCfr1Scanned",cfr1Scanned);
+  setText("opCfr1Total",cfr1Total);
   // On-Hold: count only the actual On-Hold statuses for now.
   const onHold=counts.ONHOLD||0;
   setText("opOnHold",onHold);
@@ -7668,6 +7808,13 @@ function render(){let ds=[];rows.flat().forEach(v=>{const d=dateText(v);if(/-\d{
 const onholdLabels=["Incorrect delivery address","Cannot find address","Inaccessible location","Office closed","SP closed","Risky area of delivery","Recipient unavailable for parcel","Recipient reschedule","Recipient change location","Recipient reject","Reject - Damaged","Reject - Wrong item","Reject - Missing item","Reject - Buyers change their mind","Incorrect/ missing verification","Parcel lost","Parcel damaged, cannot attempt","Shipment under investigation","Wrongly assigned","Insufficient time","Disaster","Severe weather","Vehicular accident","Vehicle breakdown"];
 const findReasonValue=label=>{const target=norm(label);for(const row of rows){const idx=row.findIndex(c=>norm(c)===target);if(idx>=0){for(let j=idx+1;j<row.length;j++){const v=clean(row[j]);if(v!=="")return v}for(let j=idx-1;j>=0;j--){const v=clean(row[j]);if(/^\\d+(?:\\.\\d+)?$/.test(v))return v}}}return "0"};
 const reasons=onholdLabels.map(label=>[label,findReasonValue(label)]),dash=pairs("dashboard summary",["delivery performance"]),fleet=pairs("fleet summary",["delivery performance"]),r=rate(),lb=leaderboard(),rh=a=>a.map(x=>`<div class="eod-row"><span>${esc(x[0])}</span><span>${esc(x[1])}</span></div>`).join("");
+window.__badocEodDashboard={};
+dash.forEach(x=>window.__badocEodDashboard[norm(x[0])]=clean(x[1]));
+fleet.forEach(x=>window.__badocEodDashboard["fleet "+norm(x[0])]=clean(x[1]));
+window.__badocEodDashboard.deliveryPerformance=clean(r);
+window.__badocEodDashboard.date=d;
+window.__badocEodDashboard.hub="Hub";
+window.__badocEodDashboard.updatedAt=Date.now();
 document.getElementById("eodReasons").innerHTML=rh(reasons);document.getElementById("eodDashboardSummary").innerHTML=rh(dash);document.getElementById("eodFleetSummary").innerHTML=rh(fleet);document.getElementById("eodBigRate").textContent=r||"—";
 document.getElementById("eodLeaderHead").innerHTML="<tr>"+["Rank","Service","Name","Delivered","Onhold","Success Rate"].map(x=>"<th>"+esc(x)+"</th>").join("")+"</tr>";
 document.getElementById("eodLeaderBody").innerHTML=lb.map(a=>"<tr>"+a.map((v,j)=>{let c="";if(j===5){const n=num(v);c=n>=98?"rate-good":n>=95?"rate-warn":"rate-low"}return '<td class="'+c+'">'+esc(v)+"</td>"}).join("")+"</tr>").join("");
@@ -7713,6 +7860,224 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
  .eod-head-actions .btn{font-size:8px!important}
  .eod-titlebar{font-size:15px!important}
  .eod-big-rate{font-size:52px!important}
+}
+</style>
+
+
+<style id="dashboard-eod-extra-compact">
+/* Extra-compact Today's Performance on Dashboard only */
+.dashboard-eod-summary{
+  margin-top:7px!important;
+  border-radius:9px!important;
+}
+.dashboard-eod-titlebar{
+  height:38px!important;
+  font-size:17px!important;
+}
+.dashboard-eod-hub{
+  height:27px!important;
+  font-size:13px!important;
+}
+.dashboard-eod-date{
+  height:24px!important;
+  font-size:10px!important;
+}
+.dashboard-eod-panel-title{
+  height:28px!important;
+  font-size:13px!important;
+}
+.dashboard-eod-rows{
+  font-size:11px!important;
+}
+.dashboard-eod-rows>div{
+  min-height:25px!important;
+  grid-template-columns:minmax(0,1fr) 58px!important;
+}
+.dashboard-eod-rows span,
+.dashboard-eod-rows strong{
+  padding:4px 8px!important;
+}
+.dashboard-eod-rate{
+  height:62px!important;
+  font-size:29px!important;
+}
+.dashboard-eod-footer{
+  padding:5px 7px!important;
+}
+.dashboard-eod-footer>span{
+  font-size:7px!important;
+}
+.dashboard-eod-badge{
+  font-size:7px!important;
+  padding:5px 7px!important;
+  border-radius:6px!important;
+}
+
+@media(max-width:700px){
+  .dashboard-eod-summary{
+    margin-top:6px!important;
+  }
+  .dashboard-eod-titlebar{
+    height:32px!important;
+    font-size:15px!important;
+  }
+  .dashboard-eod-hub{
+    height:24px!important;
+    font-size:12px!important;
+  }
+  .dashboard-eod-date{
+    height:21px!important;
+    font-size:9px!important;
+  }
+  .dashboard-eod-panel-title{
+    height:25px!important;
+    font-size:12px!important;
+  }
+  .dashboard-eod-rows{
+    font-size:10px!important;
+  }
+  .dashboard-eod-rows>div{
+    min-height:22px!important;
+    grid-template-columns:minmax(0,1fr) 48px!important;
+  }
+  .dashboard-eod-rows span,
+  .dashboard-eod-rows strong{
+    padding:3px 7px!important;
+  }
+  .dashboard-eod-rate{
+    height:52px!important;
+    font-size:25px!important;
+  }
+  .dashboard-eod-footer{
+    padding:4px 6px!important;
+  }
+}
+</style>
+
+
+<style id="dashboard-eod-no-shortcut">
+.dashboard-eod-summary .dashboard-eod-badge{display:none!important}
+</style>
+
+
+<style id="dashboard-eod-pc-smaller-fixed">
+@media(min-width:701px){
+  #dashboardEodSummary{
+    margin-top:6px!important;
+    border-radius:9px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-titlebar{
+    height:34px!important;
+    font-size:15px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-hub{
+    height:25px!important;
+    font-size:12px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-date{
+    height:22px!important;
+    font-size:10px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-panel-title{
+    height:27px!important;
+    font-size:12px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows{
+    font-size:10px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows>div{
+    min-height:23px!important;
+    grid-template-columns:minmax(0,1fr) 65px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows span,
+  #dashboardEodSummary .dashboard-eod-rows strong{
+    padding:4px 8px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rate{
+    height:68px!important;
+    font-size:34px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-footer{
+    padding:5px 8px!important;
+  }
+}
+</style>
+
+
+<style id="dashboard-eod-pc-more-compact">
+@media(min-width:701px){
+  /* Dashboard Today's Performance — PC only */
+  #dashboardEodSummary{
+    margin-top:4px!important;
+    padding:5px!important;
+    border-radius:7px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-titlebar{
+    height:28px!important;
+    font-size:13px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-hub{
+    height:21px!important;
+    font-size:10px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-date{
+    height:19px!important;
+    font-size:8px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-panel-title{
+    height:22px!important;
+    font-size:10px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows{
+    font-size:9px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows>div{
+    min-height:19px!important;
+    grid-template-columns:minmax(0,1fr) 55px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rows span,
+  #dashboardEodSummary .dashboard-eod-rows strong{
+    padding:2px 6px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-rate{
+    height:52px!important;
+    font-size:28px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-footer{
+    padding:3px 6px!important;
+  }
+  #dashboardEodSummary .dashboard-eod-badge{
+    font-size:7px!important;
+    padding:3px 6px!important;
+  }
+}
+</style>
+
+
+<style id="cfr1-card-ui">
+.dashboard-status-card.cfr1{
+  border-top:2px solid #9B5CFF!important;
+  background:linear-gradient(145deg,#120d1d,#080b10)!important;
+}
+.dashboard-status-card.cfr1 strong{
+  display:flex!important;align-items:baseline;justify-content:center;gap:6px;white-space:nowrap;color:#fff!important;
+}
+.dashboard-status-card.cfr1 strong b{color:#B56CFF!important;font-size:30px;font-weight:900}
+.dashboard-status-card.cfr1 strong i{color:#9AA7B5;font-size:19px;font-style:normal;font-weight:700}
+.dashboard-status-card.cfr1 strong em{color:#D6DEE8;font-size:25px;font-style:normal;font-weight:800}
+.dashboard-status-card.cfr1 span{margin-top:8px!important}
+.dashboard-status-card.cfr1 small{color:#8E9AAC!important}
+@media(min-width:701px){
+  .dashboard-status-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important}
+}
+@media(max-width:700px){
+  .dashboard-status-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important}
+  .dashboard-status-card.cfr1 strong{gap:2px}
+  .dashboard-status-card.cfr1 strong b{font-size:17px}
+  .dashboard-status-card.cfr1 strong em{font-size:15px}
+  .dashboard-status-card.cfr1 strong i{font-size:12px}
+  .dashboard-status-card.cfr1 span{font-size:7px!important}
+  .dashboard-status-card.cfr1 small{font-size:6px!important}
 }
 </style>
 
@@ -8246,5 +8611,62 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 #linehaul .lh-task-kpi:first-child .lh-task-kpi-value{font-size:clamp(24px,3vw,38px)!important;white-space:nowrap!important}
 @media(max-width:600px){
   #linehaul .lh-task-kpi:first-child .lh-task-kpi-value{font-size:24px!important}
+}
+</style>
+
+
+<script id="dashboard-eod-summary-sync">
+(function(){
+  if(window.__dashboardEodSummarySync)return;
+  window.__dashboardEodSummarySync=true;
+  const $id=id=>document.getElementById(id);
+  const normKey=v=>String(v??"").trim().toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const get=(...keys)=>{
+    const d=window.__badocEodDashboard||{};
+    for(const k of keys){
+      const v=d[normKey(k)];
+      if(v!==undefined&&String(v).trim()!=="")return v;
+    }
+    return "—";
+  };
+  function sync(){
+    const d=window.__badocEodDashboard||{};
+    const set=(id,v)=>{const e=$id(id);if(e)e.textContent=(v===undefined||v===null||String(v).trim()==="")?"—":v};
+    set("dashEodHub",d.hub||"Hub");
+    set("dashEodDate",d.date||"—");
+    set("dashEodDispatched",get("total dispatched"));
+    set("dashEodDelivered",get("total delivered"));
+    set("dashEodOnhold",get("total onhold","total on hold"));
+    set("dashEodRedelivery",get("total redelivery"));
+    set("dashEodRts",get("total rts"));
+    set("dashEodRate",d.deliveryPerformance||"—");
+    set("dashEodFleet4w",get("fleet 4w","4w"));
+    set("dashEodFleet3w",get("fleet 3w","3w"));
+    set("dashEodFleet2w",get("fleet 2w","2w"));
+    set("dashEodFleetFlexi",get("fleet flexi","flexi"));
+  }
+  sync();
+  setInterval(sync,1000);
+})();
+</script>
+
+<style id="dashboard-eod-summary-style">
+.dashboard-eod-summary{
+  margin-top:14px!important;padding:0!important;overflow:hidden!important;
+  background:#07131d!important;border:1px solid rgba(0,174,255,.28)!important;
+  border-radius:16px!important;box-shadow:0 10px 28px rgba(0,0,0,.35),inset 0 0 22px rgba(0,174,255,.025)!important;
+}
+.dashboard-eod-titlebar{height:58px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#078cff,#00c8ff);color:#fff;font-size:24px;font-weight:950;letter-spacing:.2px}
+.dashboard-eod-hub,.dashboard-eod-date{display:flex;align-items:center;justify-content:center;background:#09151f;color:#dcecff;font-weight:850;border-bottom:1px dotted rgba(112,166,198,.24)}
+.dashboard-eod-hub{height:42px;font-size:18px}.dashboard-eod-date{height:38px;font-size:15px;border-bottom:1px solid rgba(112,166,198,.24)}
+.dashboard-eod-panel{background:#08131c;color:#dcecff;border-bottom:1px solid rgba(112,166,198,.24)}
+.dashboard-eod-panel-title{height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;border-bottom:1px dotted rgba(112,166,198,.24)}
+.dashboard-eod-rows{font-size:14px;font-weight:750}.dashboard-eod-rows>div{min-height:38px;display:grid;grid-template-columns:minmax(0,1fr) 90px;align-items:center;border-bottom:1px dotted rgba(112,166,198,.18)}
+.dashboard-eod-rows>div:last-child{border-bottom:0}.dashboard-eod-rows span{padding:7px 14px}.dashboard-eod-rows strong{padding:7px 14px;text-align:right;color:#edf8ff}
+.dashboard-eod-rate{height:116px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#009447,#00b85a);color:#f2fff8;font-size:52px;font-weight:950;letter-spacing:-1px}
+.dashboard-eod-fleet-panel{border-bottom:0}.dashboard-eod-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:#061018;border-top:1px solid rgba(0,174,255,.16)}
+.dashboard-eod-footer>span{font-size:9px;font-weight:900;letter-spacing:.14em;color:#6d8ca0}.dashboard-eod-badge{border:1px solid rgba(0,174,255,.35);background:rgba(0,174,255,.08);color:#4dd4ff;border-radius:8px;padding:7px 10px;font-size:10px;font-weight:900;cursor:pointer}
+@media(max-width:700px){
+.dashboard-eod-summary{margin-top:10px!important;border-radius:12px!important}.dashboard-eod-titlebar{height:48px;font-size:20px}.dashboard-eod-hub{height:34px;font-size:16px}.dashboard-eod-date{height:31px;font-size:12px}.dashboard-eod-panel-title{height:34px;font-size:15px}.dashboard-eod-rows{font-size:12px}.dashboard-eod-rows>div{min-height:31px;grid-template-columns:minmax(0,1fr) 65px}.dashboard-eod-rows span,.dashboard-eod-rows strong{padding:5px 10px}.dashboard-eod-rate{height:85px;font-size:36px}.dashboard-eod-footer{padding:7px 9px}.dashboard-eod-badge{font-size:8px;padding:6px 8px}
 }
 </style>
