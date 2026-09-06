@@ -3732,7 +3732,7 @@ html{
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
           <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
-          <div class="dashboard-status-card cfr1" id="cfr1Card" role="button" tabindex="0" title="Click to view CFR1 scanned and unscanned parcels"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
+          <div class="dashboard-status-card cfr1" title="Clear Floor Rate 1 • Received by 4:00 AM / scanned by 7:00 AM"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
@@ -6750,18 +6750,17 @@ window.updateOperationProgress=function(){
   setText("opIncomingVolume",estimatedTomorrow);
   const card=document.getElementById("incomingVolumeCard");if(card)card.style.display="";
   const clearFloorCurrentPct=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume);
-  // Clear Floor Rate: retain the highest percentage observed today.
-  // The value resets automatically when the calendar date changes.
+  // Regular Clear Floor Rate: retain the highest percentage observed during
+  // the CURRENT local calendar day only. It resets at 12:00 AM. This is the
+  // regular Clear Floor Rate, NOT CFR1.
   const CFR_MAX_KEY="badoc_clear_floor_rate_max_v1";
-  // Reset the daily maximum at the start of each local calendar day (12:00 AM).
-  // The stored date is compared with the browser/device local date, so a new day
-  // starts fresh even if the app was not open exactly at midnight.
   const nowLocal=new Date();
   const cfrMaxDate=nowLocal.getFullYear()+"-"+String(nowLocal.getMonth()+1).padStart(2,"0")+"-"+String(nowLocal.getDate()).padStart(2,"0");
   let cfrMaxPct=0;
   try{
     const saved=JSON.parse(localStorage.getItem(CFR_MAX_KEY)||"null");
     if(saved && saved.date===cfrMaxDate && Number.isFinite(Number(saved.pct))) cfrMaxPct=Number(saved.pct);
+    else localStorage.removeItem(CFR_MAX_KEY);
     cfrMaxPct=Math.max(cfrMaxPct,clearFloorCurrentPct);
     localStorage.setItem(CFR_MAX_KEY,JSON.stringify({date:cfrMaxDate,pct:cfrMaxPct}));
   }catch(e){ cfrMaxPct=clearFloorCurrentPct; }
@@ -6873,43 +6872,8 @@ window.updateOperationProgress=function(){
       if(scan && scan>=cfr1Four && scan<=cfr1Seven)cfr1Scanned++;
     });
   }
-  
-  // Build clickable CFR1 details from the same daily eligible population.
-  // UNSCANNED is intentionally limited to LMHUB_RECEIVED.
-  const cfr1ScannedRows=[], cfr1UnscannedRows=[];
-  if(cfr1Freeze && Array.isArray(cfr1Freeze.eligible)){
-    cfr1Freeze.eligible.forEach(tn=>{
-      const r=cfr1AllByTn.get(tn);
-      if(!r || cfr1IsExempt(r)) return;
-      const rawStatus=String(
-        r?.["Status"] ??
-        r?.["Parcel Status"] ??
-        r?.["Current Status"] ??
-        ""
-      ).trim();
-      const normStatus=rawStatus.toUpperCase().replace(/[\s-]+/g,"_");
-      const scan=cfr1ScanTime(r);
-      const detail={
-        orderId:String(r?.["Order ID"]??"").trim(),
-        town:String(r?.["Town Name"]??r?.["Town"]??"").trim(),
-        status:rawStatus
-      };
-
-      if(scan && scan>=cfr1Four && scan<=cfr1Seven){
-        cfr1ScannedRows.push(detail);
-      }else if(normStatus==="LMHUB_RECEIVED"){
-        cfr1UnscannedRows.push(detail);
-      }
-    });
-  }
-  window.__badocCfr1Details={
-    scanned:cfr1ScannedRows,
-    unscanned:cfr1UnscannedRows,
-    scannedCount:cfr1ScannedRows.length,
-    totalCount:cfr1ScannedRows.length+cfr1UnscannedRows.length
-  };
-setText("opCfr1Scanned",window.__badocCfr1Details?.scannedCount ?? cfr1Scanned);
-  setText("opCfr1Total",window.__badocCfr1Details?.totalCount ?? cfr1Total);
+  setText("opCfr1Scanned",cfr1Scanned);
+  setText("opCfr1Total",cfr1Total);
   // On-Hold: count only the actual On-Hold statuses for now.
   const onHold=counts.ONHOLD||0;
   setText("opOnHold",onHold);
@@ -8309,112 +8273,145 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 })();
 </script>
 
-<style id="cfr1-details-ui">
-#cfr1Card{cursor:pointer}
-#cfr1Card:hover{border-color:#B56CFF!important;box-shadow:0 0 18px rgba(181,108,255,.16)!important}
-#cfr1Card:focus{outline:2px solid #B56CFF;outline-offset:2px}
-.cfr1-detail-overlay{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:16px}
-.cfr1-detail-overlay.open{display:flex}
-.cfr1-detail-modal{width:min(760px,96vw);max-height:86vh;display:flex;flex-direction:column;background:#080c11;border:1px solid #2c3947;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.65);overflow:hidden}
-.cfr1-detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid #22313d}
-.cfr1-detail-head strong{font-size:16px;color:#f4f9fc}
-.cfr1-detail-close{border:1px solid #344454;background:#10161e;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:20px}
-.cfr1-detail-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #22313d}
-.cfr1-detail-tab{padding:12px;border:0;background:#0b1118;color:#9fb0bf;font-weight:800;cursor:pointer}
-.cfr1-detail-tab.active{background:#111925;color:#fff;box-shadow:inset 0 -2px #B56CFF}
-.cfr1-detail-body{overflow:auto;padding:12px}
-.cfr1-detail-table{width:100%;border-collapse:collapse;font-size:13px}
-.cfr1-detail-table th,.cfr1-detail-table td{padding:10px 11px;border-bottom:1px solid #1c2833;text-align:left}
-.cfr1-detail-table th{position:sticky;top:0;background:#101821;color:#9fc6d9;font-size:10px;letter-spacing:.05em}
-.cfr1-detail-table td{color:#edf3f8}
-.cfr1-detail-empty{padding:28px 10px;text-align:center;color:#8fa0ad}
-@media(max-width:600px){.cfr1-detail-modal{max-height:90vh}.cfr1-detail-table{font-size:12px}.cfr1-detail-table th,.cfr1-detail-table td{padding:9px 8px}}
-</style>
+<script id="badoc-daily-operational-reset">
+/*
+  BADOC daily operational reset
+  - Regular Clear Floor Rate: resets at 12:00 AM local time.
+  - Uploaded Parcel + Linehaul working data: resets at 2:00 AM local time.
+  - CFR1 is deliberately NOT cleared/reset by the 2:00 AM operation. Its own
+    date-based CFR1 population continues to read newly uploaded data, including
+    uploads made after 4:00 AM, using the parcel's actual Current Station
+    Received Time and the existing CFR1 rules.
 
-<div class="cfr1-detail-overlay" id="cfr1DetailOverlay" aria-hidden="true">
-  <div class="cfr1-detail-modal" role="dialog" aria-modal="true" aria-labelledby="cfr1DetailTitle">
-    <div class="cfr1-detail-head">
-      <strong id="cfr1DetailTitle">CFR1 Parcels</strong>
-      <button class="cfr1-detail-close" id="cfr1DetailClose" type="button" aria-label="Close">×</button>
-    </div>
-    <div class="cfr1-detail-tabs">
-      <button class="cfr1-detail-tab active" id="cfr1TabScanned" type="button">SCANNED (0)</button>
-      <button class="cfr1-detail-tab" id="cfr1TabUnscanned" type="button">UNSCANNED (0)</button>
-    </div>
-    <div class="cfr1-detail-body" id="cfr1DetailBody"></div>
-  </div>
-</div>
-
-<script id="cfr1-details-script">
+  The reset marker is stored in the shared Storage bucket so the 2:00 AM reset
+  can still happen when the app was closed at the exact time. Local data is
+  cleared only after the shared cloud reset succeeds.
+*/
 (function(){
-  let active="scanned";
-  const byId=id=>document.getElementById(id);
+  const RESET_MARKER_PATH="current/.badoc-daily-reset.json";
+  const RESET_MARKER_LOCAL="badoc_daily_reset_marker_v1";
+  const CLEAR_FLOOR_KEY="badoc_clear_floor_rate_max_v1";
+  const CLEAR_FLOOR_DATE_KEY="badoc_clear_floor_rate_date_v1";
+  const DAY_MS=86400000;
+  let busy=false;
 
-  function renderList(){
-    const data=window.__badocCfr1Details||{scanned:[],unscanned:[]};
-    const scanned=Array.isArray(data.scanned)?data.scanned:[];
-    const unscanned=Array.isArray(data.unscanned)?data.unscanned:[];
-    const st=byId("cfr1TabScanned"), ut=byId("cfr1TabUnscanned"), body=byId("cfr1DetailBody");
-    if(!st||!ut||!body)return;
-    st.textContent="SCANNED ("+scanned.length+")";
-    ut.textContent="UNSCANNED ("+unscanned.length+")";
-    st.classList.toggle("active",active==="scanned");
-    ut.classList.toggle("active",active==="unscanned");
-    const rows=active==="scanned"?scanned:unscanned;
-    body.textContent="";
-    if(!rows.length){
-      const empty=document.createElement("div");
-      empty.className="cfr1-detail-empty";
-      empty.textContent="No "+active+" CFR1 parcels.";
-      body.appendChild(empty);
-      return;
-    }
-    const table=document.createElement("table");
-    table.className="cfr1-detail-table";
-    const thead=document.createElement("thead");
-    const hr=document.createElement("tr");
-    ["ORDER ID","TOWN","STATUS"].forEach(label=>{
-      const th=document.createElement("th"); th.textContent=label; hr.appendChild(th);
-    });
-    thead.appendChild(hr); table.appendChild(thead);
-    const tbody=document.createElement("tbody");
-    rows.forEach(item=>{
-      const tr=document.createElement("tr");
-      const td1=document.createElement("td"); td1.textContent=item.orderId||"—";
-      const td2=document.createElement("td"); td2.textContent=item.town||"—";
-      const td3=document.createElement("td"); td3.textContent=item.status||"—";
-      tr.append(td1,td2,td3); tbody.appendChild(tr);
-    });
-    table.appendChild(tbody); body.appendChild(table);
+  function dayKey(d=new Date()){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function twoAmReached(d=new Date()){
+    return d.getHours()>2 || (d.getHours()===2 && d.getMinutes()>=0);
+  }
+  function clearRegularCfrAtMidnight(){
+    try{
+      const today=dayKey();
+      const saved=JSON.parse(localStorage.getItem(CLEAR_FLOOR_KEY)||"null");
+      if(saved?.date!==today){
+        localStorage.removeItem(CLEAR_FLOOR_KEY);
+        localStorage.setItem(CLEAR_FLOOR_DATE_KEY,today);
+      }
+    }catch(e){}
+    if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
   }
 
-  function openDetails(){
-    const overlay=byId("cfr1DetailOverlay");
-    if(!overlay)return;
-    active="scanned";
-    renderList();
-    overlay.classList.add("open");
-    overlay.setAttribute("aria-hidden","false");
-  }
-  function closeDetails(){
-    const overlay=byId("cfr1DetailOverlay");
-    if(!overlay)return;
-    overlay.classList.remove("open");
-    overlay.setAttribute("aria-hidden","true");
+  async function getCloudResetDate(){
+    try{
+      if(!window.BADOC_SHARED_CONFIG||!window.supabase)return null;
+      const cfg=window.BADOC_SHARED_CONFIG;
+      const c=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+      const r=await c.storage.from("exported-files").download(RESET_MARKER_PATH);
+      if(r.error)return null;
+      const text=await r.data.text();
+      const j=JSON.parse(text);
+      return String(j?.date||"")||null;
+    }catch(e){return null;}
   }
 
-  document.addEventListener("click",e=>{
-    if(e.target.closest("#cfr1Card")) openDetails();
-    if(e.target.closest("#cfr1DetailClose")) closeDetails();
-    if(e.target===byId("cfr1DetailOverlay")) closeDetails();
-    if(e.target.closest("#cfr1TabScanned")){active="scanned";renderList()}
-    if(e.target.closest("#cfr1TabUnscanned")){active="unscanned";renderList()}
-  });
-  document.addEventListener("keydown",e=>{
-    const card=e.target.closest&&e.target.closest("#cfr1Card");
-    if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openDetails()}
-    if(e.key==="Escape")closeDetails();
-  });
+  async function markCloudReset(c,today){
+    const blob=new Blob([JSON.stringify({date:today,at:new Date().toISOString()})],{type:"application/json"});
+    const r=await c.storage.from("exported-files").upload(RESET_MARKER_PATH,blob,{contentType:"application/json",upsert:true,cacheControl:"0"});
+    if(r.error)throw Error(r.error.message||"Daily reset marker upload failed");
+  }
+
+  async function clearLocalWorkingData(){
+    try{
+      if(typeof openDB==="function"){
+        const db=await openDB();
+        if(db)await new Promise((resolve,reject)=>{
+          const tx=db.transaction(STORE,"readwrite");
+          tx.objectStore(STORE).clear();
+          tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("aborted"));
+        });
+      }
+    }catch(e){console.warn("2 AM parcel reset:",e)}
+    if(typeof batches!=="undefined")batches=[];
+    if(typeof current!=="undefined")current=null;
+    if(typeof linehaulTasks!=="undefined")linehaulTasks=[];
+    ["batches","currentBatch","current",
+     "badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1",
+     "badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1",
+     "badoc_linehaul_export_unique_v1"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+    try{if(typeof exceptionTrackingNumbers!=="undefined"){} }catch(e){}
+    const f=document.getElementById("csvFile");if(f)f.value="";
+    const lf=document.getElementById("linehaulCsvFile");if(lf)lf.value="";
+    if(typeof renderLinehaul==="function")renderLinehaul();
+    if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
+    if(typeof render==="function")render();
+  }
+
+  async function resetAt2AM(force){
+    if(busy)return;
+    const now=new Date(),today=dayKey(now);
+    if(!twoAmReached(now))return;
+    busy=true;
+    try{
+      const localMarker=localStorage.getItem(RESET_MARKER_LOCAL)||"";
+      const cloudMarker=await getCloudResetDate();
+      if(!force && (cloudMarker===today || localMarker===today)){
+        if(localMarker!==today)try{localStorage.setItem(RESET_MARKER_LOCAL,today)}catch(e){}
+        return;
+      }
+      // Clear the authoritative cloud upload/linehaul first. This prevents a
+      // realtime pull from restoring yesterday's data after the local clear.
+      if(typeof window.__badocClearAllSharedData==="function"){
+        await window.__badocClearAllSharedData();
+      }else{
+        // Shared layer may still be starting. Try the direct Supabase reset.
+        const cfg=window.BADOC_SHARED_CONFIG;
+        if(!cfg||!window.supabase)throw Error("Cloud sync is not ready");
+        const c=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+        const bucket=c.storage.from("exported-files");
+        await bucket.remove(["current/uploaded.csv","current/linehaul.csv"]);
+        const state=await c.from("badoc_shared_state").select("*").eq("id",1).maybeSingle();
+        if(state.error)throw Error(state.error.message||"Shared state read failed");
+        const old=state.data||{};
+        const patch={id:1,upload_exists:false,upload_version:Date.now(),linehaul_exists:false,linehaul_version:Date.now(),settings_version:Number(old.settings_version||0),updated_at:new Date().toISOString()};
+        const up=await c.from("badoc_shared_state").upsert(patch,{onConflict:"id"});
+        if(up.error)throw Error(up.error.message||"Shared state reset failed");
+      }
+      await clearLocalWorkingData();
+      // Marker is written LAST, so a failed reset will be retried.
+      try{
+        const cfg=window.BADOC_SHARED_CONFIG;
+        if(cfg&&window.supabase){
+          const c=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+          await markCloudReset(c,today);
+        }
+      }catch(e){console.warn("Daily reset marker:",e)}
+      try{localStorage.setItem(RESET_MARKER_LOCAL,today)}catch(e){}
+      console.log("BADOC 2:00 AM daily upload reset completed for",today);
+    }catch(e){
+      console.warn("BADOC 2:00 AM daily reset failed; will retry:",e);
+    }finally{busy=false;}
+  }
+
+  function tick(){
+    clearRegularCfrAtMidnight();
+    resetAt2AM(false);
+  }
+  // Check immediately and then frequently enough to catch 12:00 AM / 2:00 AM
+  // even when the app is left running.
+  setTimeout(tick,1500);
+  setInterval(tick,30000);
 })();
 </script>
 
