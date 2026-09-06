@@ -3732,7 +3732,7 @@ html{
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
           <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
-          <div class="dashboard-status-card cfr1" title="Clear Floor Rate 1 • Received by 4:00 AM / scanned by 7:00 AM"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
+          <div class="dashboard-status-card cfr1" id="cfr1Card" role="button" tabindex="0" title="Click to view CFR1 scanned and unscanned parcels"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
@@ -6873,8 +6873,43 @@ window.updateOperationProgress=function(){
       if(scan && scan>=cfr1Four && scan<=cfr1Seven)cfr1Scanned++;
     });
   }
-  setText("opCfr1Scanned",cfr1Scanned);
-  setText("opCfr1Total",cfr1Total);
+  
+  // Build clickable CFR1 details from the same daily eligible population.
+  // UNSCANNED is intentionally limited to LMHUB_RECEIVED.
+  const cfr1ScannedRows=[], cfr1UnscannedRows=[];
+  if(cfr1Freeze && Array.isArray(cfr1Freeze.eligible)){
+    cfr1Freeze.eligible.forEach(tn=>{
+      const r=cfr1AllByTn.get(tn);
+      if(!r || cfr1IsExempt(r)) return;
+      const rawStatus=String(
+        r?.["Status"] ??
+        r?.["Parcel Status"] ??
+        r?.["Current Status"] ??
+        ""
+      ).trim();
+      const normStatus=rawStatus.toUpperCase().replace(/[\s-]+/g,"_");
+      const scan=cfr1ScanTime(r);
+      const detail={
+        orderId:String(r?.["Order ID"]??"").trim(),
+        town:String(r?.["Town Name"]??r?.["Town"]??"").trim(),
+        status:rawStatus
+      };
+
+      if(scan && scan>=cfr1Four && scan<=cfr1Seven){
+        cfr1ScannedRows.push(detail);
+      }else if(normStatus==="LMHUB_RECEIVED"){
+        cfr1UnscannedRows.push(detail);
+      }
+    });
+  }
+  window.__badocCfr1Details={
+    scanned:cfr1ScannedRows,
+    unscanned:cfr1UnscannedRows,
+    scannedCount:cfr1ScannedRows.length,
+    totalCount:cfr1ScannedRows.length+cfr1UnscannedRows.length
+  };
+setText("opCfr1Scanned",window.__badocCfr1Details?.scannedCount ?? cfr1Scanned);
+  setText("opCfr1Total",window.__badocCfr1Details?.totalCount ?? cfr1Total);
   // On-Hold: count only the actual On-Hold statuses for now.
   const onHold=counts.ONHOLD||0;
   setText("opOnHold",onHold);
@@ -8273,6 +8308,116 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   });
 })();
 </script>
+
+<style id="cfr1-details-ui">
+#cfr1Card{cursor:pointer}
+#cfr1Card:hover{border-color:#B56CFF!important;box-shadow:0 0 18px rgba(181,108,255,.16)!important}
+#cfr1Card:focus{outline:2px solid #B56CFF;outline-offset:2px}
+.cfr1-detail-overlay{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:16px}
+.cfr1-detail-overlay.open{display:flex}
+.cfr1-detail-modal{width:min(760px,96vw);max-height:86vh;display:flex;flex-direction:column;background:#080c11;border:1px solid #2c3947;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.65);overflow:hidden}
+.cfr1-detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-bottom:1px solid #22313d}
+.cfr1-detail-head strong{font-size:16px;color:#f4f9fc}
+.cfr1-detail-close{border:1px solid #344454;background:#10161e;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:20px}
+.cfr1-detail-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #22313d}
+.cfr1-detail-tab{padding:12px;border:0;background:#0b1118;color:#9fb0bf;font-weight:800;cursor:pointer}
+.cfr1-detail-tab.active{background:#111925;color:#fff;box-shadow:inset 0 -2px #B56CFF}
+.cfr1-detail-body{overflow:auto;padding:12px}
+.cfr1-detail-table{width:100%;border-collapse:collapse;font-size:13px}
+.cfr1-detail-table th,.cfr1-detail-table td{padding:10px 11px;border-bottom:1px solid #1c2833;text-align:left}
+.cfr1-detail-table th{position:sticky;top:0;background:#101821;color:#9fc6d9;font-size:10px;letter-spacing:.05em}
+.cfr1-detail-table td{color:#edf3f8}
+.cfr1-detail-empty{padding:28px 10px;text-align:center;color:#8fa0ad}
+@media(max-width:600px){.cfr1-detail-modal{max-height:90vh}.cfr1-detail-table{font-size:12px}.cfr1-detail-table th,.cfr1-detail-table td{padding:9px 8px}}
+</style>
+
+<div class="cfr1-detail-overlay" id="cfr1DetailOverlay" aria-hidden="true">
+  <div class="cfr1-detail-modal" role="dialog" aria-modal="true" aria-labelledby="cfr1DetailTitle">
+    <div class="cfr1-detail-head">
+      <strong id="cfr1DetailTitle">CFR1 Parcels</strong>
+      <button class="cfr1-detail-close" id="cfr1DetailClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="cfr1-detail-tabs">
+      <button class="cfr1-detail-tab active" id="cfr1TabScanned" type="button">SCANNED (0)</button>
+      <button class="cfr1-detail-tab" id="cfr1TabUnscanned" type="button">UNSCANNED (0)</button>
+    </div>
+    <div class="cfr1-detail-body" id="cfr1DetailBody"></div>
+  </div>
+</div>
+
+<script id="cfr1-details-script">
+(function(){
+  let active="scanned";
+  const byId=id=>document.getElementById(id);
+
+  function renderList(){
+    const data=window.__badocCfr1Details||{scanned:[],unscanned:[]};
+    const scanned=Array.isArray(data.scanned)?data.scanned:[];
+    const unscanned=Array.isArray(data.unscanned)?data.unscanned:[];
+    const st=byId("cfr1TabScanned"), ut=byId("cfr1TabUnscanned"), body=byId("cfr1DetailBody");
+    if(!st||!ut||!body)return;
+    st.textContent="SCANNED ("+scanned.length+")";
+    ut.textContent="UNSCANNED ("+unscanned.length+")";
+    st.classList.toggle("active",active==="scanned");
+    ut.classList.toggle("active",active==="unscanned");
+    const rows=active==="scanned"?scanned:unscanned;
+    body.textContent="";
+    if(!rows.length){
+      const empty=document.createElement("div");
+      empty.className="cfr1-detail-empty";
+      empty.textContent="No "+active+" CFR1 parcels.";
+      body.appendChild(empty);
+      return;
+    }
+    const table=document.createElement("table");
+    table.className="cfr1-detail-table";
+    const thead=document.createElement("thead");
+    const hr=document.createElement("tr");
+    ["ORDER ID","TOWN","STATUS"].forEach(label=>{
+      const th=document.createElement("th"); th.textContent=label; hr.appendChild(th);
+    });
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement("tbody");
+    rows.forEach(item=>{
+      const tr=document.createElement("tr");
+      const td1=document.createElement("td"); td1.textContent=item.orderId||"—";
+      const td2=document.createElement("td"); td2.textContent=item.town||"—";
+      const td3=document.createElement("td"); td3.textContent=item.status||"—";
+      tr.append(td1,td2,td3); tbody.appendChild(tr);
+    });
+    table.appendChild(tbody); body.appendChild(table);
+  }
+
+  function openDetails(){
+    const overlay=byId("cfr1DetailOverlay");
+    if(!overlay)return;
+    active="scanned";
+    renderList();
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden","false");
+  }
+  function closeDetails(){
+    const overlay=byId("cfr1DetailOverlay");
+    if(!overlay)return;
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden","true");
+  }
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#cfr1Card")) openDetails();
+    if(e.target.closest("#cfr1DetailClose")) closeDetails();
+    if(e.target===byId("cfr1DetailOverlay")) closeDetails();
+    if(e.target.closest("#cfr1TabScanned")){active="scanned";renderList()}
+    if(e.target.closest("#cfr1TabUnscanned")){active="unscanned";renderList()}
+  });
+  document.addEventListener("keydown",e=>{
+    const card=e.target.closest&&e.target.closest("#cfr1Card");
+    if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openDetails()}
+    if(e.key==="Escape")closeDetails();
+  });
+})();
+</script>
+
 </body>
 
 <style id="pickup-mobile-header-final">
