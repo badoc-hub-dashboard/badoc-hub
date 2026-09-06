@@ -6769,147 +6769,131 @@ window.updateOperationProgress=function(){
   setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);setText("opReceivedSummary",counts.RECEIVED);
 
   // CFR1 — Clear Floor Rate 1.
-  // Freeze the eligible population at 4:00 AM so parcels arriving after the
-  // cutoff can never increase that day's denominator. Backlog from prior
-  // days is included when its Current Station Received Time is already at
-  // or before today's 4:00 AM cutoff. Reuse the SAME exception classification
-  // used by the rest of the app so exempt tracking numbers are excluded.
-  const CFR1_KEY="badoc_cfr1_freeze_v2";
-  // CFR1 uses the SAME manual Parcel Count exemption list: a tracking number
-  // added in Parcel Count > Exemption is excluded from CFR1 as well.
+  // CFR1 uses a persistent daily ledger keyed by Order ID.  The ledger is
+  // deliberately separate from the normal uploaded-data store so the 2:00 AM
+  // operational reset cannot erase CFR1 eligibility/history.
+  const CFR1_KEY="badoc_cfr1_ledger_v3";
   function cfr1IsExempt(r){
-  if(!r)return false;
-  const set=exceptionTrackingSet();
-  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
-  return keys.some(k=>{
-    const v=exceptionKey(r?.[k]);
-    return !!v && set.has(v);
-  });
-}
+    if(!r)return false;
+    const set=exceptionTrackingSet();
+    const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
+    return keys.some(k=>{const v=exceptionKey(r?.[k]);return !!v && set.has(v);});
+  }
   const cfr1Now=new Date();
   const cfr1DateKey=[cfr1Now.getFullYear(),String(cfr1Now.getMonth()+1).padStart(2,"0"),String(cfr1Now.getDate()).padStart(2,"0")].join("-");
   const cfr1Four=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),4,0,0,0);
   const cfr1Seven=new Date(cfr1Now.getFullYear(),cfr1Now.getMonth(),cfr1Now.getDate(),7,0,0,0);
-  const cfr1Rows=mergeRowsUnique((Array.isArray(batches)?batches:[]).flatMap(b=>Array.isArray(b?.rows)?b.rows:[]));
-  const cfr1AllByTn=new Map();
-  cfr1Rows.forEach(r=>{
-    const tn=tnKey(spxTN(r));
-    if(tn && !cfr1AllByTn.has(tn)) cfr1AllByTn.set(tn,r);
-  });
   const cfr1ParseTime=v=>{
     const raw=String(v??"").trim();
     if(!raw)return null;
-    const d=new Date(raw.replace(" ","T"));
+    let d=new Date(raw.replace(" ","T"));
+    if(Number.isNaN(d.getTime())){
+      // Handle common CSV timestamps without a timezone explicitly as local time.
+      const m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if(m){
+        let y=Number(m[3]); if(y<100)y+=2000;
+        d=new Date(y,Number(m[1])-1,Number(m[2]),Number(m[4]),Number(m[5]),Number(m[6]||0),0);
+      }
+    }
     return Number.isNaN(d.getTime())?null:d;
   };
   const cfr1ReceivedTime=r=>cfr1ParseTime(
     r?.["Current Station Received Time"] ?? r?.["Current Station Received time"] ?? r?.["Current station received time"]
   );
-  const cfr1ScanTime=r=>{
-    // A scan/clear is represented by the first downstream operational event;
-    // never use Current Station Received Time itself as the scan timestamp.
-    const candidates=[
-      r?.["Delivering Time"],
-      r?.["Delivered Time"],
-      r?.["OnHold Time"],
-      r?.["On Hold Time"]
-    ].map(cfr1ParseTime).filter(Boolean);
-    if(!candidates.length)return null;
-    return candidates.reduce((a,b)=>a<b?a:b);
+  const cfr1Key=r=>{
+    const oid=exceptionKey(r?.["Order ID"]);
+    if(oid)return "OID:"+oid;
+    const tn=tnKey(spxTN(r));
+    return tn?"TN:"+tn:"";
   };
-  let cfr1Freeze=null;
-  try{cfr1Freeze=JSON.parse(localStorage.getItem(CFR1_KEY)||"null");}catch(e){cfr1Freeze=null;}
-  if(!cfr1Freeze || cfr1Freeze.date!==cfr1DateKey) cfr1Freeze=null;
+  const cfr1Status=r=>norm(statusTo(r));
+  const cfr1IsScannedStatus=r=>["DELIVERING","DELIVERED","ONHOLD","ON HOLD","LMHUB ONHOLD"].includes(cfr1Status(r));
 
-  // Build/refresh the CFR1 4:00 AM population from the latest loaded parcel
-  // data. This is important because the export may be refreshed after 4:00 AM.
-  // A parcel is eligible only when its Current Station Received Time is at or
-  // before 4:00 AM. Once an eligible tracking number is captured, it remains
-  // in today's frozen population and cannot be removed during the day.
-  {
-    const eligible=[];
-    cfr1Rows.forEach(r=>{
-      if(cfr1IsExempt(r))return;
-      const stationName=norm(r?.["Current Station"]||"");
-      const destinationName=norm(r?.["Destination Station"]||"");
-      const statusName=norm(statusTo(r));
-      if(stationName!=="BADOC HUB" || destinationName!=="BADOC HUB")return;
-      const rt=cfr1ReceivedTime(r);
-      if(!rt || rt>cfr1Four)return;
-      const downstream=[
-        r?.["Delivering Time"],
-        r?.["Delivered Time"],
-        r?.["OnHold Time"],
-        r?.["On Hold Time"]
-      ].map(cfr1ParseTime).filter(Boolean).sort((a,b)=>a-b);
-      const firstDownstream=downstream[0]||null;
-      // If the latest export already shows a downstream event before/equal to
-      // 4:00 AM, it was not still waiting at the cutoff and must not be added.
-      if(statusName!=="LMHUB RECEIVED" && firstDownstream && firstDownstream<=cfr1Four)return;
-      if(statusName!=="LMHUB RECEIVED" && !firstDownstream)return;
-      const tn=tnKey(spxTN(r));
-      if(tn)eligible.push(tn);
-    });
-    const merged=new Set(Array.isArray(cfr1Freeze?.eligible)?cfr1Freeze.eligible:[]);
-    eligible.forEach(tn=>merged.add(tn));
-    cfr1Freeze={date:cfr1DateKey,cutoff:cfr1Four.getTime(),eligible:[...merged]};
-    try{localStorage.setItem(CFR1_KEY,JSON.stringify(cfr1Freeze));}catch(e){}
+  let cfr1Ledger=null;
+  try{cfr1Ledger=JSON.parse(localStorage.getItem(CFR1_KEY)||"null");}catch(e){cfr1Ledger=null;}
+  if(!cfr1Ledger || cfr1Ledger.date!==cfr1DateKey || !Array.isArray(cfr1Ledger.records)){
+    cfr1Ledger={date:cfr1DateKey,cutoff:cfr1Four.getTime(),records:{}};
+  }else if(Array.isArray(cfr1Ledger.records)){
+    const o={}; cfr1Ledger.records.forEach(x=>{if(x?.key)o[x.key]=x}); cfr1Ledger.records=o;
   }
+
+  // Read every currently available upload.  A parcel is admitted to CFR1
+  // only when THAT row says Current Station = BADOC HUB and its Current
+  // Station Received Time is <= today's 4:00 AM cutoff.  Once admitted, its
+  // eligibility timestamp is retained permanently for today's CFR1 cycle.
+  const cfr1Rows=(Array.isArray(batches)?batches:[]).flatMap(b=>
+    Array.isArray(b?.rows)?b.rows.map((r,i)=>({r,btime:Number(b?.time||0),ri:i})):[]
+  );
+  const latestByKey=new Map();
+  cfr1Rows.forEach(x=>{
+    const key=cfr1Key(x.r); if(!key)return;
+    const prev=latestByKey.get(key);
+    if(!prev || x.btime>prev.btime || (x.btime===prev.btime && x.ri>prev.ri)) latestByKey.set(key,x);
+  });
+
+  // First pass: discover newly eligible CFR1 parcels from any upload.
+  cfr1Rows.forEach(x=>{
+    const r=x.r,key=cfr1Key(r); if(!key || cfr1IsExempt(r))return;
+    if(norm(r?.["Current Station"]||"")!=="BADOC HUB")return;
+    const rt=cfr1ReceivedTime(r); if(!rt || rt>cfr1Four)return;
+    const prev=cfr1Ledger.records[key];
+    if(!prev || !Number.isFinite(Number(prev.receivedMs)) || rt.getTime()<Number(prev.receivedMs)){
+      cfr1Ledger.records[key]={
+        key,
+        orderId:String(r?.["Order ID"]??"").trim(),
+        tn:String(spxTN(r)??"").trim(),
+        town:String(r?.["Town Name"]??r?.["Town"]??"").trim(),
+        receivedMs:rt.getTime(),
+        latestBatchTime:x.btime,
+        latestRowTime:x.btime,
+        status:String(statusTo(r)||r?.["Status"]||"").trim()
+      };
+    }
+  });
+
+  // Second pass: update existing CFR1 parcels from later uploads.  This is
+  // what moves the SAME Order ID from UNSCANNED to SCANNED without replacing
+  // the original 4:00 AM eligibility record.
+  Object.keys(cfr1Ledger.records).forEach(key=>{
+    const rec=cfr1Ledger.records[key];
+    const latest=latestByKey.get(key);
+    if(latest){
+      const r=latest.r;
+      if(!cfr1IsExempt(r)){
+        rec.orderId=String(r?.["Order ID"]??rec.orderId??"").trim();
+        rec.tn=String(spxTN(r)??rec.tn??"").trim();
+        rec.town=String(r?.["Town Name"]??r?.["Town"]??rec.town??"").trim();
+        rec.status=String(statusTo(r)||r?.["Status"]||r?.["Parcel Status"]||r?.["Current Status"]||"").trim();
+        rec.latestBatchTime=latest.btime;
+      }
+    }
+  });
+  try{localStorage.setItem(CFR1_KEY,JSON.stringify(cfr1Ledger));}catch(e){console.warn("CFR1 ledger save failed",e)}
 
   let cfr1Total=0,cfr1Scanned=0;
-  if(cfr1Freeze && Array.isArray(cfr1Freeze.eligible)){
-    const eligibleSet=new Set(cfr1Freeze.eligible);
-    // Keep the frozen denominator fixed, while allowing the scan result to
-    // update until/after the 7:00 AM target.
-    cfr1Total=cfr1Freeze.eligible.reduce((n,tn)=>{
-      const r=cfr1AllByTn.get(tn);
-      return n+(r && !cfr1IsExempt(r) ? 1 : 0);
-    },0);
-    cfr1Freeze.eligible.forEach(tn=>{
-      const r=cfr1AllByTn.get(tn);
-      if(!r || cfr1IsExempt(r))return;
-      const scan=cfr1ScanTime(r);
-      if(scan && scan>=cfr1Four && scan<=cfr1Seven)cfr1Scanned++;
-    });
-  }
-  setText("opCfr1Scanned",window.__badocCfr1Details?.scannedCount ?? cfr1Scanned);
-  setText("opCfr1Total",window.__badocCfr1Details?.totalCount ?? cfr1Total);
-  // Build clickable CFR1 details from the same daily eligible population.
-  // UNSCANNED is intentionally limited to LMHUB_RECEIVED.
   const cfr1ScannedRows=[], cfr1UnscannedRows=[];
-  if(cfr1Freeze && Array.isArray(cfr1Freeze.eligible)){
-    cfr1Freeze.eligible.forEach(tn=>{
-      const r=cfr1AllByTn.get(tn);
-      if(!r || cfr1IsExempt(r)) return;
-      const rawStatus=String(
-        r?.["Status"] ??
-        r?.["Parcel Status"] ??
-        r?.["Current Status"] ??
-        ""
-      ).trim();
-      const normStatus=rawStatus.toUpperCase().replace(/[\s-]+/g,"_");
-      const scan=cfr1ScanTime(r);
-      const detail={
-        orderId:String(r?.["Order ID"]??"").trim(),
-        town:String(r?.["Town Name"]??r?.["Town"]??"").trim(),
-        status:rawStatus
-      };
-
-      if(scan && scan>=cfr1Four && scan<=cfr1Seven){
-        cfr1ScannedRows.push(detail);
-      }else if(normStatus==="LMHUB_RECEIVED"){
-        cfr1UnscannedRows.push(detail);
-      }
-    });
-  }
+  Object.values(cfr1Ledger.records).forEach(rec=>{
+    const key=rec.key;
+    const latest=latestByKey.get(key)?.r;
+    if(latest && cfr1IsExempt(latest))return;
+    const rawStatus=String(rec.status||"").trim();
+    const scanned=cfr1IsScannedStatus({Status:rawStatus});
+    cfr1Total++;
+    if(scanned){
+      cfr1Scanned++;
+      cfr1ScannedRows.push({orderId:rec.orderId||rec.tn||"",town:rec.town||"",status:rawStatus});
+    }else if(norm(rawStatus)==="LMHUB RECEIVED"){
+      cfr1UnscannedRows.push({orderId:rec.orderId||rec.tn||"",town:rec.town||"",status:rawStatus});
+    }
+  });
   window.__badocCfr1Details={
     scanned:cfr1ScannedRows,
     unscanned:cfr1UnscannedRows,
     scannedCount:cfr1ScannedRows.length,
     totalCount:cfr1ScannedRows.length+cfr1UnscannedRows.length
   };
-setText("opCfr1Scanned",window.__badocCfr1Details?.scannedCount ?? cfr1Scanned);
-  setText("opCfr1Total",window.__badocCfr1Details?.totalCount ?? cfr1Total);
+  setText("opCfr1Scanned",window.__badocCfr1Details.scannedCount);
+  setText("opCfr1Total",window.__badocCfr1Details.totalCount);
   // On-Hold: count only the actual On-Hold statuses for now.
   const onHold=counts.ONHOLD||0;
   setText("opOnHold",onHold);
