@@ -2630,7 +2630,54 @@ html{
   line-height:1.2 !important;
   margin:0 0 5px 2px !important;
 }
-</style><style id="parcel-filter-dark-dropdown">
+</style><style id="parcel-records-smooth-filter">
+/* Smooth Parcel Records search/filter interaction */
+.records-filter-toolbar.parcel-filter-upgraded{
+  transition:opacity .16s ease,transform .16s ease;
+}
+.records-filter-toolbar.parcel-filter-upgraded .parcel-search-field input{
+  height:44px !important;
+  border-radius:12px !important;
+  padding:0 13px 0 40px !important;
+  border-color:rgba(61,165,255,.30) !important;
+  box-shadow:0 0 0 0 rgba(61,165,255,0);
+  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.records-filter-toolbar.parcel-filter-upgraded .parcel-search-field{
+  position:relative;
+}
+.records-filter-toolbar.parcel-filter-upgraded .parcel-search-field:before{
+  content:"⌕";
+  position:absolute;
+  left:13px;
+  bottom:10px;
+  font-size:21px;
+  line-height:20px;
+  opacity:.58;
+  pointer-events:none;
+}
+.records-filter-toolbar.parcel-filter-upgraded .parcel-search-field input:focus{
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(61,165,255,.10) !important;
+  background:#0f151c !important;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]{
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.records-filter-toolbar.parcel-filter-upgraded select[multiple]:focus{
+  border-color:rgba(61,165,255,.75) !important;
+  box-shadow:0 0 0 3px rgba(61,165,255,.08) !important;
+}
+#recordTable{
+  transition:opacity .10s ease;
+}
+#recordTable.record-filter-updating{opacity:.72;}
+.record-filter-hint{transition:opacity .16s ease;}
+@media(max-width:700px){
+  .records-filter-toolbar.parcel-filter-upgraded .parcel-search-field input{height:46px !important;}
+}
+</style>
+<style id="parcel-filter-dark-dropdown">
 /* Dark native multi-select menus */
 .records-filter-toolbar.parcel-filter-upgraded select[multiple]{
   color-scheme:dark !important;
@@ -5128,18 +5175,25 @@ function applySharedFilterState(state){
 }
 async function publishSharedFilterState(){
   if(sharedFilterSyncApplying||!sharedFilterSyncClient||!sharedFilterSyncReady)return;
+  const editSeq=sharedFilterLocalEditSeq;
   const state=sharedFilterState();
-  try{
-    const updated=new Date().toISOString();
-    const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
-      {id:"global",state,updated_at:updated},{onConflict:"id"}
-    );
-    if(r.error)throw r.error;
-    sharedFilterLastUpdatedAt=updated;
-    if(sharedFilterSyncChannel){
-      await sharedFilterSyncChannel.send({type:"broadcast",event:"badoc-filter",payload:{state,updated_at:updated}});
-    }
-  }catch(e){console.warn("Shared filter publish failed:",e)}
+  sharedFilterPublishChain=sharedFilterPublishChain.then(async()=>{
+    // If the user changed the filter while an older publish was waiting,
+    // publish the newest state instead of the stale captured state.
+    const latestState=editSeq===sharedFilterLocalEditSeq?state:sharedFilterState();
+    try{
+      const updated=new Date().toISOString();
+      const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
+        {id:"global",state:latestState,updated_at:updated},{onConflict:"id"}
+      );
+      if(r.error)throw r.error;
+      sharedFilterLastUpdatedAt=updated;
+      if(sharedFilterSyncChannel){
+        await sharedFilterSyncChannel.send({type:"broadcast",event:"badoc-filter",payload:{state:latestState,updated_at:updated}});
+      }
+    }catch(e){console.warn("Shared filter publish failed:",e)}
+  });
+  await sharedFilterPublishChain;
 }
 function queueSharedFilterPublish(){
   if(sharedFilterSyncApplying)return;
@@ -5457,18 +5511,50 @@ $("misroutedKpi").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefaul
 
 
 document.querySelectorAll(".nav button[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
-["recordSearch","recordTown","recordStation","recordStatus"].forEach(id=>{
+let parcelRecordFilterTimer=null;
+let parcelRecordFilterFrame=null;
+let sharedFilterPublishChain=Promise.resolve();
+let sharedFilterLocalEditSeq=0;
+function scheduleParcelRecordFilter(immediate=false){
+  if(sharedFilterSyncApplying)return;
+  if(parcelRecordFilterTimer)clearTimeout(parcelRecordFilterTimer);
+  if(parcelRecordFilterFrame)cancelAnimationFrame(parcelRecordFilterFrame);
+  if(immediate&&sharedFilterSyncTimer){
+    clearTimeout(sharedFilterSyncTimer);
+    sharedFilterSyncTimer=null;
+  }
+  const table=$("recordTable");
+  if(table)table.classList.add("record-filter-updating");
+  const run=()=>{
+    parcelRecordFilterFrame=requestAnimationFrame(()=>{
+      parcelRecordFilterFrame=null;
+      window.__parcelRecordPage=1;
+      renderRecords();
+      queueSharedFilterPublish();
+      requestAnimationFrame(()=>table?.classList.remove("record-filter-updating"));
+    });
+  };
+  if(immediate)run();
+  else parcelRecordFilterTimer=setTimeout(run,140);
+}
+const recordSearchEl=$("recordSearch");
+if(recordSearchEl){
+  recordSearchEl.addEventListener("input",()=>{
+    // A new local edit invalidates any older queued filter state.
+    sharedFilterLocalEditSeq++;
+    const isEmpty=String(recordSearchEl.value||"").trim()==="";
+    scheduleParcelRecordFilter(isEmpty);
+  });
+}
+["recordTown","recordStation","recordStatus"].forEach(id=>{
   const e=$(id); if(!e)return;
-  e.addEventListener("input",()=>{
-    if(sharedFilterSyncApplying)return;
-    window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();
-  });
-  e.addEventListener("change",()=>{
-    if(sharedFilterSyncApplying)return;
-    window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();
-  });
+  e.addEventListener("change",()=>scheduleParcelRecordFilter(true));
 });
 $("clearRecordFilters").onclick=async()=>{
+  sharedFilterLocalEditSeq++;
+  if(parcelRecordFilterTimer){clearTimeout(parcelRecordFilterTimer);parcelRecordFilterTimer=null;}
+  if(parcelRecordFilterFrame){cancelAnimationFrame(parcelRecordFilterFrame);parcelRecordFilterFrame=null;}
+  if(sharedFilterSyncTimer){clearTimeout(sharedFilterSyncTimer);sharedFilterSyncTimer=null;}
   $("recordSearch").value="";
   ["recordTown","recordStation","recordStatus"].forEach(id=>{
     const e=$(id);
@@ -5477,42 +5563,27 @@ $("clearRecordFilters").onclick=async()=>{
   window.__parcelRecordPage=1;
   renderRecords();
 
-  // Publish the EMPTY state directly. Do not wait for the debounce queue.
-  const emptyState={search:"",town:[],station:[],status:[]};
+  // Queue the empty state behind any already-running publish so an older
+  // search can never become the final shared filter state.
   if(sharedFilterSyncClient&&sharedFilterSyncReady){
-    try{
-      const updated=new Date().toISOString();
-      const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
-        {id:"global",state:emptyState,updated_at:updated},
-        {onConflict:"id"}
-      );
-      if(r.error)throw r.error;
-      sharedFilterLastUpdatedAt=updated;
-      if(sharedFilterSyncChannel){
-        await sharedFilterSyncChannel.send({
-          type:"broadcast",event:"badoc-filter",
-          payload:{state:emptyState,updated_at:updated}
-        });
-      }
-    }catch(err){
-      console.warn("Clear filter publish failed:",err);
-      // Retry through the normal queue if the direct write fails.
-      queueSharedFilterPublish();
-    }
-  }else{
-    queueSharedFilterPublish();
+    const clearSeq=sharedFilterLocalEditSeq;
+    sharedFilterPublishChain=sharedFilterPublishChain.then(async()=>{
+      if(clearSeq!==sharedFilterLocalEditSeq)return;
+      try{
+        const emptyState={search:"",town:[],station:[],status:[]};
+        const updated=new Date().toISOString();
+        const r=await sharedFilterSyncClient.from("shared_filter_state").upsert(
+          {id:"global",state:emptyState,updated_at:updated},{onConflict:"id"}
+        );
+        if(r.error)throw r.error;
+        sharedFilterLastUpdatedAt=updated;
+        if(sharedFilterSyncChannel){
+          await sharedFilterSyncChannel.send({type:"broadcast",event:"badoc-filter",payload:{state:emptyState,updated_at:updated}});
+        }
+      }catch(err){console.warn("Clear filter publish failed:",err)}
+    });
   }
 };
-document.addEventListener("input",ev=>{
-  if(ev.target?.id==="recordSearch"){
-    if(!sharedFilterSyncApplying){window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();}
-  }
-});
-document.addEventListener("change",ev=>{
-  if(["recordTown","recordStation","recordStatus"].includes(ev.target?.id)){
-    if(!sharedFilterSyncApplying){window.__parcelRecordPage=1;renderRecords();queueSharedFilterPublish();}
-  }
-});
 $("misSearch").addEventListener("input",renderMis);
 function exportValidFiltered(){
   if(!current){alert("There is no current upload to export.");return;}
