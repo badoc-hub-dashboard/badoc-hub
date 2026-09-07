@@ -5102,7 +5102,10 @@ function renderRecords(){
 function renderRecordPage(){
   const rows=Array.isArray(window.__parcelRecordFiltered)
     ?window.__parcelRecordFiltered:[];
-  const pageSize=100;
+  const pageSizeOptions=[20,50,100];
+  const savedSize=Number(window.__parcelRecordPageSize)||20;
+  const pageSize=pageSizeOptions.includes(savedSize)?savedSize:20;
+  window.__parcelRecordPageSize=pageSize;
   const totalPages=Math.max(1,Math.ceil(rows.length/pageSize));
   const page=Math.max(1,Math.min(Number(window.__parcelRecordPage)||1,totalPages));
   window.__parcelRecordPage=page;
@@ -5148,10 +5151,22 @@ function renderRecordPage(){
         ${pageButtons.join("")}
         <button type="button" class="parcel-page-btn" data-page="${page+1}" ${page>=totalPages?"disabled":""}>›</button>
       </div>
-      <div class="parcel-page-count">
-        Page <strong>${page}</strong> of <strong>${totalPages}</strong> · 100 per page
-      </div>
+      <label class="parcel-page-size">Show
+        <select aria-label="Parcels per page" id="parcelPageSize">
+          ${pageSizeOptions.map(n=>`<option value="${n}" ${n===pageSize?"selected":""}>${n}</option>`).join("")}
+        </select>
+        <span>per page</span>
+      </label>
+      <div class="parcel-page-count">Page <strong>${page}</strong> of <strong>${totalPages}</strong></div>
     </div>`;
+
+  $("parcelPageSize").onchange=()=>{
+    const n=Number($("parcelPageSize").value);
+    if(!pageSizeOptions.includes(n))return;
+    window.__parcelRecordPageSize=n;
+    window.__parcelRecordPage=1;
+    renderRecordPage();
+  };
 
   $("recordTable").querySelectorAll(".parcel-page-btn").forEach(btn=>{
     btn.onclick=()=>{
@@ -9061,6 +9076,52 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .health-details{flex-wrap:nowrap!important;white-space:nowrap!important}
 @media(max-width:700px){.health-details{flex-direction:column!important;flex-wrap:nowrap!important}}
 </style>
+
+<style id="v87-parcel-records-mobile-table-restore">
+/* v87: restore the original table-style Parcel Records on mobile. */
+@media (max-width:700px){
+  #records .parcel-records-wrap{
+    max-height:60vh!important;
+    overflow:auto!important;
+    border:1px solid #202b38!important;
+    border-radius:10px!important;
+    background:#0b1117!important;
+  }
+  #records .parcel-records-table{
+    display:table!important;
+    width:max-content!important;
+    min-width:100%!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  #records .parcel-records-table thead{display:table-header-group!important}
+  #records .parcel-records-table tbody{display:table-row-group!important}
+  #records .parcel-records-table tr{display:table-row!important}
+  #records .parcel-records-table th,
+  #records .parcel-records-table td{
+    display:table-cell!important;
+    width:auto!important;
+    min-width:0!important;
+    padding:9px 12px!important;
+    border:1px solid #18232d!important;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    font-size:12px!important;
+    line-height:1.25!important;
+  }
+  #records .parcel-records-table th{
+    position:sticky;
+    top:0;
+    z-index:2;
+  }
+  #records .parcel-records-mobile-list{display:none!important}
+  #records .parcel-pagination{
+    flex-wrap:wrap!important;
+    gap:8px!important;
+  }
+}
+</style>
 </body>
 
 <style id="pickup-mobile-header-final">
@@ -9772,3 +9833,5 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   }
 }
 </style>
+
+
