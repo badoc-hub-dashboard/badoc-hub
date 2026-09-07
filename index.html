@@ -3693,6 +3693,12 @@ html{
 }
 @media screen { #townPrintArea { display:none; } }
 </style>
+<style id="parcel-count-incoming-v108">
+.parcel-count-volume-toolbar{display:flex;align-items:center;gap:8px;margin:10px 0 12px;flex-wrap:wrap}
+.parcel-count-volume-toolbar .parcel-incoming-toggle{font-weight:800}
+.parcel-incoming-hint{font-size:11px;color:#8fa0ad}
+.parcel-incoming-toggle.is-active{border-color:#38d7ff!important;box-shadow:0 0 10px rgba(56,215,255,.16)}
+</style>
 <style id="town-count-visibility-fix-v89">
 /* v89: keep town parcel counts clearly visible on desktop and mobile. */
 .town-row .count{
@@ -3903,6 +3909,10 @@ html{
           <button class="btn exception-clear" id="clearExceptionTracking" type="button">Clear All</button>
         </div>
       </div>
+    </div>
+    <div class="parcel-count-volume-toolbar" id="parcelCountVolumeToolbar">
+      <button class="btn parcel-incoming-toggle" id="parcelCountIncomingToggle" type="button" aria-pressed="false">＋ Add incoming volume</button>
+      <span class="parcel-incoming-hint" id="parcelCountIncomingHint">Linehaul volume is not included</span>
     </div>
     <div class="kpis">
       <div class="kpi"><div class="num" id="total">0</div><div class="lab">TOTAL VOLUME</div><div class="desc"></div></div>
@@ -4555,7 +4565,7 @@ function moveTownToNewGroup(key,town){
   render();
 }
 
-function renderTownGrid(id,list,rows){
+function renderTownGrid(id,list,rows,extraCounts={}){
   const c=counts(rows),el=$(id);
   if(!el)return;
   el.innerHTML="";
@@ -4586,7 +4596,7 @@ function renderTownGrid(id,list,rows){
       const noteIndex=noteIndexCounter++;
       const card=document.createElement("div");
       card.className="town-card";
-      const total=group.reduce((sum,name)=>sum+(c[norm(name)]||0),0);
+      const total=group.reduce((sum,name)=>sum+(c[norm(name)]||0)+(extraCounts[norm(name)]||0),0);
       const header=document.createElement("div");
       header.className="town-card-header";
       const title=document.createElement("span");
@@ -4612,7 +4622,7 @@ function renderTownGrid(id,list,rows){
         r.draggable=true;
         r.dataset.town=norm(name);
         r.title="Drag to another town, or tap a town then tap the destination town";
-        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="count">${c[norm(name)]||0}</span>`;
+        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="count">${((c[norm(name)]||0)+(extraCounts[norm(name)]||0)).toLocaleString()}</span>`;
 
         r.addEventListener("click",e=>{
           e.preventDefault();
@@ -4688,6 +4698,7 @@ function renderTownGrid(id,list,rows){
 
 const resetTownButton=$("resetTownLayout");
 if(resetTownButton)resetTownButton.addEventListener("click",resetTownLayout);
+bindParcelIncomingButton();
 
 
 function buildTownPrintArea(){
@@ -4853,13 +4864,15 @@ function render(){
  const v=getParcelCountRows(),m=current?.mis||[];
  const badoc=v.filter(x=>x._area==="Badoc");
  const pinili=v.filter(x=>x._area==="Pinili");
- $("badocTotal").textContent=badoc.length;
- $("piniliTotal").textContent=pinili.length;
- $("total").textContent=badoc.length+pinili.length;
+ const incoming=parcelIncomingEnabled()?getParcelIncomingLinehaul():{byTown:{},total:0,badoc:0,pinili:0};
+ $("badocTotal").textContent=(badoc.length+incoming.badoc).toLocaleString();
+ $("piniliTotal").textContent=(pinili.length+incoming.pinili).toLocaleString();
+ $("total").textContent=(badoc.length+pinili.length+incoming.total).toLocaleString();
  $("misTotal").textContent=m.length;
  const ms=$("misroutedSideCount"); if(ms)ms.textContent=m.length;
- renderTownGrid("badocGrid",towns.badoc,badoc);
- renderTownGrid("piniliGrid",towns.pinili,pinili);
+ renderTownGrid("badocGrid",towns.badoc,badoc,incoming.byTown);
+ renderTownGrid("piniliGrid",towns.pinili,pinili,incoming.byTown);
+ syncParcelIncomingButton();
  $("batchLabel").textContent="";
  renderRecords();renderMis();renderHistory();renderTownEdits();renderParcelUploadStatus();window.updateOperationProgress?.()
 }
@@ -5063,9 +5076,10 @@ function updateDashboardFromParcelFilters(){
   const total=$("total"), badoc=$("badocTotal"), pinili=$("piniliTotal"), mis=$("misTotal");
   const bc=rows.filter(r=>norm(r?._area)==="BADOC").length;
   const pc=rows.filter(r=>norm(r?._area)==="PINILI").length;
-  if(total) total.textContent=(bc+pc).toLocaleString();
-  if(badoc) badoc.textContent=bc.toLocaleString();
-  if(pinili) pinili.textContent=pc.toLocaleString();
+  const incoming=parcelIncomingEnabled()?getParcelIncomingLinehaul():{byTown:{},total:0,badoc:0,pinili:0};
+  if(total) total.textContent=(bc+pc+incoming.total).toLocaleString();
+  if(badoc) badoc.textContent=(bc+incoming.badoc).toLocaleString();
+  if(pinili) pinili.textContent=(pc+incoming.pinili).toLocaleString();
 
   const allMis=Array.isArray(current?.mis)?current.mis:[];
   const key=r=>norm(r?.["SLS Tracking Number"]||r?.["SLS Tracking"]||r?.["Tracking Number"]||r?.["Order ID"]||"");
@@ -5089,7 +5103,7 @@ function updateDashboardFromParcelFilters(){
     const list=id==="badocGrid"?(towns?.badoc||[]):(towns?.pinili||[]);
     const area=id==="badocGrid"?"BADOC":"PINILI";
     const areaRows=rows.filter(r=>norm(r?._area)===area);
-    renderTownGrid(id,list,areaRows);
+    renderTownGrid(id,list,areaRows,incoming.byTown);
     const grid=$(id);
     if(active&&grid){
       grid.querySelectorAll(".town-row").forEach(row=>{
@@ -5884,6 +5898,73 @@ function linehaulTownBreakdown(task, parcelRows){
 
   return out;
 }
+
+// Single source of truth for Parcel Count incoming volume. Rebuild the
+// Linehaul -> Parcel Record town mapping from the current parcel records so
+// the result does not depend on which upload happened first. Each SPX TN is
+// counted once globally and exceptions are excluded.
+function getParcelIncomingLinehaul(){
+  const byTown={};
+  const seen=new Set();
+  const tasks=Array.isArray(linehaulTasks)?linehaulTasks:[];
+  const parcelRows=Array.isArray(current?.rows)?current.rows:[];
+  tasks.forEach(task=>{
+    if(!task||task.blank||task.cleared)return;
+    const breakdown=linehaulTownBreakdown(task,parcelRows);
+    Object.entries(breakdown||{}).forEach(([town,group])=>{
+      const name=String(town||"").trim();
+      if(!name)return;
+      (group?.items||[]).forEach(item=>{
+        const raw=item?.x?.spxTN??item?.x?.["SPX TN"]??item?.x?.["SPX Tracking Number"]??"";
+        const key=normJoin(raw);
+        if(!key||seen.has(key)||isExceptionRow({"SPX TN":raw}))return;
+        seen.add(key);
+        const n=norm(name);
+        byTown[n]=(byTown[n]||0)+1;
+      });
+    });
+  });
+  const badocNames=new Set((towns?.badoc||[]).filter(Boolean).map(norm));
+  const piniliNames=new Set((towns?.pinili||[]).filter(Boolean).map(norm));
+  let badoc=0,pinili=0;
+  Object.entries(byTown).forEach(([town,n])=>{
+    if(badocNames.has(town))badoc+=n;
+    else if(piniliNames.has(town))pinili+=n;
+  });
+  return {byTown,total:badoc+pinili,badoc,pinili};
+}
+function parcelIncomingEnabled(){
+  try{return localStorage.getItem("badoc_today_volume_linehaul_filter_v1")=="1";}catch(e){return false}
+}
+function syncParcelIncomingButton(){
+  const btn=document.getElementById("parcelCountIncomingToggle");
+  const hint=document.getElementById("parcelCountIncomingHint");
+  if(!btn)return;
+  const on=parcelIncomingEnabled();
+  btn.classList.toggle("is-active",on);
+  btn.setAttribute("aria-pressed",String(on));
+  btn.textContent=on?"✓ Incoming volume added":"＋ Add incoming volume";
+  if(hint){
+    const d=getParcelIncomingLinehaul();
+    hint.textContent=on?`Linehaul incoming: ${d.total.toLocaleString()}`:"Linehaul volume is not included";
+  }
+}
+function bindParcelIncomingButton(){
+  const btn=document.getElementById("parcelCountIncomingToggle");
+  if(!btn||btn.dataset.bound)return;
+  btn.dataset.bound="1";
+  btn.addEventListener("click",()=>{
+    const enabled=!parcelIncomingEnabled();
+    try{localStorage.setItem("badoc_today_volume_linehaul_filter_v1",enabled?"1":"0")}catch(e){}
+    syncParcelIncomingButton();
+    render();
+    // Persist the switch to the same Supabase-backed shared state used by the app.
+    if(window.__badocSyncIncomingVolumeSetting){
+      window.__badocSyncIncomingVolumeSetting(enabled).catch(e=>console.warn("Incoming volume sync:",e));
+    }
+  });
+  syncParcelIncomingButton();
+}
 function renderLinehaulTownDashboard(){
   const el=$("linehaulTownDashboard");
   if(!el)return;
@@ -6541,7 +6622,7 @@ window.DASHBOARD_V2_READY = true;
   const cfg=window.BADOC_SHARED_CONFIG||{};
   const bucket="exported-files";
   const TABLE="badoc_shared_state";
-  const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json",layout:"current/town-layout.json",notes:"current/town-group-notes.json"};
+  const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json",layout:"current/town-layout.json",notes:"current/town-group-notes.json",volume:"current/incoming-volume.json"};
   let client=null,channel=null,pollTimer=null,pulling=false,started=false;
   const pendingCloudWrites=new Set();
   // Local uploads remain protected from cloud pulls until the authoritative
@@ -6716,14 +6797,26 @@ window.DASHBOARD_V2_READY = true;
     if(typeof renderLinehaulKpis==="function")renderLinehaulKpis();
   }
   async function applySettings(){
-    const b=await get(P.settings);if(!b)return;
-    try{
-      const parsed=JSON.parse(await b.text());
-      // Keep backward compatibility with the original towns-only settings file.
-      towns=Array.isArray(parsed)?parsed:(parsed?.towns||towns);
-      try{localStorage.setItem("pr_towns",JSON.stringify(towns))}catch{}
-      if(typeof render==="function")render();
-    }catch(e){console.warn("Settings parse:",e)}
+    const b=await get(P.settings);
+    if(b){
+      try{
+        const parsed=JSON.parse(await b.text());
+        // Keep backward compatibility with the original towns-only settings file.
+        towns=Array.isArray(parsed)?parsed:(parsed?.towns||towns);
+        try{localStorage.setItem("pr_towns",JSON.stringify(towns))}catch{}
+      }catch(e){console.warn("Settings parse:",e)}
+    }
+    // Incoming-volume switch is a shared cloud preference, not just a local toggle.
+    const vb=await get(P.volume);
+    if(vb){
+      try{
+        const v=JSON.parse(await vb.text());
+        const enabled=!!v?.enabled;
+        try{localStorage.setItem("badoc_today_volume_linehaul_filter_v1",enabled?"1":"0")}catch{}
+      }catch(e){console.warn("Incoming volume setting parse:",e)}
+    }
+    if(typeof syncParcelIncomingButton==="function")syncParcelIncomingButton();
+    if(typeof render==="function")render();
   }
   async function applyLayout(){
     const b=await get(P.layout);
@@ -7020,6 +7113,21 @@ window.DASHBOARD_V2_READY = true;
         .catch(e=>console.warn("Town notes sync:",e));
     };
   }
+
+  window.__badocSyncIncomingVolumeSetting=async function(enabled){
+    if(!started)return;
+    try{
+      const version=Date.now();
+      await put(P.volume,new Blob([JSON.stringify({enabled:!!enabled,version})],{type:"application/json"}),"application/json");
+      await setState({settings_version:version});
+      seen.settings=version;
+      await announce("settings","update");
+      status("Incoming volume setting synced");
+    }catch(e){
+      status("Incoming volume sync error — local setting kept");
+      throw e;
+    }
+  };
 
   async function retryPendingUploadState(){
     if(!uploadLocalDirty||!uploadPendingVersion)return false;
@@ -7368,6 +7476,8 @@ window.updateOperationProgress=function(){
       tvMaster.addEventListener("change",()=>{
         try{localStorage.setItem(TV_LINEHAUL_KEY,tvMaster.checked?"1":"0")}catch(e){}
         if(typeof window.updateOperationProgress==="function") window.updateOperationProgress();
+        syncParcelIncomingButton();
+        if(document.getElementById("dashboard")?.classList.contains("active")) render();
       });
     }
   }
