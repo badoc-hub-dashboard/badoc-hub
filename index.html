@@ -3693,6 +3693,26 @@ html{
 }
 @media screen { #townPrintArea { display:none; } }
 </style>
+<style id="town-count-visibility-fix-v89">
+/* v89: keep town parcel counts clearly visible on desktop and mobile. */
+.town-row .count{
+  color:#67d9ff!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  font-variant-numeric:tabular-nums!important;
+  min-width:30px!important;
+  text-align:right!important;
+  opacity:1!important;
+  text-shadow:0 0 7px rgba(0,217,255,.16)!important;
+}
+@media(min-width:701px){
+  .town-row .count{
+    color:#67d9ff!important;
+    font-size:13px!important;
+    font-weight:900!important;
+  }
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -6523,6 +6543,16 @@ window.DASHBOARD_V2_READY = true;
   const TABLE="badoc_shared_state";
   const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json",layout:"current/town-layout.json",notes:"current/town-group-notes.json"};
   let client=null,channel=null,pollTimer=null,pulling=false,started=false;
+  const pendingCloudWrites=new Set();
+  // A local Linehaul upload remains protected from cloud pulls until the
+  // authoritative DB state confirms it. This prevents a temporary DB/sync
+  // failure from making the freshly uploaded Linehaul data disappear.
+  let linehaulLocalDirty=false;
+  let linehaulPendingVersion=0;
+  try{
+    linehaulLocalDirty=localStorage.getItem("badoc_linehaul_dirty_v1")==="1";
+    linehaulPendingVersion=Number(localStorage.getItem("badoc_linehaul_pending_version_v1")||0);
+  }catch{}
   const deviceId=crypto?.randomUUID?.()||("d-"+Date.now()+"-"+Math.random().toString(36).slice(2));
 
   function status(t){
@@ -6717,7 +6747,11 @@ window.DASHBOARD_V2_READY = true;
         if(!s.upload_exists)await clearLocalUpload();else await applyUpload();
         seen.upload=Number(s.upload_version||0);
       }else if(kind==="linehaul"){
-        if(!s.linehaul_exists)await clearLocalLinehaul();else await applyLinehaul();
+        // Do not let a background pull erase a freshly uploaded Linehaul file
+        // while its cloud state is still being published.
+        if(!pendingCloudWrites.has("linehaul")&&!linehaulLocalDirty){
+          if(!s.linehaul_exists)await clearLocalLinehaul();else await applyLinehaul();
+        }
         seen.linehaul=Number(s.linehaul_version||0);
       }else if(kind==="settings"){
         if(Number(s.settings_version||0)>seen.settings)await applySettings();
@@ -6730,7 +6764,9 @@ window.DASHBOARD_V2_READY = true;
         seen.notes=Number(s.notes_version||0);
       }else{
         if(!s.upload_exists)await clearLocalUpload();else if(Number(s.upload_version||0)>seen.upload)await applyUpload();
-        if(!s.linehaul_exists)await clearLocalLinehaul();else if(Number(s.linehaul_version||0)>seen.linehaul)await applyLinehaul();
+        if(!pendingCloudWrites.has("linehaul")&&!linehaulLocalDirty){
+          if(!s.linehaul_exists)await clearLocalLinehaul();else if(Number(s.linehaul_version||0)>seen.linehaul)await applyLinehaul();
+        }
         if(Number(s.settings_version||0)>seen.settings)await applySettings();
         if(Number(s.layout_version||0)>seen.layout)await applyLayout();
         if(Number(s.notes_version||0)>seen.notes)await applyNotes();
@@ -6745,6 +6781,18 @@ window.DASHBOARD_V2_READY = true;
     const path=kind==="upload"?P.upload:P.linehaul;
     const field=kind==="upload"?"upload":"linehaul";
     const version=Date.now();
+    // Protect local Linehaul data from background sync while the cloud write
+    // and authoritative state update are being committed.
+    if(kind==="linehaul"){
+      pendingCloudWrites.add("linehaul");
+      linehaulLocalDirty=true;
+      linehaulPendingVersion=version;
+      try{
+        localStorage.setItem("badoc_linehaul_dirty_v1","1");
+        localStorage.setItem("badoc_linehaul_pending_version_v1",String(version));
+      }catch{}
+    }
+    try{
 
     // Upload Exported is a MULTI-UPLOAD source. Never replace the previous
     // cloud upload with the newest file. Merge the new CSV into the existing
@@ -6787,12 +6835,49 @@ window.DASHBOARD_V2_READY = true;
     // Write the merged payload first. Only after success does the DB state
     // become authoritative, so receivers never pull a half-written file.
     await put(path,payload,payload.type||file.type||"text/csv");
-    await setState({
-      [field+"_exists"]:true,
-      [field+"_version"]:version
-    });
+    // Retry the authoritative state write. Without this, a temporary DB
+    // failure can leave the old false state in place and a background pull
+    // may incorrectly clear the local Linehaul task.
+    let stateErr=null;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        await setState({
+          [field+"_exists"]:true,
+          [field+"_version"]:version
+        });
+        stateErr=null;
+        break;
+      }catch(err){
+        stateErr=err;
+        await new Promise(r=>setTimeout(r,350*(attempt+1)));
+      }
+    }
+    if(stateErr)throw stateErr;
+    if(kind==="linehaul"){
+      linehaulLocalDirty=false;
+      linehaulPendingVersion=0;
+      try{
+        localStorage.removeItem("badoc_linehaul_dirty_v1");
+        localStorage.removeItem("badoc_linehaul_pending_version_v1");
+      }catch{}
+    }
     await announce(kind,"upload");
+    seen[field]=version;
     status((kind==="upload"?"Upload":"Linehaul")+" synced");
+    }catch(err){
+      // Never clear the local Linehaul task because cloud sync failed.
+      if(kind==="linehaul"){
+        linehaulLocalDirty=true;
+        try{
+          localStorage.setItem("badoc_linehaul_dirty_v1","1");
+          localStorage.setItem("badoc_linehaul_pending_version_v1",String(version));
+        }catch{}
+        status("Linehaul sync error — data kept");
+      }
+      throw err;
+    }finally{
+      if(kind==="linehaul")pendingCloudWrites.delete("linehaul");
+    }
   }
 
   // Undo the last Upload Exported action in the authoritative cloud file.
@@ -6829,6 +6914,14 @@ window.DASHBOARD_V2_READY = true;
     const path=kind==="upload"?P.upload:P.linehaul;
     const field=kind==="upload"?"upload":"linehaul";
     const version=Date.now();
+    if(kind==="linehaul"){
+      linehaulLocalDirty=false;
+      linehaulPendingVersion=0;
+      try{
+        localStorage.removeItem("badoc_linehaul_dirty_v1");
+        localStorage.removeItem("badoc_linehaul_pending_version_v1");
+      }catch{}
+    }
     // Delete payload, then atomically publish the durable CLEAR state.
     await remove(path);
     await setState({
@@ -6893,17 +6986,51 @@ window.DASHBOARD_V2_READY = true;
     };
   }
 
+  async function retryPendingLinehaulState(){
+    if(!linehaulLocalDirty||!linehaulPendingVersion)return false;
+    try{
+      const s=await state();
+      const target=Number(linehaulPendingVersion||0);
+      if(Number(s?.linehaul_version||0)>=target && s?.linehaul_exists){
+        linehaulLocalDirty=false;
+        linehaulPendingVersion=0;
+        try{
+          localStorage.removeItem("badoc_linehaul_dirty_v1");
+          localStorage.removeItem("badoc_linehaul_pending_version_v1");
+        }catch{}
+        return true;
+      }
+      await setState({linehaul_exists:true,linehaul_version:target});
+      linehaulLocalDirty=false;
+      linehaulPendingVersion=0;
+      try{
+        localStorage.removeItem("badoc_linehaul_dirty_v1");
+        localStorage.removeItem("badoc_linehaul_pending_version_v1");
+      }catch{}
+      await announce("linehaul","upload");
+      status("Linehaul synced");
+      return true;
+    }catch(e){
+      status("Linehaul sync error — data kept");
+      return false;
+    }
+  }
+
   async function start(){
     if(started)return;started=true;
     try{
       supa();
       // Cloud is authoritative. Do not restore persisted uploads on startup.
       // Start empty, then populate only after the cloud state is checked.
-      batches=[];current=null;linehaulTasks=[];render();renderLinehaul();
+      batches=[];current=null;
+      // If a Linehaul upload was locally marked dirty, preserve it across a
+      // temporary sync failure. Otherwise cloud state remains authoritative.
+      if(!linehaulLocalDirty)linehaulTasks=[];
+      render();renderLinehaul();
       ensureRealtime().catch(e=>console.warn(e));
-      setTimeout(()=>pull().catch(()=>{}),150);
+      setTimeout(async()=>{await retryPendingLinehaulState();await pull().catch(()=>{});},150);
       clearInterval(pollTimer);
-      pollTimer=setInterval(()=>pull().catch(()=>{}),5000);
+      pollTimer=setInterval(async()=>{await retryPendingLinehaulState();await pull().catch(()=>{});},5000);
     }catch(e){console.warn(e);status("Cloud sync unavailable")}
   }
 
