@@ -3665,30 +3665,30 @@ html{
 #townPrintPreview .town-row:last-child{border-bottom:0}
 #townPrintPreview .town{color:#000}.town-card .count{font-weight:800;color:#000}
 #townPrintPreview .town-drag-handle,#townPrintPreview .empty-group{display:none}
-@media(max-width:700px){#townPrintPreview{padding:8px}#townPrintPreview .print-preview-box{height:94vh;width:100%}#townPrintPreview .print-preview-body{padding:8px}#townPrintPreview .print-preview-paper{padding:7mm}#townPrintPreview .town-grid{grid-template-columns:1fr!important}}
+@media(max-width:700px){#townPrintPreview{padding:8px}#townPrintPreview .print-preview-box{height:94vh;width:100%}#townPrintPreview .print-preview-body{padding:8px;overflow:auto}#townPrintPreview .print-preview-paper{width:210mm;min-height:297mm;padding:10mm;margin:0 auto}#townPrintPreview .town-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3mm!important}#townPrintPreview .town-column{gap:2.5mm!important}#townPrintPreview .town-card{padding:2.2mm!important}#townPrintPreview .town-row{font-size:9pt!important;padding:1mm 0!important}#townPrintPreview .town-card-total{font-size:10.5pt!important}}
 @media print{#townPrintPreview{display:none!important}}
 </style>
 <style id="town-print-styles">
 @media print {
   @page { size: A4 portrait; margin: 6mm; }
   body > *:not(#townPrintArea) { display:none !important; }
-  #townPrintArea { display:block !important; width:100% !important; color:#000 !important; background:#fff !important; font-family:Arial,Helvetica,sans-serif !important; }
+  #townPrintArea { display:block !important; width:198mm !important; margin:0 auto !important; color:#000 !important; background:#fff !important; font-family:Arial,Helvetica,sans-serif !important; box-sizing:border-box !important; }
   #townPrintArea .print-area-title { display:none !important; }
-  #townPrintArea .print-section { break-inside:avoid; page-break-inside:avoid; margin:0 0 5mm; }
+  #townPrintArea .print-section { break-inside:avoid; page-break-inside:avoid; margin:0 0 3mm; }
   #townPrintArea .print-section:last-child { margin-bottom:0 !important; }
-  #townPrintArea .print-section h2 { display:block !important; margin:0 0 2mm; padding:0 0 1mm; border-bottom:2px solid #000; font-size:16pt !important; line-height:1 !important; color:#000 !important; }
+  #townPrintArea .print-section h2 { display:block !important; margin:0 0 2mm; padding:0 0 1mm; border-bottom:2px solid #000; font-size:17pt !important; line-height:1 !important; color:#000 !important; font-weight:900 !important; }
   #townPrintArea .town-grid { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:3mm !important; align-items:start !important; }
-  #townPrintArea .town-column { display:flex !important; flex-direction:column !important; gap:2mm !important; min-width:0 !important; }
-  #townPrintArea .town-card { background:#fff !important; border:1px solid #777 !important; border-radius:3px !important; padding:2mm !important; color:#000 !important; box-shadow:none !important; break-inside:avoid; page-break-inside:avoid; }
-  #townPrintArea .town-card-header { display:flex !important; align-items:center !important; gap:4px !important; margin-bottom:1mm !important; padding-bottom:1mm !important; border-bottom:1px solid #bbb !important; line-height:1 !important; }
+  #townPrintArea .town-column { display:flex !important; flex-direction:column !important; gap:2.5mm !important; min-width:0 !important; }
+  #townPrintArea .town-card { background:#fff !important; border:1px solid #555 !important; border-radius:3px !important; padding:2.2mm !important; color:#000 !important; box-shadow:none !important; break-inside:avoid; page-break-inside:avoid; }
+  #townPrintArea .town-card-header { display:flex !important; align-items:center !important; gap:4px !important; margin-bottom:1.2mm !important; padding-bottom:1mm !important; border-bottom:1px solid #999 !important; line-height:1 !important; min-height:6mm !important; }
   #townPrintArea .town-card-title { display:none !important; color:#000 !important; font-weight:800 !important; font-size:9pt !important; text-transform:uppercase !important; }
   #townPrintArea .town-card-note { flex:1 !important; min-width:0 !important; border:0 !important; background:transparent !important; color:#000 !important; padding:0 !important; font-size:8.5pt !important; line-height:1.05 !important; font-weight:600 !important; outline:none !important; }
   #townPrintArea .town-card-note::placeholder { color:transparent !important; }
-  #townPrintArea .town-card-total { color:#000 !important; font-weight:900 !important; font-size:9pt !important; line-height:1 !important; }
-  #townPrintArea .town-row { display:flex !important; justify-content:space-between !important; gap:8px !important; padding:.85mm 0 !important; border-bottom:1px solid #ddd !important; color:#000 !important; font-size:8.5pt !important; line-height:1.05 !important; }
+  #townPrintArea .town-card-total { color:#000 !important; font-weight:900 !important; font-size:10.5pt !important; line-height:1 !important; min-width:14mm !important; padding:1mm 2mm !important; text-align:center !important; border:1.2px solid #000 !important; border-radius:3px !important; background:#f2f2f2 !important; }
+  #townPrintArea .town-row { display:flex !important; justify-content:space-between !important; align-items:baseline !important; gap:8px !important; padding:1mm 0 !important; border-bottom:1px solid #ddd !important; color:#000 !important; font-size:9pt !important; line-height:1.05 !important; }
   #townPrintArea .town-row:last-child { border-bottom:0 !important; }
-  #townPrintArea .town { color:#000 !important; }
-  #townPrintArea .count { color:#000 !important; font-weight:800 !important; }
+  #townPrintArea .town { color:#000 !important; font-weight:600 !important; }
+  #townPrintArea .count { color:#000 !important; font-weight:900 !important; font-variant-numeric:tabular-nums !important; }
   #townPrintArea .town-drag-handle, #townPrintArea .empty-group { display:none !important; }
 }
 @media screen { #townPrintArea { display:none; } }
@@ -3724,11 +3724,15 @@ html{
   <div class="top">
   <div class="title"><h1 id="pageTitle">Dashboard</h1><p id="batchLabel"></p></div>
   <div class="top-header-info">
-    <div class="app-health-indicators" aria-label="App health">
-      <span class="health-indicator" id="healthStorage"><i></i><b>Storage</b><em>Checking</em></span>
-      <span class="health-indicator" id="healthKpi"><i></i><b>KPI</b><em>Checking</em></span>
-      <span class="health-indicator" id="healthData"><i></i><b>Data</b><em>Checking</em></span>
-      <span class="health-indicator" id="healthSync"><i></i><b>Sync</b><em>Checking</em></span>
+    <div class="app-health-indicators" id="appHealthIndicators" aria-label="App health">
+      <button type="button" class="health-indicator health-summary" id="healthSummary" aria-expanded="false" aria-controls="healthDetails" title="Show app status" >
+        <i></i><b>Sync</b><em>Checking</em>
+      </button>
+      <div class="health-details" id="healthDetails" aria-hidden="true">
+        <span class="health-indicator" id="healthStorage"><i></i><b>Storage</b><em>Checking</em></span>
+        <span class="health-indicator" id="healthKpi"><i></i><b>KPI</b><em>Checking</em></span>
+        <span class="health-indicator" id="healthData"><i></i><b>Data</b><em>Checking</em></span>
+      </div>
     </div>
     <div id="sharedStatus" class="top-sync-status connecting" aria-live="polite">
       <span class="top-sync-dot"></span><span class="top-sync-text">Connecting…</span>
@@ -6510,6 +6514,10 @@ window.DASHBOARD_V2_READY = true;
     const e=document.getElementById("sharedStatus"),s=e?.querySelector(".top-sync-text");
     if(e)e.className="top-sync-status connected";
     if(s)s.textContent=t;
+    // Keep a compact, user-visible record of the last successful cloud sync.
+    if(/all devices synced|upload synced|linehaul synced|last upload undone|cleared on all devices/i.test(String(t||""))){
+      try{localStorage.setItem("badoc_last_sync_at",String(Date.now()))}catch{}
+    }
   }
   function supa(){
     if(client)return client;
@@ -7603,7 +7611,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 
 <style id="badoc-app-health-ui">
 .top-header-info{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.app-health-indicators{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;justify-content:flex-end;white-space:nowrap}
+.app-health-indicators{position:relative;display:flex;align-items:center;justify-content:flex-end;white-space:nowrap}
 .health-indicator{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #202b38;border-radius:999px;background:#0c1015;color:#9aa3af;font-size:10px;line-height:1;white-space:nowrap}
 .health-indicator i{width:7px;height:7px;border-radius:50%;background:#9299a6;display:inline-block;box-shadow:0 0 0 2px #9299a622}
 .health-indicator b{font-size:9px;color:#dce3eb}
@@ -7614,18 +7622,45 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 .health-indicator.warn em{color:#f0b84b}
 .health-indicator.bad i{background:#ff5c5c;box-shadow:0 0 0 2px #ff5c5c22}
 .health-indicator.bad em{color:#ff8a8a}
+.health-summary{appearance:none;-webkit-appearance:none;cursor:pointer;font-family:inherit}
+.health-summary:active{transform:translateY(1px)}
+.health-summary{white-space:nowrap;min-width:max-content}
+.health-details{display:none;position:absolute;flex-wrap:nowrap;top:calc(100% + 7px);right:0;z-index:1000;gap:5px;padding:7px;border:1px solid #202b38;border-radius:12px;background:rgba(8,13,18,.97);box-shadow:0 12px 30px rgba(0,0,0,.4);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);white-space:nowrap}
+.app-health-indicators.is-open .health-details{display:flex}
+.health-details .health-indicator{cursor:default;flex:0 0 auto}
+#sharedStatus{display:none !important}
 @media(max-width:700px){
   .top-header-info{gap:4px;flex-wrap:nowrap;min-width:0}
-  .app-health-indicators{gap:3px;flex-wrap:nowrap;min-width:0;flex-shrink:1;white-space:nowrap}
-  .health-indicator{padding:4px 5px;font-size:8px;gap:4px;flex:0 0 auto;white-space:nowrap;min-width:max-content}
-  .health-indicator i{width:6px;height:6px;flex:0 0 6px}
-  .health-indicator b,.health-indicator em{font-size:7px;white-space:nowrap;display:inline-block}
-  #healthSync{flex:0 0 auto;white-space:nowrap}
+  .app-health-indicators{min-width:0;flex:0 0 auto}
+  .health-summary{padding:6px 8px;font-size:9px;gap:4px;min-width:max-content}
+  .health-summary i{width:6px;height:6px;flex:0 0 6px}
+  .health-summary b,.health-summary em{font-size:8px;white-space:nowrap}
+  .health-details{right:0;top:calc(100% + 6px);gap:4px;padding:6px;display:none;flex-direction:column;align-items:stretch}
+  .app-health-indicators.is-open .health-details{display:flex}
+  .health-details .health-indicator{padding:5px 7px;font-size:9px;justify-content:flex-start}
+  .health-details .health-indicator i{width:6px;height:6px;flex:0 0 6px}
+  .health-details .health-indicator b,.health-details .health-indicator em{font-size:8px}
 }
 </style>
 <script id="badoc-app-health-runtime">
 (function(){
   function set(id,state,text){var e=document.getElementById(id);if(!e)return;e.classList.remove("ok","warn","bad");e.classList.add(state);var em=e.querySelector("em");if(em)em.textContent=text;}
+  function lastSyncLabel(){
+    try{
+      var stamp=Number(localStorage.getItem("badoc_last_sync_at")||0);
+      if(!stamp)return "";
+      var d=new Date(stamp);
+      if(isNaN(d.getTime()))return "";
+      return d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    }catch(e){return "";}
+  }
+  function setSummary(state,text){
+    var e=document.getElementById("healthSummary");if(!e)return;
+    e.classList.remove("ok","warn","bad");e.classList.add(state);
+    var em=e.querySelector("em");if(!em)return;
+    var stamp=lastSyncLabel();
+    em.textContent=(state==="ok"&&stamp)?(text+" · "+stamp):text;
+  }
   function checkStorage(){
     try{
       if(typeof indexedDB==="undefined"){
@@ -7666,15 +7701,79 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   }
   function checkSync(){
     var e=document.querySelector("#sharedStatus .top-sync-text");
+    var box=document.getElementById("healthSync");
     var t=(e?.textContent||"").toLowerCase();
-    if(t.includes("all devices synced")||t.includes("synced"))set("healthSync","ok","OK");
-    else if(t.includes("retry")||t.includes("connecting"))set("healthSync","warn","Syncing");
-    else if(t.includes("failed")||t.includes("error"))set("healthSync","bad","Error");
-    else set("healthSync","warn","Waiting");
+    if(t.includes("all devices synced")||t.includes("synced")){
+      var stamp=0;
+      try{stamp=Number(localStorage.getItem("badoc_last_sync_at")||0)}catch{}
+      if(box)box.title="Cloud sync is up to date";
+      set("healthSync","ok","OK");
+      setSummary("ok","OK");
+    }else if(t.includes("retry")||t.includes("connecting")){
+      if(box)box.title="Cloud sync is connecting or retrying";
+      set("healthSync","warn","Syncing");
+      setSummary("warn","Syncing");
+    }else if(t.includes("failed")||t.includes("error")){
+      if(box)box.title="Cloud sync error";
+      set("healthSync","bad","Error");
+      setSummary("bad","Error");
+    }else{
+      if(box)box.title="Waiting for cloud sync";
+      set("healthSync","warn","Waiting");
+      setSummary("warn","Waiting");
+    }
   }
-  function run(){checkStorage();checkData();checkKpi();checkSync();}
+  window.toggleBadocHealth=function(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    var wrap=document.getElementById("appHealthIndicators");
+    var btn=document.getElementById("healthSummary");
+    if(!wrap||!btn)return;
+    var open=!wrap.classList.contains("is-open");
+    wrap.classList.toggle("is-open",open);
+    btn.setAttribute("aria-expanded",open?"true":"false");
+    var details=document.getElementById("healthDetails");
+    if(details)details.setAttribute("aria-hidden",open?"false":"true");
+  };
+
+  function ensureLastSyncDetail(){
+    var details=document.getElementById("healthDetails");
+    if(!details||document.getElementById("healthLastSync"))return;
+    var row=document.createElement("span");
+    row.className="health-indicator health-last-sync";
+    row.id="healthLastSync";
+    row.innerHTML='<i></i><b>Last sync</b><em>—</em>';
+    details.appendChild(row);
+  }
+  function updateLastSyncDetail(){
+    var row=document.getElementById("healthLastSync");if(!row)return;
+    var em=row.querySelector("em");if(!em)return;
+    em.textContent=lastSyncLabel()||"—";
+  }
+
+  function bindSummary(){
+    var wrap=document.getElementById("appHealthIndicators");
+    var btn=document.getElementById("healthSummary");
+    if(!wrap||!btn||btn.dataset.bound)return;
+    ensureLastSyncDetail();
+    updateLastSyncDetail();
+    btn.dataset.bound="1";
+    // Use one click handler only. Mobile browsers synthesize click from taps;
+    // separate touch/pointer handlers can toggle the panel multiple times.
+    btn.addEventListener("click",function(e){
+      window.toggleBadocHealth(e);
+    });
+    document.addEventListener("click",function(e){
+      if(!wrap.contains(e.target)){
+        wrap.classList.remove("is-open");
+        btn.setAttribute("aria-expanded","false");
+        var details=document.getElementById("healthDetails");
+        if(details)details.setAttribute("aria-hidden","true");
+      }
+    });
+  }
+  function run(){bindSummary();checkStorage();checkData();checkKpi();checkSync();updateLastSyncDetail();}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run();
-  setInterval(function(){checkKpi();checkSync();},1000);
+  setInterval(function(){checkKpi();checkSync();updateLastSyncDetail();},1000);
   setInterval(checkData,3000);
   setInterval(checkStorage,30000);
 })();
@@ -8954,6 +9053,14 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </script>
 
 
+
+<style id="v78-single-sync-indicator">
+/* Only the clickable health summary is visible. The legacy shared sync pill
+   remains in the DOM as the sync-status source but is never displayed. */
+#sharedStatus{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;pointer-events:none!important}
+.health-details{flex-wrap:nowrap!important;white-space:nowrap!important}
+@media(max-width:700px){.health-details{flex-direction:column!important;flex-wrap:nowrap!important}}
+</style>
 </body>
 
 <style id="pickup-mobile-header-final">
@@ -8972,6 +9079,114 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   .pickup-head-actions{gap:5px!important}
   .pickup-head-actions .btn{font-size:8px!important;padding:7px 8px!important;min-height:31px!important}
   .pickup-source-btn{max-width:132px!important}
+}
+</style>
+
+
+<style id="v68-mobile-layout-cleanup">
+/* Mobile layout cleanup — presentation/spacing only. Core parcel logic unchanged. */
+@media(max-width:700px){
+  /* Leave enough scroll space for the fixed bottom navigation. */
+  .main{
+    padding-bottom:96px!important;
+  }
+  .page{
+    padding-bottom:8px!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Keep the header compact without allowing the status row to wrap. */
+  .top{
+    width:100%!important;
+    box-sizing:border-box!important;
+    align-items:center!important;
+  }
+  .top .title{
+    min-width:0!important;
+    flex:0 1 auto!important;
+  }
+  .top-header-info{
+    min-width:0!important;
+    flex:1 1 auto!important;
+    overflow:visible!important;
+    justify-content:flex-end!important;
+  }
+  .app-health-indicators{
+    min-width:0!important;
+    flex:0 0 auto!important;
+    overflow:visible!important;
+  }
+  .health-indicator{
+    padding:4px 5px!important;
+  }
+
+  /* Prevent long controls from forcing horizontal page overflow. */
+  .section,.card,.panel,.kpi,.kpi-sheet,.town-card,
+  input,select,textarea,button,.btn{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Keep common action rows on one line where they are already designed that way. */
+  .area-head,.records-head,.linehaul-head,.section-head{
+    min-width:0!important;
+  }
+
+  /* Bottom navigation: always one row on phones. */
+  .mobile-bottom-nav{
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    width:auto!important;
+    box-sizing:border-box!important;
+  }
+  .mobile-bottom-nav button{
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .mobile-bottom-nav button span:last-child{
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:430px){
+  .main{padding-bottom:90px!important}
+  .mobile-bottom-nav{
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:2px!important;
+    padding:4px!important;
+  }
+  .mobile-bottom-nav button{
+    padding:3px 0!important;
+    font-size:8px!important;
+  }
+  .mobile-bottom-nav .mobile-ico,
+  .mobile-bottom-nav button .nav-icon{
+    font-size:17px!important;
+  }
+}
+</style>
+
+<style id="v74-health-click-fix">
+.app-health-indicators{z-index:10020!important}
+.health-summary{position:relative;z-index:10022!important;pointer-events:auto!important;touch-action:manipulation!important}
+.health-details{z-index:10021!important;pointer-events:auto!important}
+</style>
+<style id="v76-health-panel-visibility-fix">
+/* Ensure the mobile health details can escape the compact header clipping. */
+@media(max-width:700px){
+  .top-header-info,.app-health-indicators{overflow:visible!important}
+  .health-details{display:none!important;position:absolute!important;right:0!important;top:calc(100% + 6px)!important;z-index:2147483000!important}
+  .app-health-indicators.is-open .health-details{display:flex!important}
+}
+</style>
+
+<style id="v77-health-one-line">
+/* Keep the expanded health indicators on one line and do not repeat a sync timestamp. */
+.health-details{flex-wrap:nowrap!important;white-space:nowrap!important}
+.health-details .health-indicator{flex:0 0 auto!important}
+@media(max-width:700px){
+  .health-details{flex-wrap:nowrap!important}
 }
 </style>
 </html>
@@ -9541,5 +9756,19 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .dashboard-eod-footer>span{font-size:9px;font-weight:900;letter-spacing:.14em;color:#6d8ca0}.dashboard-eod-badge{border:1px solid rgba(0,174,255,.35);background:rgba(0,174,255,.08);color:#4dd4ff;border-radius:8px;padding:7px 10px;font-size:10px;font-weight:900;cursor:pointer}
 @media(max-width:700px){
 .dashboard-eod-summary{margin-top:10px!important;border-radius:12px!important}.dashboard-eod-titlebar{height:48px;font-size:20px}.dashboard-eod-hub{height:34px;font-size:16px}.dashboard-eod-date{height:31px;font-size:12px}.dashboard-eod-panel-title{height:34px;font-size:15px}.dashboard-eod-rows{font-size:12px}.dashboard-eod-rows>div{min-height:31px;grid-template-columns:minmax(0,1fr) 65px}.dashboard-eod-rows span,.dashboard-eod-rows strong{padding:5px 10px}.dashboard-eod-rate{height:85px;font-size:36px}.dashboard-eod-footer{padding:7px 9px}.dashboard-eod-badge{font-size:8px;padding:6px 8px}
+}
+</style>
+<style id="mobile-town-count-visibility-fix">
+/* Mobile: make each town parcel count clearly visible without changing counting logic. */
+@media(max-width:700px){
+  .town-row .count{
+    color:#00d9ff!important;
+    font-size:13px!important;
+    font-weight:1000!important;
+    font-variant-numeric:tabular-nums!important;
+    min-width:30px!important;
+    text-align:right!important;
+    text-shadow:0 0 8px rgba(0,217,255,.18)!important;
+  }
 }
 </style>
