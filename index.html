@@ -3643,23 +3643,49 @@ html{
 .town-move-selected .town-drag-handle{opacity:1}
 </style>
 
+<style id="town-print-preview-styles">
+#townPrintPreview{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+#townPrintPreview .print-preview-box{width:min(1100px,96vw);height:min(90vh,900px);background:#111820;border:1px solid rgba(0,168,255,.55);border-radius:12px;box-shadow:0 20px 70px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
+#townPrintPreview .print-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+#townPrintPreview .print-preview-title{font-size:16px;font-weight:800;color:#fff}
+#townPrintPreview .print-preview-actions{display:flex;gap:8px}
+#townPrintPreview .print-preview-actions button{cursor:pointer}
+#townPrintPreview .print-preview-body{flex:1;overflow:auto;padding:18px;background:#e8e8e8}
+#townPrintPreview .print-preview-paper{background:#fff;color:#000;width:min(210mm,100%);min-height:297mm;margin:0 auto;padding:10mm;box-sizing:border-box;box-shadow:0 3px 18px rgba(0,0,0,.22);font-family:Arial,Helvetica,sans-serif}
+#townPrintPreview .print-section{break-inside:avoid;page-break-inside:avoid;margin:0 0 10mm}
+#townPrintPreview .print-section h2{display:block;margin:0 0 4mm;padding:0 0 2mm;border-bottom:2px solid #000;font-size:16pt;color:#000}
+#townPrintPreview .town-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5mm;align-items:start}
+#townPrintPreview .town-column{display:flex;flex-direction:column;gap:4mm;min-width:0}
+#townPrintPreview .town-card{background:#fff;border:1px solid #777;border-radius:3px;padding:3mm;color:#000;box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+#townPrintPreview .town-card-header{display:flex;align-items:center;gap:4px;margin-bottom:2mm;padding-bottom:1.5mm;border-bottom:1px solid #bbb}
+#townPrintPreview .town-card-title{display:none}
+#townPrintPreview .town-card-note{flex:1;min-width:0;color:#000;font-size:8.5pt;font-weight:600}
+#townPrintPreview .town-card-total{color:#000;font-weight:900;font-size:11pt;white-space:nowrap}
+#townPrintPreview .town-row{display:flex;justify-content:space-between;gap:8px;padding:1.2mm 0;border-bottom:1px solid #ddd;color:#000;font-size:8.5pt}
+#townPrintPreview .town-row:last-child{border-bottom:0}
+#townPrintPreview .town{color:#000}.town-card .count{font-weight:800;color:#000}
+#townPrintPreview .town-drag-handle,#townPrintPreview .empty-group{display:none}
+@media(max-width:700px){#townPrintPreview{padding:8px}#townPrintPreview .print-preview-box{height:94vh;width:100%}#townPrintPreview .print-preview-body{padding:8px}#townPrintPreview .print-preview-paper{padding:7mm}#townPrintPreview .town-grid{grid-template-columns:1fr!important}}
+@media print{#townPrintPreview{display:none!important}}
+</style>
 <style id="town-print-styles">
 @media print {
-  @page { size: A4 portrait; margin: 10mm; }
+  @page { size: A4 portrait; margin: 6mm; }
   body > *:not(#townPrintArea) { display:none !important; }
   #townPrintArea { display:block !important; width:100% !important; color:#000 !important; background:#fff !important; font-family:Arial,Helvetica,sans-serif !important; }
   #townPrintArea .print-area-title { display:none !important; }
-  #townPrintArea .print-section { break-inside:avoid; page-break-inside:avoid; margin:0 0 10mm; }
-  #townPrintArea .print-section h2 { display:block; margin:0 0 4mm; padding:0 0 2mm; border-bottom:2px solid #000; font-size:16pt; color:#000; }
-  #townPrintArea .town-grid { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:5mm !important; align-items:start !important; }
-  #townPrintArea .town-column { display:flex !important; flex-direction:column !important; gap:4mm !important; min-width:0 !important; }
-  #townPrintArea .town-card { background:#fff !important; border:1px solid #777 !important; border-radius:3px !important; padding:3mm !important; color:#000 !important; box-shadow:none !important; break-inside:avoid; page-break-inside:avoid; }
-  #townPrintArea .town-card-header { display:flex !important; align-items:center !important; gap:4px !important; margin-bottom:2mm !important; padding-bottom:1.5mm !important; border-bottom:1px solid #bbb !important; }
+  #townPrintArea .print-section { break-inside:avoid; page-break-inside:avoid; margin:0 0 5mm; }
+  #townPrintArea .print-section:last-child { margin-bottom:0 !important; }
+  #townPrintArea .print-section h2 { display:block !important; margin:0 0 2mm; padding:0 0 1mm; border-bottom:2px solid #000; font-size:16pt !important; line-height:1 !important; color:#000 !important; }
+  #townPrintArea .town-grid { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:3mm !important; align-items:start !important; }
+  #townPrintArea .town-column { display:flex !important; flex-direction:column !important; gap:2mm !important; min-width:0 !important; }
+  #townPrintArea .town-card { background:#fff !important; border:1px solid #777 !important; border-radius:3px !important; padding:2mm !important; color:#000 !important; box-shadow:none !important; break-inside:avoid; page-break-inside:avoid; }
+  #townPrintArea .town-card-header { display:flex !important; align-items:center !important; gap:4px !important; margin-bottom:1mm !important; padding-bottom:1mm !important; border-bottom:1px solid #bbb !important; line-height:1 !important; }
   #townPrintArea .town-card-title { display:none !important; color:#000 !important; font-weight:800 !important; font-size:9pt !important; text-transform:uppercase !important; }
-  #townPrintArea .town-card-note { flex:1 !important; min-width:0 !important; border:0 !important; background:transparent !important; color:#000 !important; padding:0 !important; font-size:8.5pt !important; font-weight:600 !important; outline:none !important; }
+  #townPrintArea .town-card-note { flex:1 !important; min-width:0 !important; border:0 !important; background:transparent !important; color:#000 !important; padding:0 !important; font-size:8.5pt !important; line-height:1.05 !important; font-weight:600 !important; outline:none !important; }
   #townPrintArea .town-card-note::placeholder { color:transparent !important; }
-  #townPrintArea .town-card-total { color:#000 !important; font-weight:900 !important; font-size:9pt !important; }
-  #townPrintArea .town-row { display:flex !important; justify-content:space-between !important; gap:8px !important; padding:1.2mm 0 !important; border-bottom:1px solid #ddd !important; color:#000 !important; font-size:8.5pt !important; }
+  #townPrintArea .town-card-total { color:#000 !important; font-weight:900 !important; font-size:9pt !important; line-height:1 !important; }
+  #townPrintArea .town-row { display:flex !important; justify-content:space-between !important; gap:8px !important; padding:.85mm 0 !important; border-bottom:1px solid #ddd !important; color:#000 !important; font-size:8.5pt !important; line-height:1.05 !important; }
   #townPrintArea .town-row:last-child { border-bottom:0 !important; }
   #townPrintArea .town { color:#000 !important; }
   #townPrintArea .count { color:#000 !important; font-weight:800 !important; }
@@ -4640,7 +4666,7 @@ const resetTownButton=$("resetTownLayout");
 if(resetTownButton)resetTownButton.addEventListener("click",resetTownLayout);
 
 
-function printTownLayout(){
+function buildTownPrintArea(){
   const existing=document.getElementById("townPrintArea");
   if(existing)existing.remove();
   const area=document.createElement("div");
@@ -4669,9 +4695,40 @@ function printTownLayout(){
     area.appendChild(section);
   });
   document.body.appendChild(area);
-  const cleanup=()=>{area.remove();window.removeEventListener("afterprint",cleanup);};
-  window.addEventListener("afterprint",cleanup);
-  requestAnimationFrame(()=>window.print());
+  return area;
+}
+
+function printTownLayout(){
+  const area=buildTownPrintArea();
+  const oldPreview=document.getElementById("townPrintPreview");
+  if(oldPreview)oldPreview.remove();
+
+  const modal=document.createElement("div");
+  modal.id="townPrintPreview";
+  modal.innerHTML=`<div class="print-preview-box" role="dialog" aria-modal="true" aria-label="Print Towns preview">
+    <div class="print-preview-head">
+      <div class="print-preview-title">Print Towns — Preview</div>
+      <div class="print-preview-actions">
+        <button class="btn" type="button" id="townPreviewCancel">Cancel</button>
+        <button class="btn" type="button" id="townPreviewPrint">PRINT</button>
+      </div>
+    </div>
+    <div class="print-preview-body"><div class="print-preview-paper" id="townPreviewPaper"></div></div>
+  </div>`;
+  document.body.appendChild(modal);
+  const paper=modal.querySelector("#townPreviewPaper");
+  area.querySelectorAll(".print-section").forEach(section=>paper.appendChild(section.cloneNode(true)));
+
+  const close=()=>{modal.remove();area.remove();};
+  modal.querySelector("#townPreviewCancel").addEventListener("click",close);
+  modal.addEventListener("click",e=>{if(e.target===modal)close();});
+  modal.querySelector("#townPreviewPrint").addEventListener("click",()=>{
+    modal.remove();
+    area.removeAttribute("aria-hidden");
+    const cleanup=()=>{area.remove();window.removeEventListener("afterprint",cleanup);};
+    window.addEventListener("afterprint",cleanup);
+    requestAnimationFrame(()=>window.print());
+  });
 }
 
 const printTownButton=$("printTownLayout");
