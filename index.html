@@ -4867,28 +4867,62 @@ function parcelIncomingEnabled(){
  try{return localStorage.getItem(PARCEL_INCOMING_KEY)==="1"}catch(e){return false}
 }
 function getParcelIncomingLinehaul(){
- const tasks=Array.isArray(linehaulTasks)?linehaulTasks:[];
- const seen=new Set(),townSeen=new Set(),townCounts={};
- let total=0;
- const parcelRows=Array.isArray(current?.rows)?current.rows:(Array.isArray(current?.valid)?current.valid:[]);
- tasks.forEach(task=>{
-   if(!task||task.blank||task.cleared||!String(task.id||"").trim())return;
-   (Array.isArray(task.exportRows)?task.exportRows:[]).forEach(er=>{
-     const tn=normJoin(er?.spxTN??er?.["SPX TN"]??er?.["SPX Tracking Number"]??"");
-     if(tn&&!seen.has(tn)){seen.add(tn);total++}
-   });
-   const breakdown=typeof linehaulTownBreakdown==="function"?linehaulTownBreakdown(task,parcelRows):{};
-   Object.entries(breakdown).forEach(([town,group])=>{
-     const townKey=norm(town);
-     if(!townKey)return;
-     (group?.items||[]).forEach(item=>{
-       const tn=normJoin(item?.x?.spxTN??item?.x?.["SPX TN"]??"");
-       if(!tn||townSeen.has(tn))return;
-       townSeen.add(tn);townCounts[townKey]=(townCounts[townKey]||0)+1;
-     });
-   });
- });
- return {total,townCounts};
+  /*
+    Parcel Count incoming Linehaul uses the same core logic as Today's Volume:
+    - Match Linehaul Task SPX TNs to Parcel Records Order ID.
+    - Count each SPX TN only once across all Linehaul Tasks.
+    - Exclude exception/exemption tracking numbers.
+    - Only count parcels whose matched Town Name belongs to the configured
+      BADOC/PINILI town lists shown in Parcel Count.
+    - Town counts use the same unique-SPX-TN set, so duplicates cannot inflate
+      either the total or an individual town.
+  */
+  const tasks=Array.isArray(linehaulTasks)?linehaulTasks:[];
+  const parcelRows=Array.isArray(current?.rows)
+    ?current.rows
+    :(Array.isArray(current?.valid)?current.valid:[]);
+  const seen=new Set();
+  const townCounts={};
+  const configuredTowns=new Set([
+    ...(Array.isArray(towns?.badoc)?towns.badoc:[]),
+    ...(Array.isArray(towns?.pinili)?towns.pinili:[])
+  ].map(norm).filter(Boolean));
+  const exceptionSet=typeof exceptionTrackingSet==="function"
+    ?exceptionTrackingSet()
+    :new Set();
+  let total=0;
+
+  tasks.forEach(task=>{
+    if(!task||task.blank||task.cleared||!String(task.id||"").trim())return;
+
+    const breakdown=typeof linehaulTownBreakdown==="function"
+      ?linehaulTownBreakdown(task,parcelRows)
+      :{};
+
+    Object.entries(breakdown).forEach(([town,group])=>{
+      const townKey=norm(town);
+      if(!townKey||!configuredTowns.has(townKey))return;
+
+      (group?.items||[]).forEach(item=>{
+        const er=item?.x||{};
+        const parcel=item?.r||{};
+        const raw=er?.spxTN ?? er?.["SPX TN"] ?? er?.["SPX Tracking Number"] ?? "";
+        const tn=normJoin(raw);
+        if(!tn||seen.has(tn))return;
+
+        // Match the same exception rule used by Parcel Count. Check the
+        // matched Parcel Record itself and the Linehaul SPX TN key.
+        if((typeof isExceptionRow==="function"&&isExceptionRow(parcel)) ||
+           exceptionSet.has(typeof tnKey==="function"?tnKey(tn):tn)) return;
+
+        seen.add(tn);
+        total++;
+        townCounts[townKey]=(townCounts[townKey]||0)+1;
+      });
+    });
+  });
+
+  return {total,townCounts};
 }
 function updateParcelIncomingButton(){
  const btn=$("parcelIncomingVolumeBtn"),state=$("parcelIncomingVolumeState");
