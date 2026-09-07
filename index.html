@@ -7614,7 +7614,14 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 .health-indicator.warn em{color:#f0b84b}
 .health-indicator.bad i{background:#ff5c5c;box-shadow:0 0 0 2px #ff5c5c22}
 .health-indicator.bad em{color:#ff8a8a}
-@media(max-width:700px){.top-header-info{gap:4px}.app-health-indicators{gap:3px;flex-wrap:nowrap}.health-indicator{padding:4px 5px;font-size:8px;gap:4px}.health-indicator i{width:6px;height:6px}.health-indicator b,.health-indicator em{font-size:7px}}
+@media(max-width:700px){
+  .top-header-info{gap:4px;flex-wrap:nowrap;min-width:0}
+  .app-health-indicators{gap:3px;flex-wrap:nowrap;min-width:0;flex-shrink:1;white-space:nowrap}
+  .health-indicator{padding:4px 5px;font-size:8px;gap:4px;flex:0 0 auto;white-space:nowrap;min-width:max-content}
+  .health-indicator i{width:6px;height:6px;flex:0 0 6px}
+  .health-indicator b,.health-indicator em{font-size:7px;white-space:nowrap;display:inline-block}
+  #healthSync{flex:0 0 auto;white-space:nowrap}
+}
 </style>
 <script id="badoc-app-health-runtime">
 (function(){
