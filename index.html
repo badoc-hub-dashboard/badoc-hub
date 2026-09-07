@@ -6544,12 +6544,16 @@ window.DASHBOARD_V2_READY = true;
   const P={upload:"current/uploaded.csv",linehaul:"current/linehaul.csv",settings:"current/town-settings.json",layout:"current/town-layout.json",notes:"current/town-group-notes.json"};
   let client=null,channel=null,pollTimer=null,pulling=false,started=false;
   const pendingCloudWrites=new Set();
-  // A local Linehaul upload remains protected from cloud pulls until the
-  // authoritative DB state confirms it. This prevents a temporary DB/sync
-  // failure from making the freshly uploaded Linehaul data disappear.
+  // Local uploads remain protected from cloud pulls until the authoritative
+  // DB state confirms them. This prevents a temporary DB/sync failure from
+  // making freshly uploaded data disappear.
+  let uploadLocalDirty=false;
+  let uploadPendingVersion=0;
   let linehaulLocalDirty=false;
   let linehaulPendingVersion=0;
   try{
+    uploadLocalDirty=localStorage.getItem("badoc_upload_dirty_v1")==="1";
+    uploadPendingVersion=Number(localStorage.getItem("badoc_upload_pending_version_v1")||0);
     linehaulLocalDirty=localStorage.getItem("badoc_linehaul_dirty_v1")==="1";
     linehaulPendingVersion=Number(localStorage.getItem("badoc_linehaul_pending_version_v1")||0);
   }catch{}
@@ -6600,22 +6604,26 @@ window.DASHBOARD_V2_READY = true;
   }
   async function setState(patch){
     const c=supa();
-    const old=await state();
+    // Update only the fields that changed. The previous implementation read
+    // the whole state row and then upserted a complete snapshot. Two devices
+    // doing different sync operations at nearly the same time could therefore
+    // overwrite each other's upload_version/upload_exists values with stale data.
+    // A partial UPDATE makes each sync operation independent and prevents a
+    // Linehaul/Settings/Layout/Notes update from rolling back Parcel Count sync.
+    const clean={...(patch||{}),updated_at:new Date().toISOString(),updated_by:deviceId};
+    let r=await c.from(TABLE).update(clean).eq("id",1).select().maybeSingle();
+    if(r.error)throw Error(r.error.message||"Shared state update failed");
+    if(r.data)return r.data;
+    // First-run compatibility if the authoritative row does not exist yet.
     const row={
       id:1,
-      upload_exists:old?.upload_exists??false,
-      upload_version:Number(old?.upload_version||0),
-      linehaul_exists:old?.linehaul_exists??false,
-      linehaul_version:Number(old?.linehaul_version||0),
-      settings_version:Number(old?.settings_version||0),
-      layout_version:Number(old?.layout_version||0),
-      notes_version:Number(old?.notes_version||0),
-      updated_at:new Date().toISOString(),
-      updated_by:deviceId,
-      ...patch
+      upload_exists:false,upload_version:0,
+      linehaul_exists:false,linehaul_version:0,
+      settings_version:0,layout_version:0,notes_version:0,
+      ...clean
     };
-    const r=await c.from(TABLE).upsert(row,{onConflict:"id"}).select().single();
-    if(r.error)throw Error(r.error.message||"Shared state update failed");
+    r=await c.from(TABLE).insert(row).select().single();
+    if(r.error)throw Error(r.error.message||"Shared state create failed");
     return r.data;
   }
 
@@ -6744,7 +6752,9 @@ window.DASHBOARD_V2_READY = true;
       const s=await state();
       if(!s){status("Shared state not set");return}
       if(kind==="upload"){
-        if(!s.upload_exists)await clearLocalUpload();else await applyUpload();
+        if(!pendingCloudWrites.has("upload")&&!uploadLocalDirty){
+          if(!s.upload_exists)await clearLocalUpload();else await applyUpload();
+        }
         seen.upload=Number(s.upload_version||0);
       }else if(kind==="linehaul"){
         // Do not let a background pull erase a freshly uploaded Linehaul file
@@ -6763,7 +6773,9 @@ window.DASHBOARD_V2_READY = true;
         if(Number(s.notes_version||0)>seen.notes)await applyNotes();
         seen.notes=Number(s.notes_version||0);
       }else{
-        if(!s.upload_exists)await clearLocalUpload();else if(Number(s.upload_version||0)>seen.upload)await applyUpload();
+        if(!pendingCloudWrites.has("upload")&&!uploadLocalDirty){
+          if(!s.upload_exists)await clearLocalUpload();else if(Number(s.upload_version||0)>seen.upload)await applyUpload();
+        }
         if(!pendingCloudWrites.has("linehaul")&&!linehaulLocalDirty){
           if(!s.linehaul_exists)await clearLocalLinehaul();else if(Number(s.linehaul_version||0)>seen.linehaul)await applyLinehaul();
         }
@@ -6783,7 +6795,15 @@ window.DASHBOARD_V2_READY = true;
     const version=Date.now();
     // Protect local Linehaul data from background sync while the cloud write
     // and authoritative state update are being committed.
-    if(kind==="linehaul"){
+    if(kind==="upload"){
+      pendingCloudWrites.add("upload");
+      uploadLocalDirty=true;
+      uploadPendingVersion=version;
+      try{
+        localStorage.setItem("badoc_upload_dirty_v1","1");
+        localStorage.setItem("badoc_upload_pending_version_v1",String(version));
+      }catch{}
+    }else if(kind==="linehaul"){
       pendingCloudWrites.add("linehaul");
       linehaulLocalDirty=true;
       linehaulPendingVersion=version;
@@ -6853,7 +6873,14 @@ window.DASHBOARD_V2_READY = true;
       }
     }
     if(stateErr)throw stateErr;
-    if(kind==="linehaul"){
+    if(kind==="upload"){
+      uploadLocalDirty=false;
+      uploadPendingVersion=0;
+      try{
+        localStorage.removeItem("badoc_upload_dirty_v1");
+        localStorage.removeItem("badoc_upload_pending_version_v1");
+      }catch{}
+    }else if(kind==="linehaul"){
       linehaulLocalDirty=false;
       linehaulPendingVersion=0;
       try{
@@ -6865,8 +6892,16 @@ window.DASHBOARD_V2_READY = true;
     seen[field]=version;
     status((kind==="upload"?"Upload":"Linehaul")+" synced");
     }catch(err){
-      // Never clear the local Linehaul task because cloud sync failed.
-      if(kind==="linehaul"){
+      // Never clear locally uploaded data because cloud sync failed.
+      if(kind==="upload"){
+        uploadLocalDirty=true;
+        uploadPendingVersion=version;
+        try{
+          localStorage.setItem("badoc_upload_dirty_v1","1");
+          localStorage.setItem("badoc_upload_pending_version_v1",String(version));
+        }catch{}
+        status("Parcel Count sync error — data kept");
+      }else if(kind==="linehaul"){
         linehaulLocalDirty=true;
         try{
           localStorage.setItem("badoc_linehaul_dirty_v1","1");
@@ -6876,7 +6911,7 @@ window.DASHBOARD_V2_READY = true;
       }
       throw err;
     }finally{
-      if(kind==="linehaul")pendingCloudWrites.delete("linehaul");
+      pendingCloudWrites.delete(kind);
     }
   }
 
@@ -6986,6 +7021,36 @@ window.DASHBOARD_V2_READY = true;
     };
   }
 
+  async function retryPendingUploadState(){
+    if(!uploadLocalDirty||!uploadPendingVersion)return false;
+    try{
+      const s=await state();
+      const target=Number(uploadPendingVersion||0);
+      if(Number(s?.upload_version||0)>=target && s?.upload_exists){
+        uploadLocalDirty=false;
+        uploadPendingVersion=0;
+        try{
+          localStorage.removeItem("badoc_upload_dirty_v1");
+          localStorage.removeItem("badoc_upload_pending_version_v1");
+        }catch{}
+        return true;
+      }
+      await setState({upload_exists:true,upload_version:target});
+      uploadLocalDirty=false;
+      uploadPendingVersion=0;
+      try{
+        localStorage.removeItem("badoc_upload_dirty_v1");
+        localStorage.removeItem("badoc_upload_pending_version_v1");
+      }catch{}
+      await announce("upload","upload");
+      status("Parcel Count synced");
+      return true;
+    }catch(e){
+      status("Parcel Count sync error — data kept");
+      return false;
+    }
+  }
+
   async function retryPendingLinehaulState(){
     if(!linehaulLocalDirty||!linehaulPendingVersion)return false;
     try{
@@ -7022,15 +7087,15 @@ window.DASHBOARD_V2_READY = true;
       supa();
       // Cloud is authoritative. Do not restore persisted uploads on startup.
       // Start empty, then populate only after the cloud state is checked.
-      batches=[];current=null;
+      if(!uploadLocalDirty){batches=[];current=null;}
       // If a Linehaul upload was locally marked dirty, preserve it across a
       // temporary sync failure. Otherwise cloud state remains authoritative.
       if(!linehaulLocalDirty)linehaulTasks=[];
       render();renderLinehaul();
       ensureRealtime().catch(e=>console.warn(e));
-      setTimeout(async()=>{await retryPendingLinehaulState();await pull().catch(()=>{});},150);
+      setTimeout(async()=>{await retryPendingUploadState();await retryPendingLinehaulState();await pull().catch(()=>{});},150);
       clearInterval(pollTimer);
-      pollTimer=setInterval(async()=>{await retryPendingLinehaulState();await pull().catch(()=>{});},5000);
+      pollTimer=setInterval(async()=>{await retryPendingUploadState();await retryPendingLinehaulState();await pull().catch(()=>{});},5000);
     }catch(e){console.warn(e);status("Cloud sync unavailable")}
   }
 
