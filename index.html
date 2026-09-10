@@ -3817,7 +3817,7 @@ html{
 
 
 <div class="dashboard-summary-card clear"><strong id="opClearFloorRate">0.0%</strong><span>CLEAR FLOOR RATE</span><small></small></div>
-        <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>VOLUME FORECAST</span><small></small></div>
+        <div class="dashboard-summary-card incoming" id="incomingVolumeCard"><strong id="opIncomingVolume">0</strong><span>VOLUME FORECAST</span><small>Expected final by 3 AM</small></div>
       </div>
       <div id="volumeCutoffStatus" style="margin-top:8px;color:#8fa0ad;font-size:12px">Volume period: checking local time…</div>
       <label title="Add Linehaul Task ID volume to Today's Volume" style="display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11px;color:#8fa0ad;cursor:pointer;opacity:.75">
@@ -7441,6 +7441,7 @@ window.updateOperationProgress=function(){
   // New operating cutoffs: 3:00 AM and 3:00 PM.
   const after3am=mins>=180;
   const after3pm=mins>=900;
+  const forecastWindow=mins>=900 || mins<180;
   const stations=["BADOC HUB","CAGAYAN DC","SOC 6"];
   // Exact 57-town allowlist: 29 Badoc + 28 Pinili.
   // Normalize punctuation/case so CSV values such as AR-ARUSIP and
@@ -7505,13 +7506,13 @@ window.updateOperationProgress=function(){
   try{tvLinehaulEnabled=localStorage.getItem(TV_LINEHAUL_KEY)==="1";}catch(e){}
   const todayVolume=todayRows.length+(tvLinehaulEnabled?linehaulTodayVolume:0);
 
-  // Estimated Volume Tomorrow: starting at 3 PM, count unique Parcel Records
-  // that are destined for Badoc Hub, currently at an allowed station, belong
-  // to one of the exact configured Badoc/Pinili towns, are not exceptions,
-  // and have one of the qualifying next-period statuses.
-  // `current.valid` is already classified by destination + current station +
-  // the exact configured town map, so do not use Linehaul Task data here.
-  const estimatedStatuses=new Set([
+  // Volume Forecast: from 3 PM through 3 AM next day, estimate the final
+  // volume by counting unique SPX TNs that meet the exact forecast criteria.
+  // Destination Station must be BADOC HUB. Current Station must be BADOC HUB,
+  // SOC 6, or CAGAYAN DC. Town must be in the configured Badoc/Pinili list.
+  // Exceptions are excluded and only the forecast statuses below qualify.
+  // Linehaul Task data is not used for this forecast.
+  const forecastStatuses=new Set([
     "RECEIVED",
     "LMHUBRECEIVED",
     "SOCLHTRANSPORTING",
@@ -7519,16 +7520,19 @@ window.updateOperationProgress=function(){
     "SOCPACKED",
     "SOCPACKING"
   ]);
-  const estimatedTnKeys=new Set();
-  if(after3pm){
-    qualifyingDayRows.forEach(r=>{
+  const forecastTnKeys=new Set();
+  if(forecastWindow){
+    allRows.forEach(r=>{
+      if(destination(r)!=="BADOC HUB")return;
+      if(!stations.includes(station(r)))return;
       if(!tomorrowTownEligible(r))return;
-      if(!estimatedStatuses.has(statusKey(status(r))))return;
+      if(isExceptionRow(r))return;
+      if(!forecastStatuses.has(statusKey(status(r))))return;
       const tn=tnKey(spxTN(r));
-      if(tn)estimatedTnKeys.add(tn);
+      if(tn)forecastTnKeys.add(tn);
     });
   }
-  const estimatedTomorrow=after3pm?estimatedTnKeys.size:0;
+  const estimatedTomorrow=forecastWindow?forecastTnKeys.size:0;
 
   const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
   qualifyingDayRows.forEach(r=>{
@@ -7563,7 +7567,7 @@ window.updateOperationProgress=function(){
 
   setText("opTodayVolume",todayVolume);
   setText("opIncomingVolume",estimatedTomorrow);
-  const card=document.getElementById("incomingVolumeCard");if(card)card.style.display="";
+  const card=document.getElementById("incomingVolumeCard");if(card)card.style.display=forecastWindow?"":"none";
   // Regular Clear Floor Rate is the CURRENT rate for the active operational
   // dataset. Do not persist a per-browser maximum: downloaded HTML and GitHub
   // must show the same result when their uploaded data is the same. The daily
@@ -7708,11 +7712,11 @@ window.updateOperationProgress=function(){
   const unscanned=Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0)-onHold);
   setText("opUnscanned",unscanned);
   const cutoff=document.getElementById("volumeCutoffStatus");
-  if(cutoff)cutoff.textContent=after3pm
-    ?"CURRENT PERIOD: 3:00 PM–2:00 AM"
+  if(cutoff)cutoff.textContent=forecastWindow
+    ?"FORECAST WINDOW: 3:00 PM–3:00 AM NEXT DAY"
     :after3am
       ?"CURRENT PERIOD: 3:00 AM–3:00 PM"
-      :"CURRENT PERIOD: 2:00 AM–3:00 AM";
+      :"CURRENT PERIOD: 3:00 AM–3:00 PM";
 };
 setInterval(()=>window.updateOperationProgress?.(),30000);
 </script>
@@ -9278,7 +9282,15 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
      "badoc_linehaul_tasks_town_v1","badoc_linehaul_packed_rows_v1",
      "badoc_linehaul_blank_packed_rows_v1","badoc_linehaul_export_total_v1",
      "badoc_linehaul_export_unique_v1"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
-    try{if(typeof exceptionTrackingNumbers!=="undefined"){} }catch(e){}
+    // Clear exception/exemption tracking numbers at the 2:00 AM daily reset too.
+    try{
+      if(typeof exceptionTrackingNumbers!=="undefined"){
+        exceptionTrackingNumbers=[];
+        if(typeof saveExceptionTrackingNumbers==="function")saveExceptionTrackingNumbers();
+        if(typeof cloudExceptionWrite==="function")cloudExceptionWrite("clear","");
+        if(typeof renderExceptionTracking==="function")renderExceptionTracking();
+      }
+    }catch(e){console.warn("2 AM exception reset:",e)}
     const f=document.getElementById("csvFile");if(f)f.value="";
     const lf=document.getElementById("linehaulCsvFile");if(lf)lf.value="";
     if(typeof renderLinehaul==="function")renderLinehaul();
@@ -9326,7 +9338,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
         }
       }catch(e){console.warn("Daily reset marker:",e)}
       try{localStorage.setItem(RESET_MARKER_LOCAL,today)}catch(e){}
-      console.log("BADOC 2:00 AM daily upload reset completed for",today);
+      console.log("BADOC 2:00 AM daily upload/exemption reset completed for",today);
     }catch(e){
       console.warn("BADOC 2:00 AM daily reset failed; will retry:",e);
     }finally{busy=false;}
