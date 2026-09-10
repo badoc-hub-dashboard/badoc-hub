@@ -3870,10 +3870,10 @@ html{
   <div class="dashboard-eod-panel dashboard-eod-fleet-panel">
     <div class="dashboard-eod-panel-title">Fleet Summary</div>
     <div class="dashboard-eod-rows">
-      <div><span>4W</span><strong id="dashEodFleet4w">—</strong></div>
       <div><span>3W</span><strong id="dashEodFleet3w">—</strong></div>
       <div><span>2W</span><strong id="dashEodFleet2w">—</strong></div>
       <div><span>Flexi</span><strong id="dashEodFleetFlexi">—</strong></div>
+      <div><span>Total Riders</span><strong id="dashEodTotalRiders">0</strong></div>
     </div>
   </div>
 
@@ -4235,7 +4235,7 @@ UPLOAD TO PARCEL COUNT</div>
   
 </div>
 <div class="section">
-    <h2>Settings</h2><div class="toolbar"><button class="btn" id="backup">Export local backup</button><button class="btn" id="restoreBtn">Import backup</button><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all data</button></div>
+    <h2>Settings</h2><div class="toolbar"><span id="backup" style="display:none"></span><span id="restoreBtn" style="display:none"></span><input id="restoreFile" type="file" accept=".json" style="display:none"><button class="btn danger" id="clearData">Clear all data</button></div>
     <div class="hint">Clear data from both Parcel Count and Linehaul Task.</div>
   </div></section>
 </main>
@@ -7533,7 +7533,7 @@ window.updateOperationProgress=function(){
   const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
   qualifyingDayRows.forEach(r=>{
     const s=status(r);
-    if(s==="SOC LHTRANSPORTING"||s==="SOC PACKED"||s==="SOC PACKING") counts.TRANSPORTING++;
+    if(s==="SOC LHTRANSPORTING"||s==="SOC PACKED"||s==="SOC PACKING"||(s==="SOC LHTRANSPORTED"&&(station(r)==="CAGAYAN DC"||station(r)==="SOC 6"))) counts.TRANSPORTING++;
     else if(s==="SOC LHTRANSPORTED" && station(r)==="BADOC HUB") counts.TRANSPORTED++;
     else if(s==="LMHUB RECEIVED") counts.RECEIVED++;
     else if(s==="LMHUB ASSIGNING") counts.ASSIGNING++;
@@ -8825,9 +8825,13 @@ function render(){let ds=[];rows.flat().forEach(v=>{const d=dateText(v);if(/-\d{
 const onholdLabels=["Incorrect delivery address","Cannot find address","Inaccessible location","Office closed","SP closed","Risky area of delivery","Recipient unavailable for parcel","Recipient reschedule","Recipient change location","Recipient reject","Reject - Damaged","Reject - Wrong item","Reject - Missing item","Reject - Buyers change their mind","Incorrect/ missing verification","Parcel lost","Parcel damaged, cannot attempt","Shipment under investigation","Wrongly assigned","Insufficient time","Disaster","Severe weather","Vehicular accident","Vehicle breakdown"];
 const findReasonValue=label=>{const target=norm(label);for(const row of rows){const idx=row.findIndex(c=>norm(c)===target);if(idx>=0){for(let j=idx+1;j<row.length;j++){const v=clean(row[j]);if(v!=="")return v}for(let j=idx-1;j>=0;j--){const v=clean(row[j]);if(/^\\d+(?:\\.\\d+)?$/.test(v))return v}}}return "0"};
 const reasons=onholdLabels.map(label=>[label,findReasonValue(label)]),dash=pairs("dashboard summary",["delivery performance"]),fleet=pairs("fleet summary",["delivery performance"]),r=rate(),lb=leaderboard(),rh=a=>a.map(x=>`<div class="eod-row"><span>${esc(x[0])}</span><span>${esc(x[1])}</span></div>`).join("");
-window.__badocEodDashboard={};
+  const fleetCounts={};
+  fleet.forEach(x=>fleetCounts[norm(x[0])]=num(x[1])||0);
+  const totalRidersUsed=(fleetCounts["3w"]||0)+(fleetCounts["2w"]||0)+(fleetCounts["flexi"]||0);
+  window.__badocEodDashboard={};
 dash.forEach(x=>window.__badocEodDashboard[norm(x[0])]=clean(x[1]));
 fleet.forEach(x=>window.__badocEodDashboard["fleet "+norm(x[0])]=clean(x[1]));
+window.__badocEodDashboard.totalRidersUsed=String(totalRidersUsed);
 window.__badocEodDashboard.deliveryPerformance=clean(r);
 window.__badocEodDashboard.date=d;
 window.__badocEodDashboard.hub="Hub";
@@ -10169,10 +10173,10 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     set("dashEodRedelivery",get("total redelivery"));
     set("dashEodRts",get("total rts"));
     set("dashEodRate",d.deliveryPerformance||"—");
-    set("dashEodFleet4w",get("fleet 4w","4w"));
     set("dashEodFleet3w",get("fleet 3w","3w"));
     set("dashEodFleet2w",get("fleet 2w","2w"));
     set("dashEodFleetFlexi",get("fleet flexi","flexi"));
+    set("dashEodTotalRiders",d.totalRidersUsed||"—");
   }
   sync();
   setInterval(sync,1000);
