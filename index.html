@@ -24,7 +24,7 @@
 @media(max-width:900px){.side{width:118px;padding:15px 8px}.brand{font-size:15px;text-align:center;padding:4px 2px 20px;white-space:nowrap}.brand:before{display:none}.brand small{display:none}.nav button{font-size:10px;text-align:left;padding:10px 7px;white-space:nowrap}.nav .ico{font-size:15px;width:20px}.main{margin-left:118px;width:calc(100% - 118px);padding:20px 14px}.kpis{grid-template-columns:repeat(2,1fr)}.town-grid{grid-template-columns:1fr}.town-column{gap:9px}.settings-grid{grid-template-columns:1fr}}
 @media(max-width:550px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px}.kpi .num{font-size:29px}.main{padding:14px}.top{margin-bottom:15px}.title h1{font-size:20px}.toolbar input{min-width:100%;}}
 
-/* ELECTRIC BLUE THEME */
+
 :root{
   --bg:#05070a;
   --panel:#0c1015;
@@ -121,16 +121,6 @@ body{background:#05070a;color:#f5f8fc}
 #linehaul .table td,#linehaul .table th{white-space:nowrap}
 @media(max-width:900px){#linehaul .lh-summary{grid-template-columns:repeat(3,1fr)}#linehaul .lh-summary>div:nth-child(3){border-right:0}}
 
-#linehaul .linehaul-tools{display:flex;gap:8px;align-items:center;margin:10px 0 12px}
-#linehaul .lh-upload{display:inline-flex;align-items:center;gap:7px;background:#0b69b7;border:1px solid #168cff;color:#fff;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700}
-#linehaul .lh-upload input{display:none}
-#linehaul .lh-upload span{font-size:17px}
-#linehaul .lh-summary{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);margin-bottom:12px}
-#linehaul .lh-summary>div{padding:10px 12px;border-right:1px solid var(--line);background:#0b0f14}
-#linehaul .lh-summary>div:last-child{border-right:0}
-#linehaul .lh-summary b{display:block;font-size:21px;line-height:1.1}
-#linehaul .lh-summary span{display:block;margin-top:4px;font-size:9px;color:var(--muted);letter-spacing:.06em;font-weight:700}
-@media(max-width:900px){#linehaul .lh-summary{grid-template-columns:repeat(3,1fr)}#linehaul .lh-summary>div:nth-child(3){border-right:0}}
 
 #linehaul .lh-town td{border-top:2px solid #202b37;background:#0e141b}
 #linehaul .lh-detail td{background:#0a0f15;color:#b6c0ce}
@@ -224,7 +214,7 @@ body{background:#05070a;color:#f5f8fc}
 @media(max-width:600px){#linehaul .lh-task-kpis{grid-template-columns:1fr}}
 
 
-/* Parcel Count — upload status */
+
 .parcel-upload-status .pus-toggle{
   width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:0;border:0;background:transparent;color:inherit;cursor:pointer;text-align:left;
@@ -265,7 +255,7 @@ body{background:#05070a;color:#f5f8fc}
 #linehaul .lh-task-block.collapsed .lh-task-kpis,
 #linehaul .lh-task-block.collapsed .lh-task-town-section{display:none}
 
-/* Readability pass: larger text + stronger contrast */
+
 body{font-size:15px}
 #linehaul{color:#f5f7fa}
 #linehaul .hint,
@@ -307,7 +297,7 @@ body{font-size:15px}
 @media(max-width:900px){#linehaul .lh-doid-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){#linehaul .lh-doid-fields{grid-template-columns:1fr}}
 
-/* KPI sheet-style layout */
+
 .kpi-sheet{background:#0b1016;border:1px solid #2f3c4b;border-radius:12px;overflow:hidden}
 .kpi-sheet-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #2f3c4b;background:#101821}
 .kpi-sheet-sub{font-size:13px;color:#aebdca}.kpi-sheet-head h2{margin:5px 0 0;font-size:22px;color:#fff}
@@ -324,7 +314,7 @@ body{font-size:15px}
 @media(max-width:1000px){.kpi-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-metric:nth-child(4n){border-right:1px solid #263340}.kpi-metric:nth-child(2n){border-right:0}.kpi-meta{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.kpi-metric-grid,.kpi-meta{grid-template-columns:1fr}.kpi-sheet-head{align-items:flex-start;gap:15px;flex-direction:column}.kpi-sheet-score{text-align:left}}
 
-/* KPI visual polish */
+
 #kpi{padding-bottom:30px}
 #kpi .kpi-sheet{
   border:1px solid #334455;border-radius:16px;
@@ -378,7 +368,7 @@ body{font-size:15px}
   #kpi .kpi-metric-grid{gap:8px;padding:8px}
 }
 
-/* Full KPI color system */
+
 #kpi .kpi-sheet-head{
   background:linear-gradient(135deg,#142b3d,#172238 55%,#202344);
 }
@@ -424,7 +414,7 @@ body{font-size:15px}
 #kpi .kpi-values span{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06)}
 #kpi .kpi-metric:hover{box-shadow:0 8px 22px rgba(0,0,0,.3)}
 
-/* Detailed, color-coded M-1 */
+
 #kpi .kpi-m1-header{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;background:#101923;border-bottom:1px solid #334455}
 #kpi .kpi-m1-header span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9fb0bf}
 #kpi .kpi-m1-header b{display:block;font-size:17px;color:#fff;margin-top:4px}
@@ -443,14 +433,14 @@ body{font-size:15px}
 #kpi .kpi-m1-category:nth-of-type(3) .kpi-metric{background:linear-gradient(145deg,#112c1d,#0d1e16)}
 #kpi .kpi-m1-category:nth-of-type(4) .kpi-metric{background:linear-gradient(145deg,#34220e,#21170b)}
 
-/* M-1 collapsible, collapsed by default */
+
 #kpi .kpi-m1-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
 #kpi .kpi-m1-toggle:hover{filter:brightness(1.12)}
 #kpi .kpi-m1-toggle em{font-style:normal;font-size:10px;color:#e9c7ff;letter-spacing:.4px}
 #kpi .kpi-m1-sheet.m1-collapsed .kpi-m1-body{display:none}
 #kpi .kpi-m1-sheet.m1-open .kpi-m1-body{display:block}
 
-/* Global pleasing color pass */
+
 :root{
   --blue:#38bdf8;--cyan:#22d3ee;--green:#4ade80;--amber:#fbbf24;
   --purple:#a78bfa;--pink:#f472b6;--red:#fb7185;--teal:#2dd4bf;
@@ -537,7 +527,7 @@ body{background:radial-gradient(circle at 80% 0%,#102338 0%,#05070a 38%);backgro
 .badge.good{background:#123d28;color:#86efac;border:1px solid #236b45}
 .badge.bad{background:#451923;color:#fda4af;border:1px solid #8b3040}
 
-/* AMOLED BLACK + ELECTRIC BLUE THEME */
+
 :root{
   --electric-blue:#00A8FF;
   --electric-blue-bright:#19C2FF;
@@ -709,7 +699,7 @@ input:focus,select:focus,textarea:focus{
   box-shadow:0 0 0 2px rgba(0,168,255,.1)!important;
 }
 
-/* Lighter AMOLED + Electric Blue Gradient Upgrade */
+
 :root{
   --electric-blue:#18B8FF;
   --electric-blue-light:#4DD4FF;
@@ -886,7 +876,7 @@ input:focus,select:focus,textarea:focus{
   box-shadow:0 0 0 2px rgba(24,184,255,.12),0 0 14px rgba(24,184,255,.08)!important;
 }
 
-/* Premium accent: Arctic Blue — electric blue with a subtle cyan-violet depth */
+
 :root{
   --accent-1:#1677FF;
   --accent-2:#00B8FF;
@@ -1051,7 +1041,7 @@ input:focus,select:focus,textarea:focus{
 #globalSearchResults table{width:100%;min-width:900px}
 #globalSearchResults td:first-child{color:#62E6FF;font-weight:800}
 
-/* ===== MOBILE + AMOLED GLASS UI ===== */
+
 .mobile-bottom-nav{display:none}
 
 :root{
@@ -1180,7 +1170,7 @@ body{
   .mobile-bottom-nav .mobile-ico{font-size:17px}
 }
 
-/* Dashboard V1 — Shared Upload + AMOLED Glass polish */
+
 .shared-upload-status{
   margin-top:12px;padding:12px 14px;border:1px solid #223b49;border-radius:11px;
   background:linear-gradient(135deg,rgba(12,31,42,.78),rgba(7,11,15,.9));
@@ -1199,7 +1189,7 @@ body{
 .upload-history-card .upload-meta{font-size:11px;color:#8fa0ad;margin-top:4px}
 .upload-history-card .upload-count{font-size:18px;font-weight:900;color:#4dd4ff}
 
-/* AMOLED + Glass visual pass */
+
 :root{
   --glass-bg:rgba(12,17,22,.82);
   --glass-border:rgba(77,212,255,.16);
@@ -1235,7 +1225,7 @@ window.BADOC_SHARED_CONFIG = {
   key: "sb_publishable_hpKmEjEVlUvY6SxN-4aEYQ_Ih3yyjsQ"
 };
 </script>
-<style id="v1-4-kpi-model">
+<style>
 #kpiLiveSheet .kpi-category-title{padding:12px 14px;background:linear-gradient(90deg,#071923,#05090D)!important;border-left:4px solid var(--electric-blue)!important;color:#EAF8FF!important;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
 #kpiLiveSheet .kpi-metric{min-height:112px}
 #kpiLiveSheet .kpi-values{gap:5px 8px}
@@ -1244,24 +1234,9 @@ window.BADOC_SHARED_CONFIG = {
 #kpiLiveSheet .kpi-m1-sheet.m1-open .kpi-m1-body{display:block}
 #kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa}
 @media(max-width:800px){#kpiLiveSheet .kpi-meta{grid-template-columns:1fr 1fr}#kpiLiveSheet .kpi-metric-grid{grid-template-columns:1fr!important}}
-</style><style id="v1-7-kpi-connection">
-#kpiLiveSheet #kpiStatus{margin-top:12px;font-weight:700}
-#kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa}
-</style><style id="v1-10-kpi-apps-script">
+</style><style>
 #kpiLiveSheet .kpi-data-error{padding:24px;text-align:center;color:#ff9aaa;line-height:1.5}
 #kpiLiveSheet #kpiStatus{margin-top:12px;font-weight:800;letter-spacing:.2px}
-</style><style id="v1-12-kpi-months">
-.kpi-month-section{margin-top:18px}
-.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
-.kpi-month-content{margin-top:10px}
-</style><style id="v1-13-kpi-refresh">
-.kpi-month-section{margin-top:18px}
-.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
-.kpi-month-content{margin-top:10px}
-</style><style id="v1-16-kpi">
-.kpi-month-section{margin-top:18px}
-.kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
-.kpi-month-content{margin-top:10px}
 </style>
 <script id="v2-config">
 window.DASHBOARD_V2 = {
@@ -1280,7 +1255,7 @@ window.DASHBOARD_V2 = {
 };
 </script>
 
-<style id="v2-foundation">
+<style>
 .v2-source-badge{
   display:inline-flex;align-items:center;gap:6px;
   font-size:11px;font-weight:800;letter-spacing:.25px;
@@ -1291,7 +1266,7 @@ window.DASHBOARD_V2 = {
 }
 </style>
 
-<style id="v2-kpi-visuals">
+<style>
 .kpi-month-section{margin-top:18px}
 .kpi-month-title{font-size:15px;font-weight:900;letter-spacing:.4px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .kpi-month-content{margin-top:10px}
@@ -1313,14 +1288,10 @@ window.DASHBOARD_V2 = {
   .v2-kpi-card .kpi-actual{font-size:25px}
 }
 </style>
-<style id="v2-2-kpi">
-.v2-kpi-card .kpi-target-row strong{white-space:normal}
-</style><style id="v2-3-kpi">
-.v2-kpi-card .kpi-target-row strong{white-space:normal}
-</style><style id="v2-4-kpi">
+<style>
 .v2-kpi-card .kpi-target-row strong{white-space:normal}
 </style>
-<style id="v3-kpi-health">
+<style>
 .v3-health-summary{
   margin:14px 0 18px;
   padding:14px;
@@ -1365,8 +1336,8 @@ window.DASHBOARD_V2 = {
 }
 </style>
 
-<style id="v3-2-kpi-visuals">
-/* KPI V3 visual refresh */
+<style>
+
 .kpi-v3-hero{
   display:grid;
   grid-template-columns:minmax(220px,1.15fr) repeat(3,minmax(110px,.6fr));
@@ -1510,7 +1481,7 @@ window.DASHBOARD_V2 = {
 }
 </style>
 
-<style id="v3-glass-gradient-theme">
+<style>
 :root{
   --app-bg:#0B0F14;
   --app-bg-2:#0E141C;
@@ -1524,7 +1495,7 @@ window.DASHBOARD_V2 = {
   --blue-glow:rgba(22,131,255,.22);
 }
 
-/* Deep charcoal foundation */
+
 html,body{
   background:
     radial-gradient(900px 600px at 82% -10%,rgba(22,131,255,.13),transparent 58%),
@@ -1533,7 +1504,7 @@ html,body{
   background-attachment:fixed;
 }
 
-/* Apple-inspired glass: translucent, layered, softly bordered */
+
 .sidebar,
 header,
 nav,
@@ -1564,7 +1535,7 @@ nav,
   backdrop-filter:blur(18px) saturate(135%);
 }
 
-/* Slightly stronger separation for primary surfaces */
+
 .sidebar{
   background:
     linear-gradient(180deg,rgba(18,27,38,.86),rgba(8,13,19,.88)),
@@ -1574,7 +1545,7 @@ nav,
     inset -1px 0 rgba(255,255,255,.05);
 }
 
-/* Soft blue ambient glow behind primary dashboard surfaces */
+
 .kpi-v3-score,
 .kpi-v3-hero,
 .hero,
@@ -1594,7 +1565,7 @@ nav,
   pointer-events:none;
 }
 
-/* Electric-blue accent treatment */
+
 button.primary,
 .btn.primary,
 .active,
@@ -1605,7 +1576,7 @@ button.primary,
     0 8px 24px rgba(22,131,255,.16);
 }
 
-/* Glassy inputs */
+
 input,select,textarea{
   background:rgba(8,13,19,.52)!important;
   border-color:rgba(255,255,255,.09)!important;
@@ -1618,7 +1589,7 @@ input:focus,select:focus,textarea:focus{
     0 0 24px rgba(22,131,255,.08);
 }
 
-/* More depth on KPI cards */
+
 .v3-kpi-card{
   background:
     linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018) 45%,rgba(22,131,255,.028)),
@@ -1637,7 +1608,7 @@ input:focus,select:focus,textarea:focus{
     inset 0 1px 0 rgba(255,255,255,.07);
 }
 
-/* Subtle glass highlight on headings */
+
 .kpi-month-title,
 .kpi-category-title{
   background:
@@ -1645,12 +1616,12 @@ input:focus,select:focus,textarea:focus{
   border-color:rgba(255,255,255,.07);
 }
 
-/* Smooth interaction */
+
 button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease;
 }
 
-/* Mobile: reduce blur to keep scrolling smooth */
+
 @media(max-width:700px){
   .sidebar,
   header,
@@ -1667,8 +1638,8 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-4-dashboard-cards">
-/* Premium operations cards */
+<style>
+
 .dashboard-card,
 .stat-card,
 .summary-card,
@@ -1718,7 +1689,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     inset 0 1px 0 rgba(255,255,255,.085);
 }
 
-/* Card typography */
+
 .dashboard-card h2,
 .dashboard-card h3,
 .stat-card h2,
@@ -1751,7 +1722,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   opacity:.58;
 }
 
-/* Blue status/accent line */
+
 .dashboard-card.accent,
 .stat-card.accent,
 .summary-card.accent{
@@ -1768,7 +1739,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   opacity:.75;
 }
 
-/* Count cards: make the number feel intentional */
+
 .dashboard-card .count,
 .stat-card .count,
 .summary-card .count{
@@ -1776,7 +1747,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   text-shadow:0 0 24px rgba(22,131,255,.16);
 }
 
-/* Keep grids from feeling cramped */
+
 .dashboard-cards,
 .stats-grid,
 .summary-grid,
@@ -1803,9 +1774,8 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-5-clean-card-surfaces">
-/* V8.1 — remove the "double border / rounded inner line" look.
-   One card = one border, one radius, one glass surface. */
+<style>
+
 .kpis .kpi{
   position:relative!important;
   overflow:hidden!important;
@@ -1846,7 +1816,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   z-index:1;
 }
 
-/* Town cards: clean single glass outline, with one subtle blue rail. */
+
 .town-card{
   position:relative!important;
   box-sizing:border-box!important;
@@ -1876,8 +1846,8 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-5-1-clean-header">
-/* Dashboard header cleanup */
+<style>
+
 #fileName,
 #fileInfo,
 #uploadFileName,
@@ -1889,7 +1859,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
   display:none!important;
 }
 
-/* Hide the "Signed in as ..." block; app remains login-free. */
+
 #signedInAs,
 #signedIn,
 .signed-in,
@@ -1899,16 +1869,16 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-5-2-header-clean">
+<style>
 .userbox{display:none!important}
 #batchLabel{font-size:11px;opacity:.58}
 </style>
 
-<style id="v3-5-3-hide-batch-label">
+<style>
 #batchLabel{display:none!important}
 </style>
 
-<style id="v3-5-6-top-sync">
+<style>
 .top{position:relative}
 .top-sync-status{
   display:flex;align-items:center;gap:7px;margin-left:auto;
@@ -1927,7 +1897,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 @media(max-width:600px){.top-sync-status{padding:6px 8px;font-size:9px}}
 </style>
 
-<style id="app-refresh-button">
+<style>
 .app-refresh-btn{
   display:inline-flex;align-items:center;justify-content:center;gap:4px;
   min-height:30px;padding:6px 9px;border:1px solid rgba(75,211,255,.28);
@@ -1944,7 +1914,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-5-7-header-info">
+<style>
 .top-header-info{
   display:flex;
   align-items:center;
@@ -1981,7 +1951,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v3-5-9-location">
+<style>
 .top-location{
   padding:7px 9px;
   border:1px solid rgba(255,255,255,.07);
@@ -2006,10 +1976,8 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
 }
 </style>
 
-<style id="v4-4-5-mobile-polish">
-/* =========================
-   V4.4 MOBILE EXPERIENCE
-   ========================= */
+<style>
+
 .mobile-bottom-nav{
   display:none;
 }
@@ -2020,7 +1988,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     overflow-x:hidden;
   }
 
-  /* Hide desktop sidebar navigation on phones. */
+  
   .sidebar{
     display:none!important;
   }
@@ -2074,7 +2042,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     font-size:8px!important;
   }
 
-  /* Convert wide grids into phone-friendly cards. */
+  
   .kpis,.dashboard-cards,.stats-grid,.summary-grid,.card-grid{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:8px!important;
@@ -2094,7 +2062,7 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     font-size:25px!important;
   }
 
-  /* Tables become horizontally scrollable rather than breaking the page. */
+  
   .table-wrap{
     width:100%!important;
     overflow-x:auto!important;
@@ -2105,12 +2073,12 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     min-width:620px;
   }
 
-  /* Large town/routing layouts collapse to one column. */
+  
   .town-grid{
     grid-template-columns:1fr!important;
   }
 
-  /* Bottom mobile navigation */
+  
   .mobile-bottom-nav{
     position:fixed;
     left:8px;
@@ -2159,15 +2127,13 @@ button,.btn,.nav-item,.tab,.card,.panel,.kpi-metric{
     box-shadow:inset 0 1px rgba(255,255,255,.055);
   }
 
-  /* Make primary actions thumb-friendly. */
+  
   button,.btn,input,select{
     min-height:40px;
   }
 }
 
-/* =========================
-   V8 FINAL POLISH
-   ========================= */
+
 :root{
   --v4-blue:#1683FF;
   --v4-border:rgba(255,255,255,.09);
@@ -2192,7 +2158,7 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
   outline-offset:2px;
 }
 
-/* Consistent glass depth across major surfaces. */
+
 .card,.panel,.kpi,.kpi-card,.stat-card,.summary-card,
 .table-wrap,.modal,.settings-card{
   box-shadow:
@@ -2200,20 +2166,20 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
     inset 0 1px rgba(255,255,255,.045);
 }
 
-/* Subtle shine that does not create an extra border/box. */
+
 .card:hover,.panel:hover,.kpi:hover,.kpi-card:hover,
 .stat-card:hover,.summary-card:hover{
   border-color:rgba(22,131,255,.24);
 }
 
-/* Better empty/loading states when classes already exist. */
+
 .loading,.empty-state,.no-data{
   border:1px dashed rgba(255,255,255,.10);
   border-radius:14px;
   background:rgba(255,255,255,.018);
 }
 
-/* Respect reduced motion. */
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.01ms!important;
@@ -2224,7 +2190,7 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
 }
 </style>
 
-<style id="v4-5-1-single-row-nav">
+<style>
 @media(max-width:760px){
   .mobile-bottom-nav{
     grid-template-columns:repeat(6,minmax(0,1fr))!important;
@@ -2250,12 +2216,10 @@ button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible
 }
 </style>
 
-<style id="v4-5-2-animations">
-/* =========================
-   V8 MOTION SYSTEM
-   ========================= */
+<style>
 
-/* Smooth page entrance */
+
+
 @keyframes v452PageIn{
   from{opacity:0;transform:translateY(7px)}
   to{opacity:1;transform:translateY(0)}
@@ -2264,7 +2228,7 @@ main,.main,.content,.page-content{
   animation:v452PageIn .38s cubic-bezier(.2,.75,.25,1) both;
 }
 
-/* Dashboard cards gently rise into place */
+
 @keyframes v452CardIn{
   from{opacity:0;transform:translateY(12px) scale(.985)}
   to{opacity:1;transform:translateY(0) scale(1)}
@@ -2277,7 +2241,7 @@ main,.main,.content,.page-content{
 .kpi:nth-child(3),.kpi-card:nth-child(3){animation-delay:.09s}
 .kpi:nth-child(4),.kpi-card:nth-child(4){animation-delay:.135s}
 
-/* Soft blue glow on hover/touch */
+
 .kpi,.kpi-card,.dashboard-card,.stat-card,.summary-card,.card,.panel{
   transition:
     transform .22s cubic-bezier(.2,.75,.25,1),
@@ -2295,7 +2259,7 @@ main,.main,.content,.page-content{
   }
 }
 
-/* Button press feedback */
+
 button,.btn{
   transition:
     transform .14s ease,
@@ -2308,7 +2272,7 @@ button:active,.btn:active{
   filter:brightness(1.08);
 }
 
-/* Navigation active indicator */
+
 .mobile-bottom-nav button{
   transition:
     transform .2s cubic-bezier(.2,.75,.25,1),
@@ -2323,7 +2287,7 @@ button:active,.btn:active{
   to{transform:scale(1)}
 }
 
-/* Sync indicator motion */
+
 .top-sync-status.connecting .top-sync-dot{
   animation:v452SyncPulse 1.15s ease-in-out infinite;
 }
@@ -2340,17 +2304,17 @@ button:active,.btn:active{
   100%{transform:scale(1);box-shadow:0 0 10px rgba(50,232,117,.45)}
 }
 
-/* Subtle section heading accent */
+
 .section-title,.panel-title{
   transition:transform .2s ease;
 }
 
-/* Smooth scrolling */
+
 html{
   scroll-behavior:smooth;
 }
 
-/* Never animate for users who request reduced motion */
+
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto!important}
   main,.main,.content,.page-content,
@@ -2363,8 +2327,8 @@ html{
 }
 </style>
 
-<style id="v4-5-3-android-nav-active">
-/* Android: make the pressed/current bottom-nav item clearly illuminated. */
+<style>
+
 @media(max-width:760px){
   .mobile-bottom-nav button.active{
     position:relative!important;
@@ -2403,7 +2367,7 @@ html{
 }
 </style>
 
-<style id="v5-2-filter-compatibility-fixed">
+<style>
 #records .records-filter-toolbar select{
   min-width:0;
   overflow:hidden;
@@ -2413,7 +2377,7 @@ html{
 }
 </style>
 
-<style id="v5-2-2-parcel-filter-touch">
+<style>
 #records .records-filter-toolbar{
   display:grid!important;
   grid-template-columns:minmax(0,1.25fr) minmax(150px,1fr) minmax(165px,1fr) minmax(130px,.8fr) auto!important;
@@ -2452,7 +2416,7 @@ html{
   white-space:nowrap!important;
 }
 
-/* Tablet */
+
 @media(max-width:1050px){
   #records .records-filter-toolbar{
     grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important;
@@ -2465,7 +2429,7 @@ html{
   }
 }
 
-/* Android phone: two clean rows, no overlap/cutoff. */
+
 @media(max-width:600px){
   #records .records-filter-toolbar{
     grid-template-columns:1fr 1fr!important;
@@ -2484,7 +2448,7 @@ html{
 }
 </style>
 
-<style id="v6-m1-summary-card">
+<style>
 .kpi-m1-summary-card{margin:0 0 12px;border:1px solid rgba(34,190,255,.22);border-radius:18px;overflow:hidden;background:#071019;box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.045)}
 .kpi-m1-summary-head{padding:26px 24px 30px;min-height:205px;box-sizing:border-box;background:radial-gradient(520px 230px at 20% 105%,rgba(15,137,255,.14),transparent 68%),linear-gradient(145deg,#101f2b,#071119 72%)}
 .kpi-m1-summary-kicker{color:#9aaebd;font-size:14px;font-weight:700;letter-spacing:.055em}.kpi-m1-summary-month{margin-top:8px;color:#fff;font-size:31px;line-height:1.12;font-weight:950}
@@ -2495,13 +2459,13 @@ html{
 .kpi-m1-summary-meta span{display:block;color:#91a6b6;font-size:10px;font-weight:900;letter-spacing:.06em}.kpi-m1-summary-meta b{display:block;margin-top:6px;color:#f4f7fa;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
 @media(max-width:800px){.kpi-m1-summary-meta{grid-template-columns:1fr 1fr}.kpi-m1-summary-meta>div:nth-child(2n){border-right:0}}
 @media(max-width:600px){.kpi-m1-summary-head{padding:22px 20px 25px}.kpi-m1-summary-month{font-size:26px}.kpi-m1-summary-meta{grid-template-columns:1fr}.kpi-m1-summary-meta>div{border-right:0}}
-</style><style id="m1-default-collapsed">
+</style><style>
 #m1Body.m1-collapsed{display:none!important}
-</style><style id="m1-collapsed-score-style">
+</style><style>
 .m1-collapsed-score{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:.82em;white-space:nowrap}
 .m1-collapsed-score strong{font-size:1.05em}
 @media(max-width:520px){.m1-collapsed-score{font-size:.74em;gap:4px}}
-</style><style id="m1-collapsed-real-score">
+</style><style>
 .m1-summary-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:12px}
 .m1-summary-title{font-weight:700}
 .m1-summary-score{margin-left:auto;display:flex;align-items:center;gap:8px;white-space:nowrap}
@@ -2514,7 +2478,7 @@ html{
   .m1-summary-score strong{font-size:1em}
 }
 </style>
-<style id="parcel-records-sticky-pagination">
+<style>
 #records .parcel-records-wrap{
   max-height:min(68vh,760px);
   overflow:auto!important;
@@ -2552,13 +2516,9 @@ html{
 }
 </style>
 
-<style id="v10-packed-excluded">
-#linehaul .lh-task-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){#linehaul .lh-task-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){#linehaul .lh-task-kpis{grid-template-columns:1fr}}
-</style>
 
-<style id="v10-packed-in-total-note">
+
+<style>
 .lh-task-kpi-note{margin-top:7px;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:#00bfff}
 </style>
 
@@ -2567,16 +2527,15 @@ html{
 
 
 
-<style id="parcel-multi-filter-style">
+<style>
 .records-filter-toolbar.parcel-filter-upgraded{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(170px,1fr)) auto auto;gap:8px;align-items:center}
 .records-filter-toolbar.parcel-filter-upgraded select[multiple]{min-height:44px;max-height:44px;overflow:hidden;padding:7px 10px}
 .records-filter-toolbar.parcel-filter-upgraded select[multiple]:focus{max-height:190px;overflow:auto}
 .record-filter-hint{font-size:12px;opacity:.65;margin:7px 2px 10px}
 @media(max-width:900px){.records-filter-toolbar.parcel-filter-upgraded{grid-template-columns:1fr 1fr}.records-filter-toolbar.parcel-filter-upgraded input{grid-column:1/-1}}
 </style>
-<style id="parcel-multi-filter-visibility-fix">
-/* Native multi-select options were inheriting the app's light/transparent
-   text styling. Give the dropdown a readable solid menu. */
+<style>
+
 .records-filter-toolbar.parcel-filter-upgraded select[multiple],
 .records-filter-toolbar.parcel-filter-upgraded select[multiple] option{
   color:#111827 !important;
@@ -2594,7 +2553,7 @@ html{
   color:#6b7280 !important;
 }
 </style>
-<style id="parcel-filter-label-style">
+<style>
 .records-filter-toolbar.parcel-filter-upgraded{
   align-items:end;
 }
@@ -2619,7 +2578,7 @@ html{
 @media(max-width:900px){
   .parcel-filter-field{width:100%}
 }
-</style><style id="parcel-filter-label-repair">
+</style><style>
 .parcel-filter-field>label{
   display:block !important;
   visibility:visible !important;
@@ -2630,8 +2589,8 @@ html{
   line-height:1.2 !important;
   margin:0 0 5px 2px !important;
 }
-</style><style id="parcel-records-smooth-filter">
-/* Smooth Parcel Records search/filter interaction */
+</style><style>
+
 .records-filter-toolbar.parcel-filter-upgraded{
   transition:opacity .16s ease,transform .16s ease;
 }
@@ -2677,8 +2636,8 @@ html{
   .records-filter-toolbar.parcel-filter-upgraded .parcel-search-field input{height:46px !important;}
 }
 </style>
-<style id="parcel-filter-dark-dropdown">
-/* Dark native multi-select menus */
+<style>
+
 .records-filter-toolbar.parcel-filter-upgraded select[multiple]{
   color-scheme:dark !important;
   color:#e8f1f8 !important;
@@ -2710,7 +2669,7 @@ html{
 <link rel="icon" type="image/png" sizes="192x192" href="./badoc-hub-icon.png?v=16">
 <link rel="shortcut icon" href="./badoc-hub-icon.png?v=16">
 <link rel="apple-touch-icon" sizes="192x192" href="./badoc-hub-icon.png?v=16">
-<style id="dashboard-operation-progress">
+<style>
 .dashboard-overview{padding:0;overflow:hidden}
 .dashboard-overview-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;border-bottom:1px solid #22313D;background:linear-gradient(120deg,#0B151D,#091018)}
 .dashboard-overview-kicker{font-size:11px;font-weight:900;letter-spacing:1px;color:#7fdcff}
@@ -2772,7 +2731,7 @@ html{
 @media(max-width:700px){.dashboard-summary-grid{grid-template-columns:1fr}.dashboard-overview-head{align-items:flex-start;flex-direction:column}.dashboard-status-grid{grid-template-columns:1fr}.dashboard-hub-row{grid-template-columns:1fr .7fr}.dashboard-hub-row .hub-completed{display:none}.dashboard-hub-row.header .hub-completed{display:none}.dashboard-hub-row .hub-progress{grid-column:1/-1}}
 </style>
 
-<style id="safe-dashboard-kpi-style">
+<style>
 #dashboardKpiSummary{margin:16px 0;padding:18px;border:1px solid rgba(38,173,255,.22);border-radius:16px;background:rgba(8,17,25,.96)}
 #dashboardKpiSummary .dashboard-kpi-summary-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
 #dashboardKpiSummary .dashboard-kpi-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;color:#19b9ff}
@@ -2788,7 +2747,7 @@ html{
 @media(max-width:650px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr 1fr}#dashboardKpiSummary .remarks{grid-column:1/-1}}
 @media(max-width:430px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr}#dashboardKpiSummary .remarks{grid-column:auto}}
 </style>
-<style id="kpi-fit-click-style">
+<style>
 #dashboardKpiSummary{width:100%;box-sizing:border-box;margin:16px 0}
 #dashboardKpiSummary .dashboard-kpi-summary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);gap:10px}
 #dashboardKpiSummary .dashboard-kpi-card{min-width:0}
@@ -2799,8 +2758,8 @@ html{
 @media(max-width:430px){#dashboardKpiSummary .dashboard-kpi-summary-grid{grid-template-columns:1fr}#dashboardKpiSummary .remarks{grid-column:auto}}
 </style>
 
-<style id="dashboard-kpi-dark-fit-final">
-/* Keep Today's Volume and Clear Floor Rate as two equal, compact cards. */
+<style>
+
 #homeDashboard .dashboard-summary-grid{
   display:grid !important;
   grid-template-columns:repeat(2,minmax(0,1fr)) !important;
@@ -2818,7 +2777,7 @@ html{
   line-height:1 !important;
 }
 
-/* KPI Summary stays below the two operation cards. */
+
 #homeDashboard #dashboardKpiSummary{
   width:100% !important;
   max-width:none !important;
@@ -2826,7 +2785,7 @@ html{
   margin:16px 0 18px !important;
 }
 
-/* Dark LIVE KPI button, matching the app's dark theme. */
+
 #homeDashboard #dashboardLiveKpi{
   appearance:none !important;
   -webkit-appearance:none !important;
@@ -2855,15 +2814,15 @@ html{
   #homeDashboard .dashboard-summary-card{min-height:130px !important}
 }
 </style>
-<style id="kpi-below-clear-floor-final">
+<style>
 #homeDashboard #dashboardKpiSummary{width:100%;box-sizing:border-box;margin:16px 0 18px}
 #homeDashboard #dashboardLiveKpi{appearance:none;-webkit-appearance:none;background:#10171d;color:#73d8ff;border:1px solid rgba(25,185,255,.35);box-shadow:none;cursor:pointer}
 #homeDashboard #dashboardLiveKpi:hover{background:#13212b;border-color:#19b9ff}
-</style><style id="kpi-summary-top-spacing">
+</style><style>
 #homeDashboard #dashboardKpiSummary{margin-top:0;margin-bottom:16px}
 </style>
-<style id="dashboard-ui-1-5-7">
-/* Dashboard UI upgrade: Today's Volume focus + secondary Incoming Volume + mobile-first layout. */
+<style>
+
 #homeDashboard .dashboard-summary-grid{
   display:grid !important;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
@@ -2949,8 +2908,8 @@ html{
 }
 </style>
 
-<style id="android-bottom-nav-final-fix">
-/* Compact Android bottom navigation */
+<style>
+
 @media (max-width:760px){
   html,body{
     -webkit-text-size-adjust:100%!important;
@@ -3030,8 +2989,8 @@ html{
   }
 }
 </style>
-<style id="parcel-filter-pc-overflow-fix">
-/* PC: keep all parcel filters and both action buttons inside the records card. */
+<style>
+
 @media(min-width:1051px){
   #records .records-filter-toolbar{
     grid-template-columns:minmax(180px,1.25fr) minmax(125px,1fr) minmax(140px,1fr) minmax(115px,.8fr) minmax(96px,auto) minmax(108px,auto)!important;
@@ -3050,8 +3009,8 @@ html{
 }
 </style>
 
-<style id="parcel-records-pc-final-fix">
-/* Final PC fix: Parcel Records is inside #dashboard, not #records. */
+<style>
+
 @media(min-width:901px){
   #parcelRecordsIntegrated .records-filter-toolbar.parcel-filter-upgraded{
     display:grid !important;
@@ -3087,8 +3046,8 @@ html{
 }
 </style>
 
-<style id="parcel-upload-exception-space-fix">
-/* Compact upload + wider exception area */
+<style>
+
 #dashboard .parcel-source-row{
   grid-template-columns:minmax(300px,0.78fr) minmax(0,1.22fr)!important;
   gap:14px!important;
@@ -3133,8 +3092,8 @@ html{
 }
 </style>
 
-<style id="operation-progress-compact-final">
-/* Compact Today's Operation / Operation Progress block */
+<style>
+
 #homeDashboard .dashboard-overview{
   margin-top:10px !important;
   border-radius:12px !important;
@@ -3236,8 +3195,8 @@ html{
 </style>
 
 
-<style id="fleet-status-compact-3">
-/* Compact Fleet Status: three cards in one row */
+<style>
+
 .dashboard-fleet-title{
   margin-top:12px !important;
   margin-bottom:7px !important;
@@ -3283,8 +3242,8 @@ html{
 </style>
 
 
-<style id="kpi-summary-more-compact">
-/* More compact KPI Summary */
+<style>
+
 #kpiSummary{
   padding:10px 12px !important;
   margin-bottom:8px !important;
@@ -3318,7 +3277,7 @@ html{
 </style>
 
 
-<style id="instructions-menu-styles">
+<style>
 #instructions.page{display:none}
 #instructions.page.active{display:block}
 .instructions-editor{display:grid;gap:14px}
@@ -3329,7 +3288,7 @@ html{
 @media(max-width:600px){.instructions-card{padding:13px}.instructions-content{min-height:220px;font-size:12px;line-height:1.55}}
 </style>
 
-<style id="mobile-six-menu-final">
+<style>
 @media (max-width: 900px){
   .mobile-bottom-nav{
     display:grid!important;
@@ -3353,7 +3312,7 @@ html{
 }
 </style>
 
-<style id="mobile-operation-three-card-fit">
+<style>
 @media(max-width:700px){
   #homeDashboard .dashboard-summary-grid{
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
@@ -3382,7 +3341,7 @@ html{
 }
 </style>
 
-<style id="mobile-kpi-operation-final">
+<style>
 @media (max-width:700px){
   #homeDashboard #dashboardKpiSummary .dashboard-kpi-summary-grid{
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
@@ -3427,12 +3386,12 @@ html{
 }
 </style>
 
-<style id="badoc-hide-all-devices-sync">
-/* Hide the visible "All devices synced" banner while preserving the underlying sync logic. */
+<style>
+
 #sharedStatus{display:none !important;}
 </style>
 
-<style id="daily-data-menu-css">
+<style>
 .daily-data-nav{margin:2px 0 4px}
 .daily-data-toggle{position:relative!important;display:flex!important;align-items:center!important;gap:0!important}
 .daily-data-toggle .ico{flex:0 0 23px}
@@ -3454,7 +3413,7 @@ html{
 </style>
 
 
-<style id="daily-pickup-css">
+<style>
 .pickup-page{overflow:hidden}
 .pickup-head{align-items:center}
 .pickup-head .btn{margin-left:auto}
@@ -3494,7 +3453,7 @@ html{
 </style>
 
 
-<style id="pickup-header-visibility-fix">
+<style>
 .pickup-table-wrap{overflow-x:auto;overflow-y:auto;max-height:62vh}
 .pickup-table thead{display:table-header-group}
 .pickup-table thead tr{display:table-row}
@@ -3506,9 +3465,9 @@ html{
 
 
 
-<style id="daily-performance-css">
+<style>
 .performance-page{overflow:hidden}
-/* Match Pickup header behavior: title on the left, actions on the right, top-aligned. */
+
 .performance-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:nowrap}
 .performance-head > div:first-child{min-width:0;flex:1 1 auto}
 .performance-head-actions{display:flex;align-items:flex-start;justify-content:flex-end;gap:7px;margin-left:auto;flex:0 0 auto;white-space:nowrap}
@@ -3562,7 +3521,7 @@ html{
 }
 </style>
 
-<style id="daily-data-mobile-css">
+<style>
 .mobile-daily-data-menu{
   display:none;
 }
@@ -3613,8 +3572,8 @@ html{
 </style>
 
 
-<style id="pickup-source-shortcut-css">
-/* Keep Pickup action buttons together and aligned in one row. */
+<style>
+
 .pickup-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
 .pickup-head > div:first-child{min-width:0}
 .pickup-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-left:auto;flex:0 0 auto;white-space:nowrap}
@@ -3628,18 +3587,18 @@ html{
 </style>
 
 
-<style id="hide-daily-data-filters">
+<style>
   #pickupSearch, #pickupDateFilter, #pickupStatusFilter,
   #performanceSearch, #performanceDateFilter, #performanceAreaFilter { display:none !important; }
   .pickup-toolbar, .performance-toolbar { display:none !important; }
 </style>
-<style id="pickup-search-restore">
+<style>
   #pickupSearch{display:block !important;}
   #pickupDateFilter, #pickupStatusFilter{display:none !important;}
   .pickup-toolbar{display:block !important;margin:10px 0 !important;}
   .pickup-toolbar input{width:100% !important;box-sizing:border-box;}
 </style>
-<style id="consolidated-runtime-css">
+<style>
 .consolidated-page{overflow:hidden}
 .consolidated-head{align-items:center}
 .consolidated-head-actions{display:flex;align-items:center;gap:7px;margin-left:auto}
@@ -3669,7 +3628,7 @@ html{
 }
 </style>
 
-<style id="consolidated-sheet-header-style">
+<style>
 .consolidated-sheet-wrap{width:100%;overflow:auto;border:1px solid rgba(75,211,255,.12);border-radius:9px;margin:4px 0 8px}
 .consolidated-summary-sheet{width:100%;min-width:900px;border-collapse:collapse;font-size:9px}
 .consolidated-summary-sheet th{background:#4ea83f;color:#fff;padding:7px 6px;text-align:left;white-space:nowrap;font-size:8px;font-weight:900;text-transform:none;letter-spacing:0}
@@ -3684,15 +3643,15 @@ html{
 }
 </style>
 
-<style id="town-move-v2">
+<style>
 .town-row[draggable="true"]{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.town-row.dragging{opacity:.45}
-.town-row.drag-over{outline:1px dashed #00aaff;outline-offset:-2px;background:rgba(0,170,255,.08)}
+
+
 .town-row.town-move-selected{outline:1px solid var(--electric-blue,#00aaff);background:rgba(0,168,255,.12);box-shadow:inset 0 0 0 1px rgba(0,168,255,.18)}
 .town-move-selected .town-drag-handle{opacity:1}
 </style>
 
-<style id="town-print-preview-styles">
+<style>
 #townPrintPreview{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
 #townPrintPreview .print-preview-box{width:min(1100px,96vw);height:min(90vh,900px);background:#111820;border:1px solid rgba(0,168,255,.55);border-radius:12px;box-shadow:0 20px 70px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
 #townPrintPreview .print-preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
@@ -3717,7 +3676,7 @@ html{
 @media(max-width:700px){#townPrintPreview{padding:8px}#townPrintPreview .print-preview-box{height:94vh;width:100%}#townPrintPreview .print-preview-body{padding:8px;overflow:auto}#townPrintPreview .print-preview-paper{width:210mm;min-height:297mm;padding:10mm;margin:0 auto}#townPrintPreview .town-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3mm!important}#townPrintPreview .town-column{gap:2.5mm!important}#townPrintPreview .town-card{padding:2.2mm!important}#townPrintPreview .town-row{font-size:9pt!important;padding:1mm 0!important}#townPrintPreview .town-card-total{font-size:10.5pt!important}}
 @media print{#townPrintPreview{display:none!important}}
 </style>
-<style id="town-print-styles">
+<style>
 @media print {
   @page { size: A4 portrait; margin: 6mm; }
   body > *:not(#townPrintArea) { display:none !important; }
@@ -3749,8 +3708,8 @@ html{
 @media(max-width:600px){.parcel-incoming-toolbar{margin:-4px 0 12px}.parcel-incoming-btn{width:100%;font-size:12px}}
 </style>
 </style>
-<style id="town-count-visibility-fix-v89">
-/* v89: keep town parcel counts clearly visible on desktop and mobile. */
+<style>
+
 .town-row .count{
   color:#67d9ff!important;
   font-size:13px!important;
@@ -4227,7 +4186,7 @@ html{
   <div class="section instructions-editor">
     <div class="instructions-card">
       <h2>EXPORT INSTRUCTIONS</h2>
-      <!-- EDIT THE TEXT BELOW DIRECTLY IN THIS HTML FILE. -->
+      
       <div id="instructionsContent" class="instructions-content">ORDER MANAGEMENT &gt; ORDER TRACKING &gt; EXPORT &gt; EXPORT FORWARD ORDER
 
 3AM
@@ -4249,7 +4208,7 @@ UPLOAD TO PARCEL COUNT</div>
 </section>
 
 <section id="settings" class="page">
-<style id="cloud-test-style">
+<style>
 #cloudTestCard{display:flex;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid rgba(0,180,255,.22);border-radius:9px;background:rgba(10,25,38,.7);font-size:11px}
 #cloudTestBtn{border:0;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:11px}
 #cloudTestResult{opacity:.8;word-break:break-word}
@@ -7921,8 +7880,8 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 })();
 </script>
 
-<style id="dashboard-all-compact-final">
-/* Compact entire Dashboard while preserving layout and data */
+<style>
+
 #homeDashboard{padding:10px !important}
 #homeDashboard .section{margin:8px 0 !important}
 #homeDashboard .dashboard-kpi-summary{padding:12px !important;margin:0 0 8px !important;border-radius:10px !important}
@@ -7972,8 +7931,8 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 }
 </style>
 
-<style id="dashboard-three-summary-fill-final">
-/* Keep Today's Volume, Clear Floor Rate, and Volume Forecast as three equal cards on every screen size. */
+<style>
+
 #homeDashboard .dashboard-summary-grid{
   grid-template-columns:repeat(3,minmax(0,1fr)) !important;
 }
@@ -8046,7 +8005,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
 </script>
 
 
-<style id="badoc-app-health-ui">
+<style>
 .top-header-info{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .app-health-indicators{position:relative;display:flex;align-items:center;justify-content:flex-end;white-space:nowrap}
 .health-indicator{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #202b38;border-radius:999px;background:#0c1015;color:#9aa3af;font-size:10px;line-height:1;white-space:nowrap}
@@ -8788,7 +8747,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   setInterval(load,REFRESH_MS);
 })();
 </script>
-<style id="eod-data-ui">
+<style>
 .eod-page{overflow:hidden}.eod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.eod-head h2{margin:0;font-size:20px}.eod-head .hint{display:block;margin-top:3px}.eod-head-actions{display:flex;gap:8px;align-items:center}.eod-source-btn{text-decoration:none!important;white-space:nowrap}.eod-status{font-size:10px;letter-spacing:.08em;color:#8fa0ad;margin:4px 0 10px}.eod-grid{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:9px}.eod-left,.eod-right{border:1px solid #18242d;background:#fff;color:#101010;min-width:0}.eod-titlebar{height:31px;display:flex;align-items:center;justify-content:center;background:#ff6b00;color:#fff;font-size:20px;font-weight:800;border-bottom:1px solid #111}.eod-hubline,.eod-dateline{text-align:center;background:#fff;font-weight:800;border-bottom:1px dotted #444;padding:3px 6px;font-size:15px}.eod-dateline{font-size:18px;padding:5px 6px;border-bottom:1px solid #111}.eod-left-top{display:grid;grid-template-columns:1.08fr .88fr .7fr}.eod-panel{min-width:0;border-right:1px solid #222}.eod-panel:last-child{border-right:0}.eod-panel-title{text-align:center;font-size:16px;font-weight:800;padding:5px 4px;border-bottom:1px dotted #444;white-space:nowrap}.eod-reasons,.eod-summary{font-size:11px;font-weight:700}.eod-row{display:grid;grid-template-columns:minmax(0,1fr) 48px;border-bottom:1px dotted #555;min-height:20px;align-items:center}.eod-row span:first-child{padding:2px 4px}.eod-row span:last-child{text-align:center;padding:2px 3px}.eod-summary .eod-row{grid-template-columns:minmax(0,1fr) 55px}.eod-delivery-title{border-top:1px solid #111}.eod-big-rate{height:300px;min-height:250px;background:#34a853;display:flex;align-items:center;justify-content:center;font-size:84px;font-weight:800}.eod-leader-wrap{overflow:auto;max-height:650px}.eod-leader-table{width:100%;border-collapse:collapse;font-size:12px;font-weight:700;color:#111}.eod-leader-table th{background:#fff;padding:5px;border:1px solid #555;text-align:center;white-space:nowrap}.eod-leader-table td{padding:4px 5px;border:1px dotted #555;white-space:nowrap}.eod-leader-table td:nth-child(1),.eod-leader-table td:nth-child(4),.eod-leader-table td:nth-child(5),.eod-leader-table td:nth-child(6){text-align:center}.eod-leader-table td.rate-good{background:#34a853}.eod-leader-table td.rate-warn{background:#f6c453}.eod-leader-table td.rate-low{background:#ef7d6f}
 @media(max-width:900px){.eod-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.eod-head{gap:7px;flex-wrap:nowrap}.eod-head h2{white-space:nowrap;font-size:15px}.eod-head .hint{font-size:7px;white-space:nowrap}.eod-head-actions{margin-left:auto;gap:6px}.eod-head-actions .btn{font-size:8px;padding:7px 8px;min-height:31px}.eod-source-btn{max-width:135px;overflow:hidden;text-overflow:ellipsis}.eod-titlebar{font-size:16px}.eod-panel-title{font-size:12px}.eod-reasons,.eod-summary{font-size:9px}.eod-big-rate{height:210px;font-size:54px}.eod-leader-table{font-size:10px}}
@@ -8882,7 +8841,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 })();
 </script>
 
-<style id="eod-app-theme">
+<style>
 .eod-page{background:#050b10!important;color:#dcecff!important;border:1px solid rgba(0,174,255,.22);box-shadow:0 0 28px rgba(0,174,255,.07);border-radius:18px;padding:14px!important}
 .eod-head h2{color:#f3f8ff!important;letter-spacing:.2px}
 .eod-head .hint{color:#7f9bb0!important}
@@ -8922,8 +8881,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="dashboard-eod-extra-compact">
-/* Extra-compact Today's Performance on Dashboard only */
+<style>
+
 .dashboard-eod-summary{
   margin-top:7px!important;
   border-radius:9px!important;
@@ -9013,12 +8972,12 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="dashboard-eod-no-shortcut">
+<style>
 .dashboard-eod-summary .dashboard-eod-badge{display:none!important}
 </style>
 
 
-<style id="dashboard-eod-pc-smaller-fixed">
+<style>
 @media(min-width:701px){
   #dashboardEodSummary{
     margin-top:6px!important;
@@ -9062,9 +9021,9 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="dashboard-eod-pc-more-compact">
+<style>
 @media(min-width:701px){
-  /* Dashboard Today's Performance — PC only */
+  
   #dashboardEodSummary{
     margin-top:4px!important;
     padding:5px!important;
@@ -9112,7 +9071,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="cfr1-card-ui">
+<style>
 .dashboard-status-card.cfr1{
   border-top:2px solid #9B5CFF!important;
   background:linear-gradient(145deg,#120d1d,#080b10)!important;
@@ -9140,7 +9099,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<!-- BADOC HUB native 6:40 AM CFR1 notification bridge -->
+
 <script>
 (function(){
   const CFR1_NOTIF_KEY = "badoc_cfr1_native_notified_v1";
@@ -9380,7 +9339,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 })();
 </script>
 
-<style id="cfr1-details-ui">
+<style>
 #cfr1Card{cursor:pointer}
 #cfr1Card:hover{border-color:#B56CFF!important;box-shadow:0 0 18px rgba(181,108,255,.16)!important}
 #cfr1Card:focus{outline:2px solid #B56CFF;outline-offset:2px}
@@ -9491,16 +9450,15 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 
 
 
-<style id="v78-single-sync-indicator">
-/* Only the clickable health summary is visible. The legacy shared sync pill
-   remains in the DOM as the sync-status source but is never displayed. */
+<style>
+
 #sharedStatus{display:none!important;visibility:hidden!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;pointer-events:none!important}
 .health-details{flex-wrap:nowrap!important;white-space:nowrap!important}
 @media(max-width:700px){.health-details{flex-direction:column!important;flex-wrap:nowrap!important}}
 </style>
 
-<style id="v87-parcel-records-mobile-table-restore">
-/* v87: restore the original table-style Parcel Records on mobile. */
+<style>
+
 @media (max-width:700px){
   #records .parcel-records-wrap{
     max-height:60vh!important;
@@ -9546,8 +9504,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 </body>
 
-<style id="pickup-mobile-header-final">
-/* Mobile-only: keep Pickup header compact and aligned like Performance. */
+<style>
+
 @media(max-width:700px){
   .pickup-head{align-items:center!important;gap:7px!important;flex-wrap:nowrap!important}
   .pickup-head > div:first-child{min-width:0!important;flex:0 1 auto!important}
@@ -9566,10 +9524,10 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="v68-mobile-layout-cleanup">
-/* Mobile layout cleanup — presentation/spacing only. Core parcel logic unchanged. */
+<style>
+
 @media(max-width:700px){
-  /* Leave enough scroll space for the fixed bottom navigation. */
+  
   .main{
     padding-bottom:96px!important;
   }
@@ -9578,7 +9536,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     box-sizing:border-box!important;
   }
 
-  /* Keep the header compact without allowing the status row to wrap. */
+  
   .top{
     width:100%!important;
     box-sizing:border-box!important;
@@ -9603,19 +9561,19 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     padding:4px 5px!important;
   }
 
-  /* Prevent long controls from forcing horizontal page overflow. */
+  
   .section,.card,.panel,.kpi,.kpi-sheet,.town-card,
   input,select,textarea,button,.btn{
     max-width:100%!important;
     box-sizing:border-box!important;
   }
 
-  /* Keep common action rows on one line where they are already designed that way. */
+  
   .area-head,.records-head,.linehaul-head,.section-head{
     min-width:0!important;
   }
 
-  /* Bottom navigation: always one row on phones. */
+  
   .mobile-bottom-nav{
     grid-template-columns:repeat(7,minmax(0,1fr))!important;
     width:auto!important;
@@ -9650,13 +9608,13 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
-<style id="v74-health-click-fix">
+<style>
 .app-health-indicators{z-index:10020!important}
 .health-summary{position:relative;z-index:10022!important;pointer-events:auto!important;touch-action:manipulation!important}
 .health-details{z-index:10021!important;pointer-events:auto!important}
 </style>
-<style id="v76-health-panel-visibility-fix">
-/* Ensure the mobile health details can escape the compact header clipping. */
+<style>
+
 @media(max-width:700px){
   .top-header-info,.app-health-indicators{overflow:visible!important}
   .health-details{display:none!important;position:absolute!important;right:0!important;top:calc(100% + 6px)!important;z-index:2147483000!important}
@@ -9664,8 +9622,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
-<style id="v77-health-one-line">
-/* Keep the expanded health indicators on one line and do not repeat a sync timestamp. */
+<style>
+
 .health-details{flex-wrap:nowrap!important;white-space:nowrap!important}
 .health-details .health-indicator{flex:0 0 auto!important}
 @media(max-width:700px){
@@ -9673,8 +9631,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 </html>
-<style id="performance-mobile-header-final">
-/* Mobile-only: make Performance header match the compact Pickup header. */
+<style>
+
 @media(max-width:700px){
   .performance-head{align-items:center!important;gap:7px!important;flex-wrap:nowrap!important}
   .performance-head > div:first-child{min-width:0!important;flex:0 1 auto!important}
@@ -9693,8 +9651,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-ui-final">
-/* EOD UI ONLY — core BADOC HUB logic/data handling unchanged */
+<style>
+
 .eod-page{
   padding:10px!important;
   background:#050b10!important;
@@ -9925,8 +9883,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-compact-performance">
-/* Compact Today's Performance only */
+<style>
+
 .eod-left .eod-titlebar{height:30px!important;font-size:16px!important}
 .eod-left .eod-hubline{height:22px!important;font-size:12px!important}
 .eod-left .eod-dateline{height:24px!important;font-size:14px!important}
@@ -9946,8 +9904,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-delivery-compact">
-/* Compact Delivery Performance panel too */
+<style>
+
 .eod-left .eod-delivery-title{
   height:23px!important;
   font-size:11px!important;
@@ -9970,8 +9928,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-delivery-more-compact">
-/* Further compact Delivery Performance */
+<style>
+
 .eod-left .eod-delivery-title{
   height:20px!important;
   min-height:20px!important;
@@ -10001,8 +9959,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-final-compact-fix">
-/* Final compact sizing */
+<style>
+
 .eod-left .eod-big-rate{
   height:105px!important;
   min-height:105px!important;
@@ -10036,14 +9994,14 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
-<style id="eod-onhold-list-final">
+<style>
 .eod-left .eod-reasons{max-height:none!important;overflow:visible!important}
 .eod-left .eod-reasons .eod-row{min-height:18px!important;height:18px!important}
 .eod-left .eod-reasons .eod-row span:first-child{font-weight:700!important}
 @media(max-width:700px){.eod-left .eod-reasons .eod-row{min-height:17px!important;height:17px!important;font-size:8px!important}}
 </style>
 
-<style id="eod-mobile-todays-bottom">
+<style>
 @media(max-width:700px){
   .eod-grid{
     display:flex!important;
@@ -10072,7 +10030,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="eod-leaderboard-mobile-fit">
+<style>
 @media(max-width:700px){
   .eod-right{
     width:100%!important;
@@ -10125,7 +10083,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 
 
-<style id="linehaul-misrouted-per-task">
+<style>
 #linehaul .lh-task-kpi-mis{border-top:2px solid #ff4d6d!important}
 #linehaul .lh-task-mis-panel{
   margin:0 0 10px;
@@ -10172,13 +10130,13 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 }
 </style>
 
-<style id="linehaul-unmatched-optimized">
+<style>
 #linehaul .lh-task-kpi-unmatched{border-top:2px solid #ffb020!important}
 #linehaul .lh-task-unmatched-panel{border-color:rgba(255,176,32,.30)!important}
 #linehaul .lh-task-unmatched-toggle span{color:#ffc45a!important}
 </style>
 
-<style id="linehaul-task-volume-ratio">
+<style>
 #linehaul .lh-task-kpi:first-child .lh-task-kpi-value{font-size:clamp(24px,3vw,38px)!important;white-space:nowrap!important}
 @media(max-width:600px){
   #linehaul .lh-task-kpi:first-child .lh-task-kpi-value{font-size:24px!important}
@@ -10221,7 +10179,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 })();
 </script>
 
-<style id="dashboard-eod-summary-style">
+<style>
 .dashboard-eod-summary{
   margin-top:14px!important;padding:0!important;overflow:hidden!important;
   background:#07131d!important;border:1px solid rgba(0,174,255,.28)!important;
@@ -10241,8 +10199,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .dashboard-eod-summary{margin-top:10px!important;border-radius:12px!important}.dashboard-eod-titlebar{height:48px;font-size:20px}.dashboard-eod-hub{height:34px;font-size:16px}.dashboard-eod-date{height:31px;font-size:12px}.dashboard-eod-panel-title{height:34px;font-size:15px}.dashboard-eod-rows{font-size:12px}.dashboard-eod-rows>div{min-height:31px;grid-template-columns:minmax(0,1fr) 65px}.dashboard-eod-rows span,.dashboard-eod-rows strong{padding:5px 10px}.dashboard-eod-rate{height:85px;font-size:36px}.dashboard-eod-footer{padding:7px 9px}.dashboard-eod-badge{font-size:8px;padding:6px 8px}
 }
 </style>
-<style id="mobile-town-count-visibility-fix">
-/* Mobile: make each town parcel count clearly visible without changing counting logic. */
+<style>
+
 @media(max-width:700px){
   .town-row .count{
     color:#00d9ff!important;
