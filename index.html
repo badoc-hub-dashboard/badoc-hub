@@ -3897,9 +3897,9 @@ html{
 }
 .town-rider-input::placeholder{font-size:12px!important;color:#8da7b5!important;opacity:1!important}
 .town-rider-arrow{font-size:11px!important;right:10px!important}
-.town-card-total{grid-column:2;grid-row:2!important}
+.town-card-fleet-productivity{grid-column:2;grid-row:2!important}
 .town-card-success-rate{grid-column:3;grid-row:2!important}
-.town-card-fleet-productivity{grid-column:4;grid-row:2!important}
+.town-card-total{grid-column:4;grid-row:2!important}
 .town-rider-option{font-size:13px!important;padding:8px 9px!important}
 .town-rider-option small{font-size:9px!important}
 .town-row .town{font-size:13px!important;font-weight:650!important}
@@ -3913,6 +3913,151 @@ html{
   .town-card-header{column-gap:5px!important;row-gap:5px!important}
   .town-row .town{font-size:12px!important}
 }
+</style>
+
+<style id="v176-print-towns-fix">
+/* v176: make Print Towns readable on A4. Print layout only; app/dashboard layout is unchanged. */
+#townPrintPreview .town-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:5mm!important;
+}
+#townPrintPreview .town-column{gap:4mm!important;min-width:0!important}
+#townPrintPreview .town-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:4mm!important;
+  row-gap:1mm!important;
+  min-width:0!important;
+}
+#townPrintPreview .town-row .town{
+  display:block!important;
+  min-width:0!important;
+  max-width:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+  color:#000!important;
+  font-size:9pt!important;
+  line-height:1.15!important;
+}
+#townPrintPreview .town-statuses{
+  display:flex!important;
+  flex:0 0 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:1.2mm!important;
+}
+#townPrintPreview .town-status{
+  flex:0 0 auto!important;
+  font-size:7pt!important;
+  line-height:1!important;
+  padding:1mm 1.4mm!important;
+  white-space:nowrap!important;
+}
+#townPrintPreview .town-row .count{
+  min-width:8mm!important;
+  font-size:9pt!important;
+  text-align:right!important;
+}
+#townPrintPreview .town-card{
+  padding:3mm!important;
+  min-width:0!important;
+}
+
+@media print{
+  #townPrintArea .town-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:4mm!important;
+  }
+  #townPrintArea .town-column{gap:3mm!important;min-width:0!important}
+  #townPrintArea .town-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    column-gap:3mm!important;
+    row-gap:1mm!important;
+    min-width:0!important;
+  }
+  #townPrintArea .town-row .town{
+    display:block!important;
+    min-width:0!important;
+    max-width:none!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    overflow-wrap:break-word!important;
+    word-break:normal!important;
+    font-size:9pt!important;
+    line-height:1.15!important;
+  }
+  #townPrintArea .town-statuses{
+    display:flex!important;
+    flex:0 0 auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-end!important;
+    align-items:center!important;
+    gap:1mm!important;
+  }
+  #townPrintArea .town-status{
+    flex:0 0 auto!important;
+    font-size:7pt!important;
+    line-height:1!important;
+    padding:.7mm 1.1mm!important;
+    white-space:nowrap!important;
+  }
+  #townPrintArea .town-row .count{
+    min-width:8mm!important;
+    font-size:9pt!important;
+    text-align:right!important;
+  }
+  #townPrintArea .town-card{padding:3mm!important;min-width:0!important}
+}
+</style>
+
+<style id="v177-print-totals-only">
+/* v177: Print Towns shows only town names and totals. App/dashboard remains unchanged. */
+#townPrintPreview .town-card-header,
+#townPrintArea .town-card-header{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:4mm!important;
+}
+#townPrintPreview .town-card-total,
+#townPrintArea .town-card-total{
+  margin-left:auto!important;
+}
+#townPrintPreview .town-row,
+#townPrintArea .town-row{
+  grid-template-columns:minmax(0,1fr) auto!important;
+}
+#townPrintPreview .town-row .town,
+#townPrintArea .town-row .town{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+
+<style id="v178-print-towns-clean">
+/* v178: Print Towns only shows town name + town total; never print the + NEW GROUP placeholder. */
+#townPrintPreview .empty-group,
+#townPrintArea .empty-group,
+#townPrintPreview .town-rider-picker,
+#townPrintArea .town-rider-picker,
+#townPrintPreview .town-card-note,
+#townPrintArea .town-card-note{display:none!important}
+#townPrintPreview .town-card-header,
+#townPrintArea .town-card-header{display:flex!important;justify-content:flex-end!important;align-items:center!important}
+#townPrintPreview .town-row,
+#townPrintArea .town-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
 </style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
@@ -4679,16 +4824,57 @@ function classify(rows){
 function counts(rows){let c={};rows.forEach(r=>c[norm(r["Town Name"])]=(c[norm(r["Town Name"])]||0)+1);return c}
 function townStatusCounts(rows){
   const out={};
+  const HOLD_HISTORY_KEY="badoc_hold_history_v1";
+  let holdHistory=new Set();
+  try{
+    const saved=JSON.parse(localStorage.getItem(HOLD_HISTORY_KEY)||"[]");
+    if(Array.isArray(saved)) holdHistory=new Set(saved.map(x=>norm(x)).filter(Boolean));
+  }catch{}
+
+  const statusKeys=["Status","Parcel Status","Delivery Status","Current Status","Parcel Status To","Status To","TO Status","To Status","Status To (Current)"];
+  const normalizeStatus=v=>norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ");
+  const isTownStatus=v=>{
+    const st=normalizeStatus(v);
+    return st==="RECEIVED"||st==="LMHUB RECEIVED"||st==="DELIVERED"||st==="DELIVERING"||
+      st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD";
+  };
+  const rowStatus=r=>{
+    let raw="";
+    for(const k of statusKeys){
+      if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()&&isTownStatus(r[k])){ raw=String(r[k]).trim(); break; }
+    }
+    if(!raw){
+      for(const k of Object.keys(r||{})){
+        if(/status/i.test(k)&&String(r[k]??"").trim()&&isTownStatus(r[k])){ raw=String(r[k]).trim(); break; }
+      }
+    }
+    return normalizeStatus(raw);
+  };
+
   rows.forEach(r=>{
     const town=norm(r["Town Name"]);
     if(!town)return;
     if(!out[town])out[town]={received:0,delivered:0,delivering:0,hold:0};
-    const st=norm(r["Status"]);
-    if(st==="RECEIVED"||st==="LMHUB RECEIVED")out[town].received++;
-    else if(st==="DELIVERED")out[town].delivered++;
-    else if(st==="DELIVERING")out[town].delivering++;
-    else if(st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD")out[town].hold++;
+
+    const st=rowStatus(r);
+    const tn=spxTN(r);
+    const isHold=st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD";
+    const isReceived=st==="RECEIVED"||st==="LMHUB RECEIVED";
+    const isDelivered=st==="DELIVERED";
+
+    // Once a parcel has been seen as ON HOLD, a later RECEIVED update
+    // remains classified as H. The hold history is keyed by tracking number.
+    if(tn&&isHold) holdHistory.add(tn);
+    if(tn&&isDelivered) holdHistory.delete(tn);
+
+    if(isReceived && tn && holdHistory.has(tn)) out[town].hold++;
+    else if(isReceived) out[town].received++;
+    else if(isDelivered) out[town].delivered++;
+    else if(st==="DELIVERING") out[town].delivering++;
+    else if(isHold) out[town].hold++;
   });
+
+  try{ localStorage.setItem(HOLD_HISTORY_KEY,JSON.stringify([...holdHistory])); }catch{}
   return out;
 }
 function splitTownGroups(list){
@@ -4998,7 +5184,7 @@ function renderTownGrid(id,list,rows,extraCounts={}){
       groupSrEl.className="town-card-success-rate";
       groupSrEl.textContent=`SR ${groupSrText}%`;
       groupSrEl.title=`Group Success Rate: ${groupSrText}%`;
-      header.append(title,note,totalEl,groupSrEl,groupFpEl);
+      header.append(title,note,groupFpEl,groupSrEl,totalEl);
       card.appendChild(header);
       group.forEach(name=>{
         const r=document.createElement("div");
@@ -5011,7 +5197,7 @@ function renderTownGrid(id,list,rows,extraCounts={}){
         const statusTotal=ts.received+ts.delivered+ts.delivering+ts.hold;
         const successRate=statusTotal?((ts.delivered/statusTotal)*100):0;
         const srText=successRate%1===0?successRate.toFixed(0):successRate.toFixed(1);
-        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="town-statuses" aria-label="Received ${ts.received}, Delivered ${ts.delivered}, Delivering ${ts.delivering}, Hold ${ts.hold}, Success Rate ${srText}%"><span class="town-status received" title="Received">R ${ts.received}</span><span class="town-status delivered" title="Delivered">D ${ts.delivered}</span><span class="town-status delivering" title="Delivering">DG ${ts.delivering}</span><span class="town-status hold" title="On Hold">H ${ts.hold}</span><span class="town-status success-rate" title="Success Rate">SR ${srText}%</span><span class="count" title="Total">${c[townKey]||0}</span></span>`;
+        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="town-statuses" aria-label="Received ${ts.received}, Delivered ${ts.delivered}, Delivering ${ts.delivering}, Hold ${ts.hold}, Success Rate ${srText}%"><span class="town-status received" title="Received">R ${ts.received}</span><span class="town-status delivered" title="Delivered">D ${ts.delivered}</span><span class="town-status delivering" title="Delivering">DV ${ts.delivering}</span><span class="town-status hold" title="On Hold">H ${ts.hold}</span><span class="town-status success-rate" title="Success Rate">SR ${srText}%</span><span class="count" title="Total">${c[townKey]||0}</span></span>`;
 
         r.addEventListener("click",e=>{
           e.preventDefault();
@@ -5108,6 +5294,12 @@ function buildTownPrintArea(){
     h.textContent=label;
     section.appendChild(h);
     const grid=source.cloneNode(true);
+    // Capture the selected rider before the rider input is replaced/removed for print.
+    grid.querySelectorAll(".town-card-header").forEach(header=>{
+      const riderInput=header.querySelector(".town-rider-input");
+      const riderName=String(riderInput?.value||"").trim();
+      if(riderName) header.dataset.printRider=riderName;
+    });
     grid.querySelectorAll("input").forEach(input=>{
       const span=document.createElement("span");
       span.className="town-card-note";
@@ -5117,7 +5309,30 @@ function buildTownPrintArea(){
     grid.querySelectorAll(".town-row").forEach(row=>{
       row.removeAttribute("draggable");
       row.classList.remove("town-move-selected");
+      // Print Towns: show only the town name and its total.
+      const statuses=row.querySelector(".town-statuses");
+      if(statuses){
+        const total=statuses.querySelector(".count");
+        const town=row.querySelector(".town");
+        row.innerHTML="";
+        if(town) row.appendChild(town);
+        if(total) row.appendChild(total);
+      }
     });
+    grid.querySelectorAll(".town-card-success-rate,.town-card-fleet-productivity,.empty-group").forEach(el=>el.remove());
+    grid.querySelectorAll(".town-card-header").forEach(header=>{
+      const riderName=String(header.dataset.printRider||"").trim();
+      const total=header.querySelector(".town-card-total");
+      header.innerHTML="";
+      if(riderName){
+        const rider=document.createElement("span");
+        rider.className="print-rider";
+        rider.textContent="Rider: "+riderName;
+        header.appendChild(rider);
+      }
+      if(total) header.appendChild(total);
+    });
+    grid.querySelectorAll(".town-card-note,.town-rider-picker").forEach(el=>el.remove());
     section.appendChild(grid);
     area.appendChild(section);
   });
@@ -10134,6 +10349,166 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   }
 }
 </style>
+
+<style id="print-towns-one-page-v181">
+@media print {
+  @page { size:A4 portrait; margin:5mm; }
+  #townPrintArea {
+    width:200mm !important;
+    height:287mm !important;
+    max-height:287mm !important;
+    overflow:hidden !important;
+    margin:0 auto !important;
+    box-sizing:border-box !important;
+  }
+  #townPrintArea .print-date {
+    font-size:7pt !important;
+    line-height:1 !important;
+    margin:0 0 1.5mm !important;
+  }
+  /* BADOC first, PINILI underneath — both use the full portrait width. */
+  #townPrintArea .print-section {
+    display:block !important;
+    width:100% !important;
+    margin:0 0 2.5mm !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
+  }
+  #townPrintArea .print-section:last-child { margin-bottom:0 !important; }
+  #townPrintArea .print-section h2 {
+    font-size:10pt !important;
+    line-height:1 !important;
+    margin:0 0 1.2mm !important;
+    padding:0 0 .7mm !important;
+    border-bottom:1px solid #000 !important;
+  }
+  #townPrintArea .town-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:1.5mm !important;
+    align-items:start !important;
+  }
+  #townPrintArea .town-column {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:1.5mm !important;
+    min-width:0 !important;
+  }
+  #townPrintArea .town-card {
+    padding:1.25mm !important;
+    border-radius:2px !important;
+    min-width:0 !important;
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
+  }
+  #townPrintArea .town-card-header {
+    gap:1.5mm !important;
+    margin-bottom:.65mm !important;
+    padding-bottom:.55mm !important;
+    min-height:4mm !important;
+  }
+  #townPrintArea .print-rider {
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    color:#000 !important;
+    font-size:7pt !important;
+    line-height:1 !important;
+    font-weight:700 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  #townPrintArea .town-card-total {
+    font-size:8pt !important;
+    min-width:9mm !important;
+    padding:.45mm 1mm !important;
+    border:1px solid #000 !important;
+  }
+  #townPrintArea .town-row {
+    font-size:7pt !important;
+    line-height:1 !important;
+    gap:3px !important;
+    padding:.5mm 0 !important;
+  }
+  #townPrintArea .town {
+    font-size:7pt !important;
+    font-weight:600 !important;
+    line-height:1 !important;
+  }
+  #townPrintArea .count {
+    font-size:7pt !important;
+    line-height:1 !important;
+  }
+}
+</style>
+
+<style id="v181-print-final">
+@media print {
+  @page { size:A4 portrait; margin:4mm; }
+  #townPrintArea {
+    display:block !important;
+    width:202mm !important;
+    height:289mm !important;
+    max-height:289mm !important;
+    margin:0 auto !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+    zoom:.78 !important;
+    transform-origin:top left !important;
+  }
+  #townPrintArea .print-section {
+    width:100% !important;
+    margin:0 0 3mm !important;
+    padding:0 !important;
+    break-inside:auto !important;
+    page-break-inside:auto !important;
+    page-break-after:avoid !important;
+  }
+  #townPrintArea .print-section + .print-section { margin-top:1mm !important; }
+  #townPrintArea .town-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:2mm !important;
+  }
+  #townPrintArea .town-column { gap:2mm !important; }
+  #townPrintArea .town-card { padding:1.5mm !important; }
+  #townPrintArea .town-card-header {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    min-height:4mm !important;
+    margin-bottom:.5mm !important;
+    padding-bottom:.5mm !important;
+  }
+  #townPrintArea .print-rider {
+    display:block !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    color:#000 !important;
+    font-size:7.5pt !important;
+    line-height:1 !important;
+    font-weight:700 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  #townPrintArea .town-card-total {
+    flex:0 0 auto !important;
+    font-size:8pt !important;
+    min-width:10mm !important;
+    padding:.4mm 1mm !important;
+  }
+  #townPrintArea .town-row {
+    font-size:7pt !important;
+    line-height:1 !important;
+    padding:.45mm 0 !important;
+  }
+  #townPrintArea .town { font-size:7pt !important; line-height:1 !important; }
+  #townPrintArea .count { font-size:7pt !important; line-height:1 !important; }
+}
+</style>
 </body>
 
 <style>
@@ -10842,6 +11217,25 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     min-width:30px!important;
     text-align:right!important;
     text-shadow:0 0 8px rgba(0,217,255,.18)!important;
+  }
+}
+</style>
+<style id="v183-print-three-cards-per-row">
+@media print {
+  /* Print Towns: arrange individual town cards in rows of 3. */
+  #townPrintArea .town-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:2mm !important;
+    align-items:start !important;
+  }
+  #townPrintArea .town-column {
+    display:contents !important;
+  }
+  #townPrintArea .town-card {
+    width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
   }
 }
 </style>
