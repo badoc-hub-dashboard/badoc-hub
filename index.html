@@ -4854,7 +4854,7 @@ function townStatusCounts(rows){
   rows.forEach(r=>{
     const town=norm(r["Town Name"]);
     if(!town)return;
-    if(!out[town])out[town]={received:0,delivered:0,delivering:0,hold:0};
+    if(!out[town])out[town]={received:0,delivered:0,delivering:0,hold:0,assigned:0,assigning:0};
 
     const st=rowStatus(r);
     const tn=spxTN(r);
@@ -4871,6 +4871,8 @@ function townStatusCounts(rows){
     else if(isReceived) out[town].received++;
     else if(isDelivered) out[town].delivered++;
     else if(st==="DELIVERING") out[town].delivering++;
+    else if(st==="ASSIGNED"||st==="LMHUB ASSIGNED") out[town].assigned++;
+    else if(st==="ASSIGNING"||st==="LMHUB ASSIGNING") out[town].assigning++;
     else if(isHold) out[town].hold++;
   });
 
@@ -5413,7 +5415,8 @@ function getParcelCountRows(){
   const statusNorm=v=>norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ");
   const allowedStatuses=new Set([
     "RECEIVED","LMHUB RECEIVED","DELIVERING","DELIVERED",
-    "ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD"
+    "ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD",
+    "ASSIGNING","ASSIGNED","LMHUB ASSIGNING","LMHUB ASSIGNED"
   ]);
   const base=all.filter(r=>allowedStatuses.has(statusNorm(statusOf(r))) && !isExceptionRow(r));
   const rows=[...base];
@@ -5589,6 +5592,14 @@ function selectedValues(id){
   const el=$(id); if(!el)return [];
   return [...el.selectedOptions].map(o=>String(o.value||"").trim()).filter(Boolean);
 }
+function recordStatusValue(r){
+  const keys=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status","Parcel Status","Delivery Status","Current Status"];
+  for(const k of keys){
+    if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()) return String(r[k]).trim();
+  }
+  const key=Object.keys(r||{}).find(k=>/status/i.test(k));
+  return key?String(r[key]??"").trim():"";
+}
 function recordMatches(rows,q,filters,ignore){
   return rows.filter(r=>{
     if(q){
@@ -5601,11 +5612,12 @@ function recordMatches(rows,q,filters,ignore){
     }
     if(ignore!=="town"&&filters.town.length&&!filters.town.includes(String(r["Town Name"]??"").trim()))return false;
     if(ignore!=="station"&&filters.station.length&&!filters.station.includes(String(r["Current Station"]??"").trim()))return false;
-    if(ignore!=="status"&&filters.status.length&&!filters.status.includes(String(r["Status"]??"").trim()))return false;
+    if(ignore!=="status"&&filters.status.length&&!filters.status.includes(recordStatusValue(r)))return false;
     return true;
   });
 }
 function refreshRecordFilterCounts(){
+  if(parcelFilterIsLocked())return;
   const rows=(current&&Array.isArray(current.valid))?current.valid:[];
   const q=norm($("recordSearch")?.value||"");
   const filters={town:selectedValues("recordTown"),station:selectedValues("recordStation"),status:selectedValues("recordStatus")};
@@ -5614,7 +5626,7 @@ function refreshRecordFilterCounts(){
     const selected=new Set(selectedValues(id));
     const base=recordMatches(rows,q,filters,ignore);
     const counts=new Map();
-    base.forEach(r=>{const v=String(r?.[key]??"").trim();if(v)counts.set(v,(counts.get(v)||0)+1)});
+    base.forEach(r=>{const v=id==="recordStatus"?recordStatusValue(r):String(r?.[key]??"").trim();if(v)counts.set(v,(counts.get(v)||0)+1)});
     el.innerHTML="";
     [...counts.keys()].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
       const o=document.createElement("option");
@@ -5647,6 +5659,7 @@ function sharedFilterState(){
   };
 }
 function applySharedFilterState(state){
+  if(parcelFilterIsLocked()&&!sharedFilterSyncApplying)return;
   state=state||{search:"",town:[],station:[],status:[]};
   const apply=()=>{
     const els=["recordTown","recordStation","recordStatus"].map($);
@@ -5660,7 +5673,8 @@ function applySharedFilterState(state){
       });
       sharedFilterSyncPending=null;
       window.__parcelRecordPage=1;
-      renderRecords();
+      renderRecords(true);
+      if(window.syncCustomParcelFilters) window.syncCustomParcelFilters();
     }finally{sharedFilterSyncApplying=false}
     return true;
   };
@@ -5709,6 +5723,7 @@ async function pollSharedFilterState(){
     if(r.error)throw r.error;
     const u=String(r.data?.updated_at||"");
     if(r.data && u && u!==sharedFilterLastUpdatedAt){
+      if(Date.now()-sharedFilterLastLocalEditAt<1200)return;
       sharedFilterLastUpdatedAt=u;
       applySharedFilterState(r.data.state||{search:"",town:[],station:[],status:[]});
     }
@@ -5737,6 +5752,7 @@ async function startSharedFilterSync(){
     sharedFilterSyncChannel=sharedFilterSyncClient.channel("badoc-global-filter-v3")
       .on("broadcast",{event:"badoc-filter"},({payload})=>{
         if(payload?.state&&!sharedFilterSyncApplying){
+          if(Date.now()-sharedFilterLastLocalEditAt<1200)return;
           sharedFilterLastUpdatedAt=String(payload.updated_at||Date.now());
           applySharedFilterState(payload.state);
         }
@@ -5745,6 +5761,7 @@ async function startSharedFilterSync(){
         {event:"*",schema:"public",table:"shared_filter_state",filter:"id=eq.global"},
         payload=>{
           if(payload?.new){
+            if(Date.now()-sharedFilterLastLocalEditAt<1200)return;
             sharedFilterLastUpdatedAt=String(payload.new.updated_at||Date.now());
             if(!sharedFilterSyncApplying)applySharedFilterState(payload.new.state||{});
           }
@@ -5813,8 +5830,8 @@ function updateDashboardFromParcelFilters(){
   });
 }
 
-function renderRecords(){
-  refreshRecordFilterCounts();
+function renderRecords(skipFilterOptionRefresh=false){
+  if(!skipFilterOptionRefresh) refreshRecordFilterCounts();
   const allRows=Array.isArray(current?.valid)?current.valid:[];
   const q=norm($("recordSearch")?.value||"");
   const filters={
@@ -6126,6 +6143,20 @@ let parcelRecordFilterTimer=null;
 let parcelRecordFilterFrame=null;
 let sharedFilterPublishChain=Promise.resolve();
 let sharedFilterLocalEditSeq=0;
+let sharedFilterLastLocalEditAt=0;
+let parcelFilterInteractionLockUntil=0;
+function parcelFilterIsLocked(){return Date.now()<parcelFilterInteractionLockUntil;}
+function parcelFilterSnapshot(){return {search:String($("recordSearch")?.value||""),town:selectedValues("recordTown"),station:selectedValues("recordStation"),status:selectedValues("recordStatus")};}
+function restoreParcelFilterSnapshot(state){
+  if(!state)return;
+  if($("recordSearch"))$("recordSearch").value=String(state.search||"");
+  [["recordTown",state.town||[]],["recordStation",state.station||[]],["recordStatus",state.status||[]]].forEach(([id,vals])=>{
+    const el=$(id); if(!el)return; const wanted=new Set((Array.isArray(vals)?vals:[]).map(String));
+    [...el.options].forEach(o=>o.selected=wanted.has(String(o.value)));
+  });
+  if(window.syncCustomParcelFilters) window.syncCustomParcelFilters();
+}
+
 function scheduleParcelRecordFilter(immediate=false){
   if(sharedFilterSyncApplying)return;
   if(parcelRecordFilterTimer)clearTimeout(parcelRecordFilterTimer);
@@ -6140,7 +6171,7 @@ function scheduleParcelRecordFilter(immediate=false){
     parcelRecordFilterFrame=requestAnimationFrame(()=>{
       parcelRecordFilterFrame=null;
       window.__parcelRecordPage=1;
-      renderRecords();
+      renderRecords(true);
       queueSharedFilterPublish();
       requestAnimationFrame(()=>table?.classList.remove("record-filter-updating"));
     });
@@ -6153,16 +6184,28 @@ if(recordSearchEl){
   recordSearchEl.addEventListener("input",()=>{
     // A new local edit invalidates any older queued filter state.
     sharedFilterLocalEditSeq++;
+    sharedFilterLastLocalEditAt=Date.now();
+    parcelFilterInteractionLockUntil=Date.now()+5000;
     const isEmpty=String(recordSearchEl.value||"").trim()==="";
     scheduleParcelRecordFilter(isEmpty);
   });
 }
 ["recordTown","recordStation","recordStatus"].forEach(id=>{
   const e=$(id); if(!e)return;
-  e.addEventListener("change",()=>scheduleParcelRecordFilter(true));
+  e.addEventListener("change",()=>{
+    sharedFilterLocalEditSeq++;
+    sharedFilterLastLocalEditAt=Date.now();
+    const snap=parcelFilterSnapshot();
+    parcelFilterInteractionLockUntil=Date.now()+5000;
+    scheduleParcelRecordFilter(true);
+    setTimeout(()=>restoreParcelFilterSnapshot(snap),0);
+    setTimeout(()=>restoreParcelFilterSnapshot(snap),100);
+    setTimeout(()=>restoreParcelFilterSnapshot(snap),500);
+  });
 });
 $("clearRecordFilters").onclick=async()=>{
   sharedFilterLocalEditSeq++;
+  sharedFilterLastLocalEditAt=Date.now();
   if(parcelRecordFilterTimer){clearTimeout(parcelRecordFilterTimer);parcelRecordFilterTimer=null;}
   if(parcelRecordFilterFrame){cancelAnimationFrame(parcelRecordFilterFrame);parcelRecordFilterFrame=null;}
   if(sharedFilterSyncTimer){clearTimeout(sharedFilterSyncTimer);sharedFilterSyncTimer=null;}
@@ -6173,6 +6216,7 @@ $("clearRecordFilters").onclick=async()=>{
   });
   window.__parcelRecordPage=1;
   renderRecords();
+  if(window.syncCustomParcelFilters) window.syncCustomParcelFilters();
 
   // Queue the empty state behind any already-running publish so an older
   // search can never become the final shared filter state.
@@ -7194,7 +7238,6 @@ linehaulTasks=[];renderLinehaul();setTimeout(()=>window.updateOperationProgress?
   if(card)card.addEventListener("click",()=>{const p=$("lhDoidPanel");if(!p)return;if(p.style.display==="none"||!p.style.display){renderLinehaulDoidPanel()}else{p.style.display="none"}});
   if(close)close.addEventListener("click",()=>{const p=$("lhDoidPanel");if(p)p.style.display="none"});
 })();
-document.getElementById("recordStatus")?.addEventListener("change",renderRecords);
 </script>
 
 <script>
@@ -8089,35 +8132,6 @@ window.DASHBOARD_V2_READY = true;
   else bind();
 })();
 </script>
-
-<script id="parcel-multi-filter-finalizer">
-(function(){
-  function refresh(){
-    try{
-      if(typeof current!=="undefined"&&Array.isArray(current?.valid)){
-        refreshRecordFilterCounts();renderRecords();
-      }
-    }catch(e){console.warn("Parcel filter refresh:",e)}
-  }
-  setTimeout(refresh,300);setTimeout(refresh,1200);
-})();
-</script>
-<script id="parcel-filter-repair-finalizer">
-(function(){
-  function repair(){
-    try{
-      if(typeof current!=="undefined" && Array.isArray(current?.valid)){
-        refreshRecordFilterCounts();
-        renderRecords();
-      }
-    }catch(e){console.warn("Parcel filter repair:",e)}
-  }
-  setTimeout(repair,250);
-  setTimeout(repair,1000);
-  setTimeout(repair,2000);
-})();
-</script>
-
 <script id="badoc-hub-pwa-register">
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
@@ -8190,7 +8204,7 @@ window.updateOperationProgress=function(){
   const qualifyingDayRows=allRows.filter(dayEligible).filter(r=>!isExceptionRow(r));
 
   // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
-  const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED"]);
+  const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED","ASSIGNED","ASSIGNING","LMHUB ASSIGNED","LMHUB ASSIGNING"]);
   const todayRows=qualifyingDayRows.filter(r=>todayStatuses.has(status(r)));
 
   // Linehaul Task source. When enabled, ADD the same volume represented by
@@ -10509,6 +10523,180 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   #townPrintArea .count { font-size:7pt !important; line-height:1 !important; }
 }
 </style>
+
+<style id="custom-parcel-multiselect-style">
+/* v190: replace the mobile/Android native multi-select picker with a stable custom checkbox dropdown. */
+.parcel-custom-multiselect{position:relative;min-width:0}
+.parcel-custom-multiselect .parcel-custom-trigger{
+  width:100%;height:44px;border:1px solid rgba(0,190,255,.28);border-radius:10px;
+  background:#0b141d;color:#e8f1f8;padding:0 34px 0 12px;text-align:left;
+  font:inherit;font-size:13px;font-weight:650;cursor:pointer;position:relative;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.parcel-custom-multiselect .parcel-custom-trigger:after{
+  content:"⌄";position:absolute;right:11px;top:50%;transform:translateY(-55%);
+  font-size:16px;opacity:.7;pointer-events:none;
+}
+.parcel-custom-multiselect.open .parcel-custom-trigger{
+  border-color:rgba(61,165,255,.75);box-shadow:0 0 0 3px rgba(61,165,255,.08);
+}
+.parcel-custom-multiselect .parcel-custom-panel{
+  display:none;position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 5px);
+  max-height:280px;overflow:auto;padding:5px;background:#0b141d;
+  border:1px solid rgba(61,165,255,.42);border-radius:11px;
+  box-shadow:0 12px 30px rgba(0,0,0,.42);
+}
+.parcel-custom-multiselect.open .parcel-custom-panel{display:block}
+.parcel-custom-multiselect .parcel-custom-option{
+  display:flex;align-items:center;gap:9px;min-height:38px;padding:7px 8px;
+  border-radius:8px;color:#e8f1f8;font-size:13px;font-weight:600;cursor:pointer;
+  user-select:none;-webkit-user-select:none;
+}
+.parcel-custom-multiselect .parcel-custom-option:hover{background:#163044}
+.parcel-custom-multiselect .parcel-custom-option input{
+  width:17px;height:17px;flex:0 0 auto;margin:0;accent-color:#147bd1;cursor:pointer;
+}
+.parcel-custom-multiselect .parcel-custom-option.is-selected{background:rgba(20,123,209,.18)}
+.parcel-custom-multiselect .parcel-custom-empty{padding:10px 8px;font-size:12px;opacity:.65}
+.parcel-custom-multiselect .parcel-custom-count{margin-left:auto;opacity:.65;font-size:11px;font-weight:500}
+.records-filter-toolbar.parcel-filter-upgraded .parcel-filter-field > select.parcel-native-filter-hidden{
+  display:none !important;
+}
+@media(max-width:900px){
+  .parcel-custom-multiselect .parcel-custom-trigger{height:46px;font-size:13px}
+  .parcel-custom-multiselect .parcel-custom-panel{max-height:55vh}
+}
+</style>
+<style id="v191-custom-parcel-multiselect-fix">
+/* v191: force checkbox rows to stay together and keep the menu inside its filter field. */
+.parcel-custom-multiselect{position:relative!important;display:block!important;width:100%!important;min-width:0!important}
+.parcel-custom-multiselect .parcel-custom-trigger{display:block!important;box-sizing:border-box!important;width:100%!important}
+.parcel-custom-multiselect .parcel-custom-panel{box-sizing:border-box!important;width:100%!important;left:0!important;right:0!important;display:none!important;overflow-x:hidden!important}
+.parcel-custom-multiselect.open .parcel-custom-panel{display:block!important}
+.parcel-custom-multiselect .parcel-custom-option{
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+  width:100%!important;box-sizing:border-box!important;min-width:0!important;
+  gap:10px!important;margin:0!important;text-align:left!important;
+  float:none!important;position:static!important;
+}
+.parcel-custom-multiselect .parcel-custom-option input[type="checkbox"]{
+  display:block!important;position:static!important;float:none!important;
+  width:18px!important;height:18px!important;min-width:18px!important;max-width:18px!important;
+  flex:0 0 18px!important;margin:0!important;padding:0!important;
+}
+.parcel-custom-multiselect .parcel-custom-option span{
+  display:block!important;position:static!important;float:none!important;
+  flex:1 1 auto!important;min-width:0!important;width:auto!important;
+  margin:0!important;padding:0!important;text-align:left!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;
+}
+</style>
+<script id="v190-custom-parcel-multiselect">
+(function(){
+  const ids=["recordTown","recordStation","recordStatus"];
+  const labels={recordTown:"Town",recordStation:"Current Station",recordStatus:"Status"};
+  const instances=new Map();
+
+  function escHtml(v){
+    return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");
+  }
+  function getValues(el){
+    return [...el.selectedOptions].map(o=>String(o.value||"").trim()).filter(Boolean);
+  }
+  function getOptions(el){
+    return [...el.options].filter(o=>String(o.value||"").trim()).map(o=>({
+      value:String(o.value), text:String(o.textContent||o.value), selected:!!o.selected
+    }));
+  }
+  function make(id){
+    const el=document.getElementById(id);
+    if(!el || instances.has(id))return;
+    el.classList.add("parcel-native-filter-hidden");
+    const host=document.createElement("div");
+    host.className="parcel-custom-multiselect";
+    host.dataset.for=id;
+    const trigger=document.createElement("button");
+    trigger.type="button";
+    trigger.className="parcel-custom-trigger";
+    trigger.setAttribute("aria-haspopup","listbox");
+    trigger.setAttribute("aria-expanded","false");
+    trigger.setAttribute("aria-label",labels[id]+" filter");
+    const panel=document.createElement("div");
+    panel.className="parcel-custom-panel";
+    panel.setAttribute("role","listbox");
+    panel.setAttribute("aria-multiselectable","true");
+    host.append(trigger,panel);
+    el.parentNode.insertBefore(host,el.nextSibling);
+
+    const state={el,host,trigger,panel,observer:null,open:false};
+    instances.set(id,state);
+
+    function close(){
+      state.open=false;host.classList.remove("open");trigger.setAttribute("aria-expanded","false");
+    }
+    function open(){
+      // Close the other custom filter instead of allowing overlapping menus.
+      instances.forEach((x,k)=>{if(k!==id){x.host.classList.remove("open");x.open=false;x.trigger.setAttribute("aria-expanded","false")}});
+      state.open=true;host.classList.add("open");trigger.setAttribute("aria-expanded","true");
+    }
+    trigger.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();state.open?close():open()});
+    panel.addEventListener("click",e=>e.stopPropagation());
+    el.addEventListener("change",()=>{render(id);});
+
+    state.render=()=>render(id);
+    state.observer=new MutationObserver(()=>render(id));
+    state.observer.observe(el,{childList:true,subtree:true});
+    render(id);
+  }
+
+  function render(id){
+    const state=instances.get(id); if(!state)return;
+    const {el,trigger,panel}=state;
+    const options=getOptions(el), selected=getValues(el), selectedSet=new Set(selected);
+    const title=labels[id];
+    trigger.textContent=selected.length ? (selected.length===1 ? selected[0] : `${title} (${selected.length} selected)`) : `All ${title}`;
+    trigger.title=selected.length ? selected.join(", ") : `All ${title}`;
+    panel.innerHTML="";
+    if(!options.length){
+      panel.innerHTML='<div class="parcel-custom-empty">No options available</div>';
+      return;
+    }
+    options.forEach(o=>{
+      const row=document.createElement("label");
+      row.className="parcel-custom-option"+(selectedSet.has(o.value)?" is-selected":"");
+      row.setAttribute("role","option");
+      row.setAttribute("aria-selected",selectedSet.has(o.value)?"true":"false");
+      const cb=document.createElement("input");
+      cb.type="checkbox";cb.checked=selectedSet.has(o.value);cb.tabIndex=-1;
+      const text=document.createElement("span");
+      text.textContent=o.text;
+      row.append(cb,text);
+      row.addEventListener("click",e=>{
+        e.preventDefault();
+        const now=new Set(getValues(el));
+        if(now.has(o.value))now.delete(o.value);else now.add(o.value);
+        [...el.options].forEach(opt=>{opt.selected=now.has(String(opt.value))});
+        // Keep the menu open so multiple values can be selected without a native dialog reset.
+        cb.checked=now.has(o.value);
+        render(id);
+        el.dispatchEvent(new Event("change",{bubbles:true}));
+      });
+      panel.appendChild(row);
+    });
+  }
+
+  window.syncCustomParcelFilters=function(){instances.forEach((_,id)=>render(id));};
+
+  function init(){
+    ids.forEach(make);
+    document.addEventListener("click",()=>instances.forEach(x=>{
+      x.host.classList.remove("open");x.open=false;x.trigger.setAttribute("aria-expanded","false");
+    }));
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+})();
+</script>
 </body>
 
 <style>
