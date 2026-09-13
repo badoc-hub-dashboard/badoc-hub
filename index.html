@@ -4226,6 +4226,71 @@ html{
   }
 }
 </style>
+
+<style id="consolidated-header-alignment-fix-v268">
+/* Consolidated: keep title and actions on the same horizontal line. */
+#dailyConsolidated .consolidated-head{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  width:100% !important;
+  min-height:42px !important;
+  margin:0 0 10px !important;
+}
+#dailyConsolidated .consolidated-head > div:first-child{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+}
+#dailyConsolidated .consolidated-head h2{
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+#dailyConsolidated .consolidated-head-actions{
+  flex:0 0 auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  margin:0 0 0 auto !important;
+  white-space:nowrap !important;
+}
+#dailyConsolidated .consolidated-head-actions .btn{
+  margin:0 !important;
+}
+@media(max-width:700px){
+  #dailyConsolidated .consolidated-head{
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:8px !important;
+  }
+  #dailyConsolidated .consolidated-head-actions{
+    width:auto !important;
+    margin:0 0 0 auto !important;
+  }
+  #dailyConsolidated .consolidated-head-actions .btn{
+    flex:0 0 auto !important;
+  }
+}
+@media(max-width:520px){
+  #dailyConsolidated .consolidated-head{
+    align-items:flex-start !important;
+  }
+  #dailyConsolidated .consolidated-head-actions{
+    gap:5px !important;
+  }
+  #dailyConsolidated .consolidated-head-actions .btn{
+    font-size:11px !important;
+    padding:7px 8px !important;
+  }
+}
+</style>
+
+<style id="hide-onhold-cfr1-subtitles">
+  #homeDashboard .dashboard-status-card.onhold small,
+  #homeDashboard .dashboard-status-card.cfr1 small{display:none !important;}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -4244,7 +4309,7 @@ html{
       <div class="daily-data-submenu" id="dailyDataSubmenu">
         <button type="button" data-page="dailyPickup"><span class="sub-ico">•</span> Pickup</button>
         <button type="button" data-page="dailyPerformance"><span class="sub-ico">•</span> Performance</button>
-        <button type="button" data-page="dailyRiderPerformance"><span class="sub-ico">•</span> Rider Performance</button>
+        
         <button type="button" data-page="dailyConsolidated"><span class="sub-ico">•</span> Consolidated</button>
         <button type="button" data-page="dailyEod"><span class="sub-ico">•</span> EOD Data</button>
       </div>
@@ -4328,7 +4393,7 @@ html{
           <div class="dashboard-status-card delivered"><strong id="opDelivered">0</strong><span>DELIVERED</span><small></small></div>
           <div class="dashboard-status-card onhold"><strong id="opOnHold">0</strong><span>ON-HOLD</span><small></small></div>
           <div class="dashboard-status-card received"><strong id="opReceivedSummary">0</strong><span>RECEIVED</span><small></small></div>
-          <div class="dashboard-status-card cfr1" id="cfr1Card" role="button" tabindex="0" title="Click to view CFR1 scanned and unscanned parcels"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small>Scanned / Total</small></div>
+          <div class="dashboard-status-card cfr1" id="cfr1Card" role="button" tabindex="0" title="Click to view CFR1 scanned and unscanned parcels"><strong><b id="opCfr1Scanned">0</b><i>/</i><em id="opCfr1Total">0</em></strong><span>CFR1</span><small></small></div>
         </div>
         <div class="dashboard-status-title">IN HUB STATUS <span></span></div>
         <div class="dashboard-hub-table">
@@ -4493,7 +4558,7 @@ html{
       <div id="lhDoidList"></div>
     </div>
     <div class="lh-dashboard">
-      <div id="linehaulTownDashboard"></div><div id="linehaulTaskTownDashboard"></div>
+      <div id="linehaulTaskTownDashboard"></div><div id="linehaulTownDashboard"></div>
     </div>
 
     <div class="tablewrap" id="linehaulTaskDetails" style="display:none">
@@ -7456,7 +7521,7 @@ linehaulTasks=[];renderLinehaul();setTimeout(()=>window.updateOperationProgress?
 <div id="mobileDailyDataMenu" class="mobile-daily-data-menu" aria-hidden="true">
   <button type="button" data-mobile-page="dailyPickup">Pickup</button>
   <button type="button" data-mobile-page="dailyPerformance">Performance</button>
-  <button type="button" data-mobile-page="dailyRiderPerformance">Rider Performance</button>
+  
   <button type="button" data-mobile-page="dailyConsolidated">Consolidated</button>
   <button type="button" data-mobile-page="dailyEod">EOD Data</button>
 </div>
@@ -8700,13 +8765,6 @@ window.updateOperationProgress=function(){
   });
   counts.ONHOLD=onHold;
   setText("opOnHold",onHold);
-  const holdCard=document.querySelector("#homeDashboard .dashboard-status-card.onhold");
-  const holdSmall=holdCard?.querySelector("small");
-  if(holdSmall){
-    const liveCount=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs.size:0;
-    const src=window.__badocLiveHoldState?.source||"WAITING";
-    holdSmall.textContent=`GSHEET ${src} • ${liveCount.toLocaleString()} TN • MATCHED ${onHold.toLocaleString()}`;
-  }
   // Keep the exact GSheet TNs that are not present in the currently loaded parcel files.
   const uploadedTNKeys=new Set(uploadedParcelRows.map(r=>normJoin(spxTN(r))).filter(Boolean));
   const rawHoldTNs=Array.isArray(window.__badocLiveHoldRawTNs)?window.__badocLiveHoldRawTNs:[];
