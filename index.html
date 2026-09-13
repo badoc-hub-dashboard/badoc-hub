@@ -8523,53 +8523,25 @@ window.updateOperationProgress=function(){
   const dayEligible=r=>destination(r)==="BADOC HUB" && stations.includes(station(r));
   const qualifyingDayRows=allRows.filter(dayEligible).filter(r=>!isExceptionRow(r));
 
-  // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
-  const todayStatuses=new Set(["DELIVERED","DELIVERING","LMHUB RECEIVED","ASSIGNED","ASSIGNING","LMHUB ASSIGNED","LMHUB ASSIGNING"]);
-  const liveHoldForToday=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
-  const todayRows=qualifyingDayRows.filter(r=>{
-    const st=status(r),tn=spxTN(r);
-    if(liveHoldForToday.has(window.__badocHoldKey?.(tn) || normJoin(tn))) return true;
-    return todayStatuses.has(st);
-  });
+  // Today's Volume uses the EXACT same qualifying parcel population as
+  // Parcel Count → Total Volume. This keeps both metrics consistent and
+  // prevents Today's Volume from using a narrower status/station filter.
+  const todayRows=typeof getParcelCountRows==="function"
+    ?getParcelCountRows()
+    :allRows.filter(r=>!isExceptionRow(r));
 
-  // Linehaul Task source. When enabled, ADD the same volume represented by
-  // the Linehaul Task dashboard: matched SPX TNs in the configured BADOC/PINILI
-  // towns only. Count each SPX TN only once and exclude exception tracking numbers.
-  const tasks=(typeof linehaulTasks!=="undefined"&&Array.isArray(linehaulTasks))?linehaulTasks:[];
-  const linehaulDisplayTowns=new Set([
-    "TUROD","LABUT","CARAITAN","SAUD","PAGSANAHAN NORTE","PAGSANAHAN SUR",
-    "CANAAN (POB.)","GARRETA (POB.)","PALTIT","LUBIGAN","BATO",
-    "LA VIRGEN MILAGROSA (PAGUETPET)","MORONG","SANTA CRUZ NORTE","SANTA CRUZ SUR",
-    "GABUT NORTE","GABUT SUR","NAPU","MABUSAG NORTE","MABUSAG SUR","PARANG","PASUC",
-    "AR-ARUSIP","ALAY-NANGBABAAN (ALAY 15-B)","NAGREBCAN","BALBALDEZ","ALOGOOG","LACUBEN","ARING",
-    "UGUIS","CAMANGA","MADUPAYAS","LILIPUTEN","LUMBAAN-BICBICA","SACRITAN",
-    "PURITAC","DALAYAP","NAGTRIGOAN","UPON","APATUT-LUBONG","DARAT","CAPANGDANAN","GULPENG",
-    "AGLIPAY","SANTO TOMAS","CABAROAN","BUANGA","VALBUENA (POB.)","PAGDILAO (POB.)",
-    "BADIO","BULBULALA","PUZOL","TARTARABANG","SALANAP","BARBAR","BUNGRO","PUGAOAN"
-  ].map(norm));
-  const linehaulTodayKeys=new Set();
-  tasks.forEach(task=>{
-    if(task?.blank || task?.cleared) return;
-    const taskId=String(task?.id||"").trim();
-    if(!taskId) return;
-    const matched=typeof linehaulTownBreakdown==="function"
-      ? linehaulTownBreakdown(task,current?.rows||[])
-      : {};
-    Object.entries(matched).forEach(([town,group])=>{
-      if(!linehaulDisplayTowns.has(norm(town))) return;
-      (group?.items||[]).forEach(item=>{
-        const raw=item?.x?.spxTN ?? item?.x?.["SPX TN"] ?? item?.x?.["SPX Tracking Number"] ?? "";
-        const key=String(raw).trim().replace(/\s+/g,"").toUpperCase();
-        if(key && !exceptionTrackingSet().has(tnKey(key))) linehaulTodayKeys.add(key);
-      });
-    });
-  });
-  const linehaulTodayVolume=linehaulTodayKeys.size;
-
-  const TV_LINEHAUL_KEY="badoc_today_volume_linehaul_filter_v1";
+  // Use the EXACT same incoming Linehaul source as Parcel Count.
+  // Both metrics therefore add the same unique, exception-excluded SPX TN set.
+  const TV_LINEHAUL_KEY=typeof PARCEL_INCOMING_KEY!=="undefined"
+    ?PARCEL_INCOMING_KEY
+    :"badoc_parcel_incoming_linehaul_v1";
   let tvLinehaulEnabled=false;
   try{tvLinehaulEnabled=localStorage.getItem(TV_LINEHAUL_KEY)==="1";}catch(e){}
-  const todayVolume=todayRows.length+(tvLinehaulEnabled?linehaulTodayVolume:0);
+  const incomingForToday=tvLinehaulEnabled && typeof getParcelIncomingLinehaul==="function"
+    ?getParcelIncomingLinehaul()
+    :{total:0};
+  const linehaulTodayVolume=Number(incomingForToday.total)||0;
+  const todayVolume=todayRows.length+linehaulTodayVolume;
 
   // Volume Forecast: from 3 PM through 3 AM next day, estimate the final
   // volume by counting unique SPX TNs that meet the exact forecast criteria.
@@ -8637,16 +8609,26 @@ window.updateOperationProgress=function(){
   const estimatedTomorrow=forecastWindow?forecastSelectedTnKeys.size:0;
 
   const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
+  // Keep the IN HUB STATUS counters on their original station/status logic,
+  // but calculate the four operational cards from the SAME qualifying parcel
+  // population used by Today's Volume. This prevents changing Today's Volume
+  // from wiping Delivering/Delivered/Received/On-Hold back to zero.
   qualifyingDayRows.forEach(r=>{
     const s=status(r);
     if(s==="SOC LHTRANSPORTING"||s==="SOC PACKED"||s==="SOC PACKING"||(s==="SOC LHTRANSPORTED"&&(station(r)==="CAGAYAN DC"||station(r)==="SOC 6"))) counts.TRANSPORTING++;
     else if(s==="SOC LHTRANSPORTED" && station(r)==="BADOC HUB") counts.TRANSPORTED++;
-    else if(s==="LMHUB RECEIVED") counts.RECEIVED++;
     else if(s==="LMHUB ASSIGNING") counts.ASSIGNING++;
     else if(s==="LMHUB ASSIGNED") counts.ASSIGNED++;
+  });
+
+  todayRows.forEach(r=>{
+    // Read the raw status directly and normalize it here. This avoids a
+    // stale/cached status representation causing RECEIVED to display 0.
+    const s=norm(statusTo(r));
+    if(s==="LMHUB RECEIVED" || s==="RECEIVED") counts.RECEIVED++;
     else if(s==="DELIVERING") counts.DELIVERING++;
     else if(s==="DELIVERED") counts.DELIVERED++;
-    else if((window.__badocLiveHoldTNs instanceof Set) && window.__badocLiveHoldTNs.has(window.__badocHoldKey?.(spxTN(r)) || normJoin(spxTN(r)))) counts.ONHOLD++;
+    if((window.__badocLiveHoldTNs instanceof Set) && window.__badocLiveHoldTNs.has(window.__badocHoldKey?.(spxTN(r)) || normJoin(spxTN(r)))) counts.ONHOLD++;
   });
 
   const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number(v||0).toLocaleString()};
