@@ -4084,7 +4084,7 @@ html{
 .daily-history-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .daily-history-performance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .daily-history-performance .daily-history-metric:last-child{grid-column:span 1}
-.daily-history-operations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.daily-history-operations{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .daily-history-metric{border:1px solid rgba(143,160,173,.12);border-radius:9px;padding:9px;background:rgba(8,15,20,.5);min-width:0}
 .daily-history-metric strong{display:block;font-size:18px;line-height:1.1;color:#d8e3e8}
 .daily-history-metric span{display:block;margin-top:4px;font-size:8px;font-weight:700;color:#8fa0ad;text-transform:uppercase;letter-spacing:.05em}
@@ -4125,6 +4125,106 @@ html{
 .daily-history-rider-section .daily-history-town-header{align-items:center}
 .daily-history-rider-section .daily-history-town-label{font-size:12px;color:#dce8ee;text-transform:none;letter-spacing:0}
 .daily-history-rider-section .daily-history-town-title{padding:0;font-size:15px;text-align:right}
+</style>
+<style id="badoc-v258-smoothness">
+/* Performance: isolate expensive dashboard regions so browser layout/paint work stays local. */
+.dashboard-summary-card,.dashboard-status-card,.town-group,.town-card,.dashboard-eod-summary,.kpi-metric,.kpi-category{contain:layout paint;}
+</style>
+
+<style id="badoc-v264-daily-history-visual">
+/* Daily History visual refresh */
+.daily-history-page{min-height:320px}
+.daily-history-page .area-head{padding:4px 2px 2px}
+.daily-history-page .area-head h2{font-size:22px;letter-spacing:-.02em}
+.daily-history-page .area-head h2:before{content:"◷";display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:9px;border-radius:9px;background:linear-gradient(135deg,rgba(74,211,255,.20),rgba(74,211,255,.05));border:1px solid rgba(74,211,255,.20);color:#69e5ff;font-size:16px;vertical-align:2px}
+.daily-history-dashboard{position:relative;margin-top:18px;padding:18px;border:1px solid rgba(105,229,255,.18);border-radius:18px;background:linear-gradient(145deg,rgba(9,22,30,.82),rgba(4,10,14,.70));box-shadow:0 16px 40px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.025);overflow:hidden}
+.daily-history-dashboard:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0,rgba(65,211,255,.09),transparent 30%),radial-gradient(circle at 0 100%,rgba(92,115,255,.055),transparent 28%)}
+.daily-history-snapshot{position:relative;gap:14px}
+.daily-history-block{position:relative;border:1px solid rgba(143,160,173,.12);border-radius:14px;background:rgba(5,12,17,.58);padding:14px;box-shadow:0 5px 18px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.025)}
+.daily-history-block:first-child{border-color:rgba(105,229,255,.16)}
+.daily-history-block:first-child:before{content:"PERFORMANCE SNAPSHOT";display:block;margin:0 0 11px 1px;font-size:9px;font-weight:900;letter-spacing:.12em;color:#69e5ff}
+.daily-history-block-title{font-size:9px;color:#69e5ff;margin-bottom:11px;letter-spacing:.12em}
+.daily-history-metrics,.daily-history-performance,.daily-history-operations{gap:9px}
+.daily-history-metric{position:relative;border:1px solid rgba(143,160,173,.12);border-radius:11px;padding:11px 12px;background:linear-gradient(145deg,rgba(12,23,30,.72),rgba(7,14,19,.62));box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.daily-history-metric:hover{transform:translateY(-1px);border-color:rgba(105,229,255,.24);background:linear-gradient(145deg,rgba(15,29,38,.78),rgba(7,14,19,.68))}
+.daily-history-metric strong{font-size:21px;font-weight:900;letter-spacing:-.025em;color:#edf6fa}
+.daily-history-metric span{font-size:8px;letter-spacing:.10em;color:#8295a1}
+.daily-history-operations .daily-history-metric{min-height:72px;display:flex;flex-direction:column;justify-content:center}
+.daily-history-operations .daily-history-metric strong{font-size:22px}
+.daily-history-operations .daily-history-metric span{margin-top:5px}
+.daily-history-rider-section{padding:0;overflow:hidden}
+.daily-history-rider-section>summary{padding:14px 15px;background:linear-gradient(90deg,rgba(10,24,32,.72),rgba(6,13,18,.50));font-size:9px!important;letter-spacing:.12em;border-bottom:1px solid rgba(143,160,173,.10)}
+.daily-history-rider-section[open]>summary{color:#69e5ff}
+.daily-history-rider-section>.daily-history-riders{padding:10px}
+.daily-history-town{border-color:rgba(143,160,173,.11);background:rgba(8,15,20,.48);transition:border-color .15s ease,transform .15s ease}
+.daily-history-town:hover{border-color:rgba(105,229,255,.20);transform:translateY(-1px)}
+.daily-history-town-header{background:rgba(10,20,27,.42)}
+.daily-history-town-grid .daily-history-metric{background:rgba(8,15,20,.48)}
+.daily-history-below90-town-card{border-color:rgba(255,126,91,.18)!important}
+.daily-history-below90-town-card:hover{border-color:rgba(255,126,91,.48)!important;box-shadow:0 5px 18px rgba(255,92,58,.08)!important}
+.daily-history-below90-card{border-color:rgba(255,126,91,.18)!important}
+.daily-history-below90-card:hover{border-color:rgba(255,126,91,.48)!important;box-shadow:0 5px 18px rgba(255,92,58,.08)!important}
+.daily-history-date-wrap label{font-size:9px;letter-spacing:.10em}
+.daily-history-picker input{border-radius:10px;min-height:42px;background:rgba(7,15,20,.78);border-color:rgba(105,229,255,.16)}
+#dailyHistoryRefreshBtn{border-radius:10px;min-height:42px;box-shadow:0 5px 16px rgba(0,0,0,.16)}
+@media(max-width:900px){.daily-history-metrics,.daily-history-performance,.daily-history-operations{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.daily-history-dashboard{padding:12px;border-radius:14px}.daily-history-block{padding:11px}.daily-history-metric strong{font-size:18px}.daily-history-operations .daily-history-metric{min-height:64px}}
+</style>
+
+
+<style id="daily-history-scroll-fix-v265">
+/* Daily History: keep the section itself scrollable without trapping the page. */
+#dailyHistory, #daily-history, [id*="dailyHistory"] {
+  min-height: 0 !important;
+}
+#dailyHistory .daily-history-content, #daily-history .daily-history-content {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+/* If Daily History uses a main panel/container, allow its children to shrink. */
+#dailyHistory > *, #daily-history > * { min-height: 0; }
+@media (min-width: 769px) {
+  #dailyHistory .daily-history-content, #daily-history .daily-history-content { max-height: calc(100vh - 180px); }
+}
+</style>
+
+
+<style id="badoc-v266-daily-history-scroll-fix">
+/* v266: Daily History must scroll in the center/main content area. */
+#dailyHistory{
+  min-height:calc(100vh - 105px)!important;
+  max-height:calc(100vh - 105px)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  scroll-behavior:smooth!important;
+  padding-right:6px!important;
+  box-sizing:border-box!important;
+}
+#dailyHistory .daily-history-page{
+  min-height:0!important;
+  height:auto!important;
+  overflow:visible!important;
+}
+#dailyHistory .daily-history-dashboard{
+  overflow:visible!important;
+  max-height:none!important;
+}
+#dailyHistory .daily-history-content{
+  overflow:visible!important;
+}
+@media(max-width:760px){
+  #dailyHistory{
+    min-height:calc(100vh - 145px)!important;
+    max-height:calc(100vh - 145px)!important;
+    padding-right:2px!important;
+  }
+}
 </style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
@@ -4445,13 +4545,16 @@ html{
       </div>
       <div class="daily-history-date-wrap">
         <label for="dailyHistoryDateSearch">Captured Date</label>
-        <div class="daily-history-picker" id="dailyHistoryPicker">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="daily-history-picker" id="dailyHistoryPicker" style="flex:1;min-width:0">
           <input id="dailyHistoryDateSearch" type="search" autocomplete="off" placeholder="Search captured date…" aria-label="Search captured date" aria-expanded="false" aria-controls="dailyHistoryDateMenu">
           <button type="button" class="daily-history-picker-toggle" id="dailyHistoryDateToggle" aria-label="Open captured date list" aria-expanded="false">⌄</button>
           <div class="daily-history-date-menu" id="dailyHistoryDateMenu" role="listbox" aria-label="Captured dates">
             <div class="daily-history-date-empty">No captured dates yet</div>
           </div>
           <select id="dailyHistoryDate" tabindex="-1" aria-hidden="true" style="display:none"></select>
+          </div>
+          <button type="button" class="btn" id="dailyHistoryRefreshBtn" title="Refresh Daily History">↻ Refresh</button>
         </div>
       </div>
     </div>
@@ -4796,7 +4899,14 @@ function parseCSV(text){
  return rows.filter(r=>r.some(x=>String(x).trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
 }
 function spxTN(r){
-  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID"];
+  // IMPORTANT: SPEPH is a valid SPX tracking-number format in the parcel exports.
+  // Check EVERY cell FIRST. Do not let another populated tracking-number column
+  // hide the SPEPH value. This is what is compared against Google Sheet Column F.
+  for(const v of Object.values(r||{})){
+    const x=String(v??"").trim().replace(/^['\"]+|['\"]+$/g,"");
+    if(/^SPEPH[A-Z0-9]+$/i.test(x)) return norm(x);
+  }
+  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID","SPX Tracking Number","SPX Tracking No","SPX Tracking No.","SPX TN No","SPX TN Number"];
   for(const k of keys){const v=String(r?.[k]??"").trim();if(v)return norm(v);}
   return "";
 }
@@ -4919,61 +5029,50 @@ function classify(rows){
  return {valid,mis};
 }
 function counts(rows){let c={};rows.forEach(r=>c[norm(r["Town Name"])]=(c[norm(r["Town Name"])]||0)+1);return c}
+const HOLD_HISTORY_KEY="badoc_hold_history_v2";
+function normalizeParcelStatus(v){return norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ")}
+function parcelStatus(r){
+  const keys=["Status","Parcel Status","Delivery Status","Current Status","Parcel Status To","Status To","TO Status","To Status","Status To (Current)"];
+  const allowed=v=>{const st=normalizeParcelStatus(v);return ["RECEIVED","LMHUB RECEIVED","DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD","ASSIGNED","LMHUB ASSIGNED","ASSIGNING","LMHUB ASSIGNING"].includes(st)};
+  for(const k of keys){if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()&&allowed(r[k]))return normalizeParcelStatus(r[k]);}
+  for(const k of Object.keys(r||{})){if(/status/i.test(k)&&String(r[k]??"").trim()&&allowed(r[k]))return normalizeParcelStatus(r[k]);}
+  return "";
+}
+function loadHoldHistory(){
+  let set=new Set();
+  try{const saved=JSON.parse(localStorage.getItem(HOLD_HISTORY_KEY)||"[]");if(Array.isArray(saved))set=new Set(saved.map(x=>norm(x)).filter(Boolean));}catch{}
+  return set;
+}
+function buildHoldHistory(extraRows=[]){
+  const set=loadHoldHistory();
+  const all=(Array.isArray(batches)?batches:[]).flatMap(b=>Array.isArray(b?.rows)?b.rows:[]).concat(Array.isArray(extraRows)?extraRows:[]);
+  all.forEach(r=>{const tn=spxTN(r),st=parcelStatus(r);if(tn&&(st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD"))set.add(tn);});
+  try{localStorage.setItem(HOLD_HISTORY_KEY,JSON.stringify([...set]));}catch{}
+  return set;
+}
+function wasOnHoldBefore(tn,rows=[]){
+  const key=norm(tn);
+  return !!key && (window.__badocLiveHoldTNs instanceof Set ? window.__badocLiveHoldTNs.has(window.__badocHoldKey?.(tn) || normJoin(tn)) : buildHoldHistory(rows).has(key));
+}
 function townStatusCounts(rows){
   const out={};
-  const HOLD_HISTORY_KEY="badoc_hold_history_v1";
-  let holdHistory=new Set();
-  try{
-    const saved=JSON.parse(localStorage.getItem(HOLD_HISTORY_KEY)||"[]");
-    if(Array.isArray(saved)) holdHistory=new Set(saved.map(x=>norm(x)).filter(Boolean));
-  }catch{}
-
-  const statusKeys=["Status","Parcel Status","Delivery Status","Current Status","Parcel Status To","Status To","TO Status","To Status","Status To (Current)"];
-  const normalizeStatus=v=>norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ");
-  const isTownStatus=v=>{
-    const st=normalizeStatus(v);
-    return st==="RECEIVED"||st==="LMHUB RECEIVED"||st==="DELIVERED"||st==="DELIVERING"||
-      st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD";
-  };
-  const rowStatus=r=>{
-    let raw="";
-    for(const k of statusKeys){
-      if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()&&isTownStatus(r[k])){ raw=String(r[k]).trim(); break; }
-    }
-    if(!raw){
-      for(const k of Object.keys(r||{})){
-        if(/status/i.test(k)&&String(r[k]??"").trim()&&isTownStatus(r[k])){ raw=String(r[k]).trim(); break; }
-      }
-    }
-    return normalizeStatus(raw);
-  };
-
+  const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
   rows.forEach(r=>{
     const town=norm(r["Town Name"]);
     if(!town)return;
     if(!out[town])out[town]={received:0,delivered:0,delivering:0,hold:0,assigned:0,assigning:0};
-
-    const st=rowStatus(r);
-    const tn=spxTN(r);
-    const isHold=st==="ONHOLD"||st==="ON HOLD"||st==="LMHUB ONHOLD"||st==="LMHUB ON HOLD";
+    const st=parcelStatus(r),tn=spxTN(r);
+    const isSheetHold=!!tn&&liveHold.has(normJoin(tn));
     const isReceived=st==="RECEIVED"||st==="LMHUB RECEIVED";
-    const isDelivered=st==="DELIVERED";
-
-    // Once a parcel has been seen as ON HOLD, a later RECEIVED update
-    // remains classified as H. The hold history is keyed by tracking number.
-    if(tn&&isHold) holdHistory.add(tn);
-    if(tn&&isDelivered) holdHistory.delete(tn);
-
-    if(isReceived && tn && holdHistory.has(tn)) out[town].hold++;
+    // Parcel Count ON-HOLD is sourced ONLY from the Google Sheet Column F.
+    // An uploaded row marked ONHOLD is ignored unless its SPX TN is also in the sheet.
+    if(isSheetHold) out[town].hold++;
     else if(isReceived) out[town].received++;
-    else if(isDelivered) out[town].delivered++;
+    else if(st==="DELIVERED") out[town].delivered++;
     else if(st==="DELIVERING") out[town].delivering++;
     else if(st==="ASSIGNED"||st==="LMHUB ASSIGNED") out[town].assigned++;
     else if(st==="ASSIGNING"||st==="LMHUB ASSIGNING") out[town].assigning++;
-    else if(isHold) out[town].hold++;
   });
-
-  try{ localStorage.setItem(HOLD_HISTORY_KEY,JSON.stringify([...holdHistory])); }catch{}
   return out;
 }
 function splitTownGroups(list){
@@ -5828,7 +5927,7 @@ async function pollSharedFilterState(){
 }
 function startSharedFilterPolling(){
   clearInterval(sharedFilterPollTimer);
-  sharedFilterPollTimer=setInterval(pollSharedFilterState,1500);
+  sharedFilterPollTimer=setInterval(pollSharedFilterState,5000);
   pollSharedFilterState();
 }
 async function startSharedFilterSync(){
@@ -6119,7 +6218,7 @@ function renderRiderPerformance(){
     const key=resolvedId||riderPerformanceNorm(resolvedName);
     if(!grouped.has(key))grouped.set(key,{id:resolvedId,name:resolvedName,rider,parcels:0,delivered:0,onHold:0,cod:0,pickup:""});
     const item=grouped.get(key);item.parcels++;item.cod+=riderPerformanceAmount(riderPerformanceValue(row,["COD Amount","COD","Cash on Delivery","COD Collection Amount","Collect COD"]));
-    const status=riderPerformanceNorm(riderPerformanceValue(row,["Status","Parcel Status","Delivery Status","Current Status"]));if(status.includes("DELIVERED"))item.delivered++;if(status.includes("ON HOLD")||status.includes("ONHOLD"))item.onHold++;
+    const status=riderPerformanceNorm(riderPerformanceValue(row,["Status","Parcel Status","Delivery Status","Current Status"]));if(status.includes("DELIVERED"))item.delivered++;const tn=spxTN(row);if(tn && window.__badocLiveHoldTNs instanceof Set && window.__badocLiveHoldTNs.has(window.__badocHoldKey?.(tn) || normJoin(tn)))item.onHold++;
     const pickup=riderPerformanceValue(row,["Pickup Time","Pickup Date Time","Pickup Datetime","Pickup Timestamp","First Pickup Time"]);if(pickup&&(!item.pickup||pickup<item.pickup))item.pickup=pickup;
   });
   const search=riderPerformanceNorm($("riderPerformanceSearch")?.value);
@@ -8302,8 +8401,13 @@ window.updateOperationProgress=function(){
   const qualifyingDayRows=allRows.filter(dayEligible).filter(r=>!isExceptionRow(r));
 
   // Today's base volume: ONLY Delivered, Delivering, OnHold and LMHub_Received.
-  const todayStatuses=new Set(["DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB RECEIVED","ASSIGNED","ASSIGNING","LMHUB ASSIGNED","LMHUB ASSIGNING"]);
-  const todayRows=qualifyingDayRows.filter(r=>todayStatuses.has(status(r)));
+  const todayStatuses=new Set(["DELIVERED","DELIVERING","LMHUB RECEIVED","ASSIGNED","ASSIGNING","LMHUB ASSIGNED","LMHUB ASSIGNING"]);
+  const liveHoldForToday=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
+  const todayRows=qualifyingDayRows.filter(r=>{
+    const st=status(r),tn=spxTN(r);
+    if(liveHoldForToday.has(window.__badocHoldKey?.(tn) || normJoin(tn))) return true;
+    return todayStatuses.has(st);
+  });
 
   // Linehaul Task source. When enabled, ADD the same volume represented by
   // the Linehaul Task dashboard: matched SPX TNs in the configured BADOC/PINILI
@@ -8358,8 +8462,24 @@ window.updateOperationProgress=function(){
     "SOCPACKED",
     "SOCPACKING"
   ]);
-  const forecastTnKeys=new Set();
+  // Forecast Breakdown checkboxes control which CURRENT STATION + STATUS
+  // groups are included in the forecast total.  Default = include everything.
+  const FORECAST_FILTER_KEY="badoc_volume_forecast_filters_v1";
+  const forecastFilterKey=(station,status)=>norm(String(station||""))+"||"+statusKey(String(status||""));
+  let forecastFilterSelections={};
+  try{forecastFilterSelections=JSON.parse(localStorage.getItem(FORECAST_FILTER_KEY)||"{}")||{};}catch(e){forecastFilterSelections={};}
+  // Expose the filter state/functions because the breakdown modal is rendered
+  // by a separate script scope.
+  window.__badocForecastFilterSelections=forecastFilterSelections;
+  window.__badocForecastFilterKey=forecastFilterKey;
+  window.__badocForecastGroupEnabled=(station,status)=>forecastFilterSelections[forecastFilterKey(station,status)]!==false;
+  window.__badocSaveForecastFilterSelections=()=>{try{localStorage.setItem(FORECAST_FILTER_KEY,JSON.stringify(forecastFilterSelections));}catch(e){}};
+  const forecastGroupEnabled=(station,status)=>window.__badocForecastGroupEnabled(station,status);
+  const saveForecastFilterSelections=()=>window.__badocSaveForecastFilterSelections();
+  // Build the complete forecast breakdown FIRST. The checkboxes only control
+  // which groups contribute to the forecast total; unchecked rows stay visible.
   const forecastDetailRows=[];
+  const forecastSeenTnKeys=new Set();
   if(forecastWindow){
     allRows.forEach(r=>{
       if(destination(r)!=="BADOC HUB")return;
@@ -8368,8 +8488,8 @@ window.updateOperationProgress=function(){
       if(isExceptionRow(r))return;
       if(!forecastStatuses.has(statusKey(status(r))))return;
       const tn=tnKey(spxTN(r));
-      if(!tn || forecastTnKeys.has(tn))return;
-      forecastTnKeys.add(tn);
+      if(!tn || forecastSeenTnKeys.has(tn))return;
+      forecastSeenTnKeys.add(tn);
       forecastDetailRows.push({station:station(r),status:status(r),tn});
     });
   }
@@ -8380,8 +8500,18 @@ window.updateOperationProgress=function(){
     if(!forecastStationStatusCounts[st])forecastStationStatusCounts[st]={};
     forecastStationStatusCounts[st][ss]=(forecastStationStatusCounts[st][ss]||0)+1;
   });
-  window.__badocForecastDetails={rows:forecastDetailRows,counts:forecastStationStatusCounts,total:forecastDetailRows.length};
-  const estimatedTomorrow=forecastWindow?forecastTnKeys.size:0;
+  // Selected forecast total = unique SPX TNs belonging to enabled groups.
+  const forecastSelectedTnKeys=new Set();
+  forecastDetailRows.forEach(item=>{
+    if(forecastGroupEnabled(item.station,item.status)) forecastSelectedTnKeys.add(item.tn);
+  });
+  window.__badocForecastDetails={
+    rows:forecastDetailRows,
+    counts:forecastStationStatusCounts,
+    total:forecastSelectedTnKeys.size,
+    allTotal:forecastDetailRows.length
+  };
+  const estimatedTomorrow=forecastWindow?forecastSelectedTnKeys.size:0;
 
   const counts={TRANSPORTING:0,TRANSPORTED:0,RECEIVED:0,ASSIGNING:0,ASSIGNED:0,DELIVERING:0,DELIVERED:0,ONHOLD:0};
   qualifyingDayRows.forEach(r=>{
@@ -8393,7 +8523,7 @@ window.updateOperationProgress=function(){
     else if(s==="LMHUB ASSIGNED") counts.ASSIGNED++;
     else if(s==="DELIVERING") counts.DELIVERING++;
     else if(s==="DELIVERED") counts.DELIVERED++;
-    else if(s==="ONHOLD"||s==="ON HOLD"||s==="LMHUB ONHOLD") counts.ONHOLD++;
+    else if((window.__badocLiveHoldTNs instanceof Set) && window.__badocLiveHoldTNs.has(window.__badocHoldKey?.(spxTN(r)) || normJoin(spxTN(r)))) counts.ONHOLD++;
   });
 
   const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number(v||0).toLocaleString()};
@@ -8423,7 +8553,15 @@ window.updateOperationProgress=function(){
   // reset is handled by the operational data reset/date boundary, not by
   // localStorage history. This is the regular Clear Floor Rate, NOT CFR1.
   const clearFloorCurrentPct=pct((counts.DELIVERING||0)+(counts.DELIVERED||0)+(counts.ONHOLD||0),todayVolume);
-  const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=clearFloorCurrentPct.toFixed(1)+"%";
+  // Lock the highest regular CFR reached during the current operational day.
+  // Reset automatically at midnight local time.
+  const CFR_PEAK_KEY="badoc_cfr_peak_v1";
+  const cfrTodayKey=(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})();
+  let cfrPeak=0,cfrPeakDate=cfrTodayKey;
+  try{const saved=JSON.parse(localStorage.getItem(CFR_PEAK_KEY)||"null");if(saved&&saved.date===cfrTodayKey&&Number.isFinite(Number(saved.value)))cfrPeak=Math.max(0,Number(saved.value));}catch(e){}
+  if(clearFloorCurrentPct>cfrPeak)cfrPeak=clearFloorCurrentPct;
+  try{localStorage.setItem(CFR_PEAK_KEY,JSON.stringify({date:cfrTodayKey,value:cfrPeak}));}catch(e){}
+  const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=cfrPeak.toFixed(1)+"%";
   setProgress("Transporting",counts.TRANSPORTING);setProgress("Transported",counts.TRANSPORTED);setProgress("Received",counts.RECEIVED);setProgress("Assigning",counts.ASSIGNING);setProgress("Assigned",counts.ASSIGNED);
   setText("opDelivering",counts.DELIVERING);setText("opDelivered",counts.DELIVERED);setText("opReceivedSummary",counts.RECEIVED);
 
@@ -8553,9 +8691,32 @@ window.updateOperationProgress=function(){
   };
   setText("opCfr1Scanned",window.__badocCfr1Details.scannedCount);
   setText("opCfr1Total",window.__badocCfr1Details.totalCount);
-  // On-Hold: count only the actual On-Hold statuses for now.
-  const onHold=counts.ONHOLD||0;
+  // ON-HOLD source: ONLY live Google Sheet Column F, matched to uploaded SPX TNs.
+  // The uploaded row status itself is never used to create an H.
+  const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
+  let onHold=0;
+  // Match Google Sheet Column F against ALL uploaded parcel rows, not only
+  // rows that pass the dashboard station/day filters.
+  // This ensures a valid GSheet SPX TN such as SPEPH065700458049 is still
+  // recognized even if its uploaded row has a different station/status.
+  const uploadedParcelRows=allRows.filter(r=>!isExceptionRow(r));
+  uploadedParcelRows.forEach(r=>{
+    const tn=spxTN(r);
+    if(tn && liveHold.has(normJoin(tn))) onHold++;
+  });
+  counts.ONHOLD=onHold;
   setText("opOnHold",onHold);
+  const holdCard=document.querySelector("#homeDashboard .dashboard-status-card.onhold");
+  const holdSmall=holdCard?.querySelector("small");
+  if(holdSmall){
+    const liveCount=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs.size:0;
+    const src=window.__badocLiveHoldState?.source||"WAITING";
+    holdSmall.textContent=`GSHEET ${src} • ${liveCount.toLocaleString()} TN • MATCHED ${onHold.toLocaleString()}`;
+  }
+  // Keep the exact GSheet TNs that are not present in the currently loaded parcel files.
+  const uploadedTNKeys=new Set(uploadedParcelRows.map(r=>normJoin(spxTN(r))).filter(Boolean));
+  const rawHoldTNs=Array.isArray(window.__badocLiveHoldRawTNs)?window.__badocLiveHoldRawTNs:[];
+  window.__badocUnmatchedHoldTNs=rawHoldTNs.filter(v=>{const k=normJoin(v);return k&&!uploadedTNKeys.has(k);});
 
   // Unscanned: Today's Volume minus Delivering, Delivered and On-Hold.
   const unscanned=Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0)-onHold);
@@ -8627,7 +8788,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     if(dRemarks) dRemarks.textContent=remarks && remarks.textContent.trim() ? remarks.textContent.trim() : "—";
   }
   updateDashboardKpiSummary();
-  setInterval(updateDashboardKpiSummary,1000);
+  setInterval(updateDashboardKpiSummary,5000);
 })();
 </script>
 <script id="dashboard-live-kpi-click">
@@ -9022,7 +9183,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
   }
   function run(){bindSummary();checkStorage();checkData();checkKpi();checkSync();updateLastSyncDetail();}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run,{once:true});else run();
-  setInterval(function(){checkKpi();checkSync();updateLastSyncDetail();},1000);
+  setInterval(function(){checkKpi();checkSync();updateLastSyncDetail();},3000);
   setInterval(checkData,3000);
   setInterval(checkStorage,30000);
 })();
@@ -10231,6 +10392,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .forecast-detail-table th{position:sticky;top:0;background:#101821;color:#9fc6d9;font-size:10px;letter-spacing:.05em}
 .forecast-detail-table td{color:#edf3f8}
 .forecast-detail-total{padding:10px 11px;margin-bottom:10px;border:1px solid #263543;border-radius:9px;color:#dce8f0;font-size:12px}
+.forecast-filter-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 11px;margin-bottom:8px;border:1px solid #263543;border-radius:9px;background:#0d141c;color:#9fc6d9;font-size:11px}
+.forecast-filter-controls span{margin-right:auto}.forecast-filter-btn{border:1px solid #344454;background:#101821;color:#dce8f0;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer}.forecast-detail-table input[type="checkbox"]{width:16px;height:16px;accent-color:#4aa3ff;cursor:pointer}
 .forecast-detail-empty{padding:28px 10px;text-align:center;color:#8fa0ad}
 @media(max-width:600px){.forecast-detail-modal{max-height:90vh}.forecast-detail-table{font-size:12px}.forecast-detail-table th,.forecast-detail-table td{padding:9px 8px}}
 </style>
@@ -10253,16 +10416,37 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     const body=byId("forecastDetailBody");
     if(!body)return;
     body.textContent="";
-    const total=document.createElement("div");
-    total.className="forecast-detail-total";
-    total.textContent="Forecast total: "+Number(data.total||0).toLocaleString()+" unique SPX TNs";
-    body.appendChild(total);
     const counts=data.counts||{};
     const rows=[];
     Object.keys(counts).forEach(st=>{
       Object.keys(counts[st]||{}).forEach(ss=>rows.push({station:st,status:ss,count:counts[st][ss]}));
     });
     rows.sort((a,b)=>a.station.localeCompare(b.station)||a.status.localeCompare(b.status));
+
+    const controls=document.createElement("div");
+    controls.className="forecast-filter-controls";
+    const hint=document.createElement("span");
+    hint.textContent="Select what to add to Volume Forecast";
+    controls.appendChild(hint);
+    const allBtn=document.createElement("button");
+    allBtn.type="button"; allBtn.textContent="ALL"; allBtn.className="forecast-filter-btn";
+    allBtn.addEventListener("click",()=>{
+      rows.forEach(x=>window.__badocForecastFilterSelections[window.__badocForecastFilterKey(x.station,x.status)]=true);
+      window.__badocSaveForecastFilterSelections(); window.updateOperationProgress?.(); renderForecastDetails();
+    });
+    const noneBtn=document.createElement("button");
+    noneBtn.type="button"; noneBtn.textContent="NONE"; noneBtn.className="forecast-filter-btn";
+    noneBtn.addEventListener("click",()=>{
+      rows.forEach(x=>window.__badocForecastFilterSelections[window.__badocForecastFilterKey(x.station,x.status)]=false);
+      window.__badocSaveForecastFilterSelections(); window.updateOperationProgress?.(); renderForecastDetails();
+    });
+    controls.append(allBtn,noneBtn);
+    body.appendChild(controls);
+
+    const total=document.createElement("div");
+    total.className="forecast-detail-total";
+    total.textContent="Forecast total: "+Number(data.total||0).toLocaleString()+" unique SPX TNs";
+    body.appendChild(total);
     if(!rows.length){
       const empty=document.createElement("div");
       empty.className="forecast-detail-empty";
@@ -10273,15 +10457,27 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     const table=document.createElement("table");
     table.className="forecast-detail-table";
     const thead=document.createElement("thead"),hr=document.createElement("tr");
-    ["CURRENT STATION","STATUS","COUNT"].forEach(label=>{const th=document.createElement("th");th.textContent=label;hr.appendChild(th)});
+    ["ADD","CURRENT STATION","STATUS","COUNT"].forEach(label=>{const th=document.createElement("th");th.textContent=label;hr.appendChild(th)});
     thead.appendChild(hr);table.appendChild(thead);
     const tbody=document.createElement("tbody");
     rows.forEach(item=>{
       const tr=document.createElement("tr");
+      const td0=document.createElement("td");
+      const cb=document.createElement("input");
+      cb.type="checkbox"; cb.checked=window.__badocForecastGroupEnabled(item.station,item.status);
+      cb.title="Include this station/status in Volume Forecast";
+      cb.addEventListener("change",()=>{
+        window.__badocForecastFilterSelections[window.__badocForecastFilterKey(item.station,item.status)]=cb.checked;
+        window.__badocSaveForecastFilterSelections();
+        window.updateOperationProgress?.();
+        renderForecastDetails();
+      });
+      td0.appendChild(cb);
       const td1=document.createElement("td");td1.textContent=item.station||"—";
       const td2=document.createElement("td");td2.textContent=item.status||"—";
       const td3=document.createElement("td");td3.textContent=Number(item.count||0).toLocaleString();
-      tr.append(td1,td2,td3);tbody.appendChild(tr);
+      if(!cb.checked) tr.style.opacity="0.45";
+      tr.append(td0,td1,td2,td3);tbody.appendChild(tr);
     });
     table.appendChild(tbody);body.appendChild(table);
   }
@@ -11064,6 +11260,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 </style>
 <style id="badoc-v221-below90-operation">
 .daily-history-below90-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #1c2833}.daily-history-below90-row:last-child{border-bottom:0}.daily-history-below90-row>strong:first-child{color:#edf3f8}.daily-history-below90-row>strong:last-child{white-space:nowrap}.daily-history-below90-rider,.daily-history-below90-info,.daily-history-below90-towns{display:none}
+.daily-history-town-area{display:block!important;margin-top:3px!important;font-size:9px!important;color:#71808c!important;text-transform:uppercase!important;letter-spacing:.04em}.daily-history-below90-town-card{cursor:pointer;position:relative;display:flex;align-items:center;gap:8px;min-height:0;white-space:nowrap;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}.daily-history-below90-town-card:hover{transform:translateY(-1px);border-color:rgba(255,120,90,.5);box-shadow:0 0 0 1px rgba(255,120,90,.12)}.daily-history-below90-town-card:active{transform:translateY(0)}.daily-history-below90-town-card.is-disabled{cursor:default;opacity:.62}.daily-history-below90-town-card.is-disabled:hover{transform:none;border-color:inherit;box-shadow:none}
 .daily-history-below90-card{cursor:pointer;position:relative;display:flex;align-items:center;gap:8px;min-height:0;white-space:nowrap;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
 .daily-history-below90-card:hover{transform:translateY(-1px);border-color:rgba(255,120,90,.5);box-shadow:0 0 0 1px rgba(255,120,90,.12)}
 .daily-history-below90-card:active{transform:translateY(0)}
@@ -11107,6 +11304,15 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 .daily-history-clickable{cursor:pointer;transition:transform .12s ease,border-color .12s ease}.daily-history-clickable:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28)}
 .badoc-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px}.badoc-detail-modal{width:min(760px,96vw);max-height:88vh;background:#080c11;border:1px solid #2c3947;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column}.badoc-detail-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #24303b}.badoc-detail-head h3{margin:0;font-size:16px}.badoc-detail-close{border:0;background:transparent;color:inherit;font-size:24px;cursor:pointer;line-height:1}.badoc-detail-body{padding:12px 16px;overflow:auto}.badoc-detail-count{font-size:12px;opacity:.72;margin-bottom:10px}.badoc-detail-table{width:100%;border-collapse:collapse;font-size:12px}.badoc-detail-table th,.badoc-detail-table td{padding:8px;border-bottom:1px solid #202a34;text-align:left;vertical-align:top}.badoc-detail-table th{font-size:10px;opacity:.65;text-transform:uppercase}.badoc-detail-empty{padding:20px;text-align:center;opacity:.65}
 </style>
+<style id="badoc-v259-smooth-scrolling">
+html{scroll-behavior:smooth}
+body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.page,.section,.daily-history-page{scroll-behavior:smooth}
+.daily-history-dashboard,.badoc-detail-body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.daily-history-rider-card,.daily-history-town{contain:layout paint}
+#dailyHistoryRefreshBtn{white-space:nowrap;flex:0 0 auto;min-height:38px}
+@media(max-width:560px){#dailyHistoryRefreshBtn{font-size:9px;padding:8px 9px;min-height:34px}}
+</style>
 <script id="badoc-v206-cloud-daily-history">
 (function(){
   if(window.__badocV206DailyHistory)return;
@@ -11146,12 +11352,19 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   function statusNorm(v){return clean(v).toUpperCase().replace(/[_-]+/g," ").replace(/\s+/g," ")}
   function statusCounts(rows){
     const out={received:0,delivered:0,delivering:0,hold:0};
+    const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
+    const holdKey=window.__badocHoldKey||normJoin;
     (rows||[]).forEach(r=>{
       const s=statusNorm(statusOf(r));
-      if(s==="RECEIVED"||s==="LMHUB RECEIVED")out.received++;
+      const tn=clean(typeof spxTN==="function"?spxTN(r):r?.["SPX TN"]||r?.["SLS Tracking Number"]||"");
+      const isLiveHold=!!tn && liveHold.has(holdKey(tn));
+      // Daily History uses the same On-Hold source as the live dashboard:
+      // Google Sheet Column F matched to the uploaded Parcel Count SPX TN.
+      // A raw uploaded ON HOLD status is not independently treated as Hold.
+      if(isLiveHold && s!=="DELIVERED" && s!=="DELIVERING")out.hold++;
+      else if(s==="RECEIVED"||s==="LMHUB RECEIVED")out.received++;
       else if(s==="DELIVERED")out.delivered++;
       else if(s==="DELIVERING")out.delivering++;
-      else if(s==="ONHOLD"||s==="ON HOLD"||s==="LMHUB ONHOLD"||s==="LMHUB ON HOLD")out.hold++;
     });
     return out;
   }
@@ -11234,6 +11447,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
         linehaul:incomingEnabled?"Current Linehaul Task dataset":"Not included (incoming linehaul disabled)",
         riders:"Current Riders Data",
         townCounts:"Current Town Counts layout and parcel statuses",
+        onHold:"Google Sheet Column F matched against uploaded Parcel Count SPX TNs",
         riderPositions:"Current Town Counts rider selections/positions",
         misrouted:"Current Parcel Count misrouted rows",
         exemptions:"Current exception/exemption tracking list"
@@ -11257,6 +11471,20 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
       })),
       exemptionDetails:(Array.isArray(exceptionTrackingNumbers)?exceptionTrackingNumbers:[]).map(clean).filter(Boolean),
       riderPerformance:groupDetails,
+      townPerformance:Object.entries(areaRows).flatMap(([area,areaList])=>{
+        const byTown=new Map();
+        areaList.forEach(r=>{
+          const town=clean(r?.["Town Name"]||r?.["Town"]||"");
+          if(!town)return;
+          if(!byTown.has(town))byTown.set(town,[]);
+          byTown.get(town).push(r);
+        });
+        return [...byTown.entries()].map(([town,townRows])=>{
+          const ts=statusCounts(townRows);
+          const den=ts.received+ts.delivered+ts.delivering+ts.hold;
+          return {area,town,delivered:ts.delivered,onHold:ts.hold,delivering:ts.delivering,received:ts.received,total:townRows.length,successRate:pct(ts.delivered,den)};
+        });
+      }),
       townCounts:{
         Badoc:areaRows.Badoc.map(r=>clean(r["Town Name"])).filter(Boolean).reduce((m,t)=>(m[t]=(m[t]||0)+1,m),{}),
         Pinili:areaRows.Pinili.map(r=>clean(r["Town Name"])).filter(Boolean).reduce((m,t)=>(m[t]=(m[t]||0)+1,m),{})
@@ -11344,6 +11572,10 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
           <div class="daily-history-operations">
             <div class="daily-history-metric daily-history-clickable" data-action="daily-history-misrouted" role="button" tabindex="0" aria-label="View misrouted parcels"><strong>${n(m.misrouted)}</strong><span>Misrouted</span></div>
             <div class="daily-history-metric daily-history-clickable" data-action="daily-history-exemptions" role="button" tabindex="0" aria-label="View exemptions"><strong>${n(m.exemptions)}</strong><span>Exemptions</span></div>
+            <div class="daily-history-metric daily-history-below90-town-card ${((Array.isArray(s.townPerformance)?s.townPerformance:[]).filter(t=>String(t.town||"").trim() && n(t.successRate)<90).length)?"":"is-disabled"}" data-action="daily-history-below90-towns" role="button" tabindex="${((Array.isArray(s.townPerformance)?s.townPerformance:[]).filter(t=>String(t.town||"").trim() && n(t.successRate)<90).length)?"0":"-1"}" aria-label="${((Array.isArray(s.townPerformance)?s.townPerformance:[]).filter(t=>String(t.town||"").trim() && n(t.successRate)<90).length)?"View towns below 90 percent success rate":"No towns below 90 percent success rate"}">
+              <strong>${((Array.isArray(s.townPerformance)?s.townPerformance:[]).filter(t=>String(t.town||"").trim() && n(t.successRate)<90).length)}</strong>
+              <span>&lt;90% Towns</span>
+            </div>
             <div class="daily-history-metric daily-history-below90-card ${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"":"is-disabled"}" data-action="daily-history-below90" role="button" tabindex="${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"0":"-1"}" aria-label="${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"Go to riders below 90 percent success rate":"No riders below 90 percent success rate"}">
               <strong>${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length}</strong>
               <span>‹90% succes rate</span>
@@ -11546,6 +11778,21 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     }
   }
 
+  function showBelow90TownsPopup(){
+    const s=window.__badocDailyHistoryCurrentSnapshot||{};
+    const towns=Array.isArray(s.townPerformance)?s.townPerformance:[];
+    const below=towns.filter(t=>String(t.town||"").trim() && n(t.successRate)<90).sort((a,b)=>n(a.successRate)-n(b.successRate));
+    const old=document.getElementById("badocBelow90TownOverlay"); if(old)old.remove();
+    const overlay=document.createElement("div"); overlay.id="badocBelow90TownOverlay"; overlay.className="badoc-detail-overlay";
+    const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":'&#39;'}[c]));
+    const body=below.length?`<div class="daily-history-below90-list">${below.map(t=>`<div class="daily-history-below90-row"><div><strong>${esc(t.town)}</strong><span class="daily-history-town-area">${esc(t.area||"")}</span></div><strong class="daily-history-rider-name--low">${n(t.successRate).toFixed(1)}%</strong></div>`).join("")}</div>`:`<div class="badoc-detail-empty">No towns below 90% success rate.</div>`;
+    overlay.innerHTML=`<div class="badoc-detail-modal" role="dialog" aria-modal="true" aria-label="Towns below 90 percent success rate"><div class="badoc-detail-head"><h3>Towns Below 90% Success Rate</h3><button type="button" class="badoc-detail-close" aria-label="Close">×</button></div><div class="badoc-detail-body"><div class="badoc-detail-count">${below.length} town${below.length===1?"":"s"}</div>${body}</div></div>`;
+    document.body.appendChild(overlay);
+    const close=()=>{overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");setTimeout(()=>overlay.remove(),120)};
+    overlay.querySelector(".badoc-detail-close").onclick=close; overlay.addEventListener("click",e=>{if(e.target===overlay)close()});
+    overlay.classList.add("open"); overlay.setAttribute("aria-hidden","false");
+  }
+
   function showBelow90RidersPopupLive(){
     const s=window.__badocDailyHistoryCurrentSnapshot||{};
     const groups=Array.isArray(s.riderPerformance)?s.riderPerformance:[];
@@ -11585,6 +11832,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     }
     const detail=e.target?.closest?.('[data-action="daily-history-misrouted"],[data-action="daily-history-exemptions"]');
     if(detail){showBadocDetailPopup(detail.dataset.action.endsWith("misrouted")?"misrouted":"exemptions");return;}
+    const townCard=e.target?.closest?.('[data-action="daily-history-below90-towns"]');
+    if(townCard && !townCard.classList.contains("is-disabled")){showBelow90TownsPopup();return;}
     const card=e.target?.closest?.('[data-action="daily-history-below90"]');
     if(!card || card.classList.contains("is-disabled"))return;
     showBelow90RidersPopupLive();
@@ -11592,6 +11841,8 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   document.addEventListener("keydown",e=>{
     const detail=e.target?.closest?.('[data-action="daily-history-misrouted"],[data-action="daily-history-exemptions"]');
     if(detail && (e.key==="Enter"||e.key===" ")){e.preventDefault();showBadocDetailPopup(detail.dataset.action.endsWith("misrouted")?"misrouted":"exemptions");return;}
+    const townCard=e.target?.closest?.('[data-action="daily-history-below90-towns"]');
+    if(townCard && (e.key==="Enter"||e.key===" ") && !townCard.classList.contains("is-disabled")){e.preventDefault();showBelow90TownsPopup();return;}
     if((e.key!=="Enter"&&e.key!==" ")||!e.target?.matches?.('[data-action="daily-history-below90"]'))return;
     e.preventDefault();
     e.target.click();
@@ -11645,7 +11896,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
 
       // Cloud persistence is throttled. The UI remains live every tick while
       // cloud writes happen periodically and the 2 AM final capture is exact.
-      const signature=JSON.stringify(snapshot);
+      const signature=JSON.stringify({...snapshot,capturedAt:""});
       const nowMs=Date.now();
       if(signature===liveLastSignature || liveWriteBusy || nowMs-liveLastCloudWrite<30000)return;
       liveWriteBusy=true;
@@ -11661,11 +11912,24 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     }catch(e){console.warn("Daily History live sync:",e)}
   }
 
-  // Capture immediately and keep today's Daily History as a live mirror.
-  // The display does not depend on cloud connectivity.
+  // Keep the visible Daily History live without hammering cloud storage.
+  // Cloud snapshots are captured once every hour, on the hour. The same
+  // date file is updated, so the latest hourly snapshot represents today.
+  let hourlyCaptureKey="";
+  async function hourlyDailyHistoryTick(){
+    const now=new Date();
+    const hourKey=dayKey(now)+"-"+String(now.getHours()).padStart(2,"0");
+    if(hourlyCaptureKey===hourKey)return;
+    hourlyCaptureKey=hourKey;
+    try{await window.__badocCaptureDailyHistory("hourly",dayKey(now));}
+    catch(e){hourlyCaptureKey="";console.warn("Daily History hourly capture failed:",e)}
+  }
+
   setTimeout(()=>{
     liveDailyHistoryTick();
-    setInterval(liveDailyHistoryTick,1000);
+    hourlyDailyHistoryTick();
+    setInterval(liveDailyHistoryTick,30000);
+    setInterval(hourlyDailyHistoryTick,60000);
   },1200);
 
   // Final pre-reset capture. This is the authoritative last write before the
@@ -11683,9 +11947,18 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     lastAttempt=resetDay;
     try{await window.__badocCaptureDailyHistory("pre-reset",d)}catch(e){lastAttempt=""}
   }
-  setTimeout(()=>{preResetTick();setInterval(preResetTick,1000)},1200);
+  setTimeout(()=>{preResetTick();setInterval(preResetTick,30000)},1200);
 
   document.addEventListener("DOMContentLoaded",()=>{
+    const refreshBtn=document.getElementById("dailyHistoryRefreshBtn");
+    refreshBtn?.addEventListener("click",async()=>{
+      if(refreshBtn.disabled)return;
+      const old=refreshBtn.textContent;
+      refreshBtn.disabled=true;
+      refreshBtn.textContent="↻ Refreshing…";
+      try{await window.__badocRefreshDailyHistory?.();}
+      finally{refreshBtn.disabled=false;refreshBtn.textContent=old;}
+    });
     setTimeout(()=>window.__badocRefreshDailyHistory?.(),700);
   });
 })();
@@ -11825,6 +12098,111 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   .health-details{flex-wrap:nowrap!important}
 }
 </style>
+
+<script id="badoc-live-onhold-gsheet-v251">
+(function(){
+  const SHEET_ID="11heDz_BMJPM9UDXEZ5nF4cyi6t53pbcLk--1cI62-70";
+  const GID="655087682";
+  const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStjOq5M-MVoX_lbkPoYl4-9mlJSdgrGiv7ZTqFJ9gNCUdo0HbLChwC9lGCLhdvd0nBylnT_jCnMPeZ/pub?gid=655087682&single=true&output=csv";
+  const REFRESH_MS=10000;
+  const key=v=>String(v??"").trim().toUpperCase().replace(/[\s\-_.]/g,"");
+  window.__badocHoldKey=key;
+  window.__badocLiveHoldTNs=new Set();
+  window.__badocLiveHoldState={loading:false,lastSuccess:0,count:0,error:"",source:""};
+
+  function parseCSV(text){
+    const rows=[];let row=[],cell="",q=false;
+    for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+      if(q){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"')q=false;else cell+=c;}
+      else if(c==='"')q=true;
+      else if(c===','){row.push(cell);cell="";}
+      else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
+      else if(c!=='\r')cell+=c;
+    }
+    if(cell!==""||row.length){row.push(cell);rows.push(row);}
+    return rows;
+  }
+
+  function applyValues(values,source){
+    const next=new Set();
+    const raw=[];
+    (values||[]).forEach(v=>{const k=key(v);if(k){next.add(k);raw.push(String(v??"").trim());}});
+    window.__badocLiveHoldTNs=next;
+    window.__badocLiveHoldRawTNs=[...new Set(raw)];
+    window.__badocLiveHoldState={loading:false,lastSuccess:Date.now(),count:next.size,error:"",source};
+    try{window.render?.();}catch(e){}
+    try{window.renderRiderPerformance?.();}catch(e){}
+    try{window.updateOperationProgress?.();}catch(e){}
+  }
+
+  function fetchGviz(){
+    return new Promise((resolve,reject)=>{
+      const cb="badocHoldGviz_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+      let done=false;
+      let script;
+      const finish=(fn,v)=>{if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(e){};if(script)script.remove();fn(v);};
+      const timer=setTimeout(()=>finish(reject,new Error("GSheet Gviz timeout")),12000);
+      script=document.createElement("script");
+      window[cb]=data=>{
+        try{
+          // select F returns ONLY column F, so the value is c[0], not c[5].
+          const values=(data?.table?.rows||[]).map(x=>{const c=x?.c?.[0];return c?(c.f??c.v??""):"";});
+          if(!Array.isArray(data?.table?.rows))throw new Error("Invalid Gviz response");
+          finish(resolve,values);
+        }catch(e){finish(reject,e);}
+      };
+      script.onerror=()=>finish(reject,new Error("GSheet JSONP unavailable"));
+      const tq=encodeURIComponent("select F where F is not null");
+      script.src="https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?gid="+GID+"&headers=1&tqx="+encodeURIComponent("out:json;responseHandler:"+cb)+"&tq="+tq+"&_="+Date.now();
+      document.head.appendChild(script);
+    });
+  }
+
+  async function fetchCsv(){
+    const r=await fetch(CSV_URL+"&_="+Date.now()+"&cachebust="+Math.random().toString(36).slice(2),{cache:"no-store"});
+    if(!r.ok)throw new Error("CSV HTTP "+r.status);
+    const rows=parseCSV(await r.text());
+    // Published CSV has the sheet header on row 1; Column F is index 5.
+    return rows.slice(1).map(r=>r?.[5]??"");
+  }
+
+  async function refresh(){
+    if(window.__badocLiveHoldState.loading)return;
+    window.__badocLiveHoldState.loading=true;
+    try{
+      try{
+        const values=await fetchGviz();
+        applyValues(values,"GVIZ");
+      }catch(gvizErr){
+        const values=await fetchCsv();
+        applyValues(values,"CSV");
+      }
+    }catch(e){
+      window.__badocLiveHoldState.loading=false;
+      window.__badocLiveHoldState.error=String(e?.message||e);
+      console.warn("On-Hold Google Sheet refresh failed",e);
+      try{window.updateOperationProgress?.();}catch(_){}
+    }
+  }
+
+  window.__badocRefreshLiveHold=refresh;
+  refresh();
+  setInterval(refresh,REFRESH_MS);
+})();
+</script>
+<script id="badoc-unmatched-onhold-view-v249">
+(function(){
+  const card=document.querySelector("#homeDashboard .dashboard-status-card.onhold");
+  if(!card)return;
+  card.style.cursor="pointer";
+  card.title="Column F = Google Sheet On-Hold SPX TNs. Click to view any Column F TN not found in uploaded parcel data.";
+  card.addEventListener("click",function(){
+    const list=Array.isArray(window.__badocUnmatchedHoldTNs)?window.__badocUnmatchedHoldTNs:[];
+    if(!list.length){alert("No unmatched GSheet On-Hold SPX TNs. All GSheet TNs are present in the uploaded parcel data.");return;}
+    alert("UNMATCHED GSHEET ON-HOLD SPX TNs ("+list.length+")\n\n"+list.join("\n"));
+  });
+})();
+</script>
 </html>
 <style>
 
@@ -12370,7 +12748,7 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     set("dashEodTotalRiders",d.totalRidersUsed||"—");
   }
   sync();
-  setInterval(sync,1000);
+  setInterval(sync,5000);
 })();
 </script>
 
@@ -12427,3 +12805,32 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   }
 }
 </style>
+
+<script id="daily-history-scroll-fix-js-v265">
+(function(){
+  function fixDailyHistoryScroll(){
+    const candidates=[...document.querySelectorAll('[id*="dailyHistory"], [id*="daily-history"]')];
+    candidates.forEach(root=>{
+      const kids=[...root.querySelectorAll(':scope > *, :scope .panel, :scope .card, :scope .content, :scope .section-content')];
+      const target=kids.find(el=>el.scrollHeight > el.clientHeight + 20) || root;
+      if(target===root){
+        root.style.minHeight='0';
+        root.style.overflowY='auto';
+        root.style.overflowX='hidden';
+        root.style.webkitOverflowScrolling='touch';
+        root.style.overscrollBehavior='contain';
+      } else {
+        target.style.minHeight='0';
+        target.style.overflowY='auto';
+        target.style.overflowX='hidden';
+        target.style.webkitOverflowScrolling='touch';
+        target.style.overscrollBehavior='contain';
+      }
+    });
+  }
+  window.addEventListener('load',fixDailyHistoryScroll);
+  window.addEventListener('resize',fixDailyHistoryScroll,{passive:true});
+  document.addEventListener('click',()=>setTimeout(fixDailyHistoryScroll,50),{passive:true});
+  setInterval(fixDailyHistoryScroll,2000);
+})();
+</script>
