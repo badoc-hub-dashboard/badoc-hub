@@ -6585,7 +6585,8 @@ $("resetClearFloorRate").onclick=()=>{
     const d=new Date();
     const date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
     localStorage.setItem(key,JSON.stringify({date,value:0}));
-    localStorage.setItem("badoc_cfr_manual_reset_v1",JSON.stringify({date,baseline,at:Date.now()}));
+    const revision=(Array.isArray(batches)?batches:[]).map(b=>String(b?.time||"")+"|"+String(b?.name||"")).join(";");
+    localStorage.setItem("badoc_cfr_manual_reset_v1",JSON.stringify({date,baseline,revision,at:Date.now()}));
   }catch(e){}
   if(window.__badocCfrMidnightTimer){clearTimeout(window.__badocCfrMidnightTimer);window.__badocCfrMidnightTimer=null;}
   try{window.updateOperationProgress?.();}catch(e){}
@@ -8688,8 +8689,17 @@ window.updateOperationProgress=function(){
   let manualReset=null;
   try{
     const mr=JSON.parse(localStorage.getItem(CFR_MANUAL_RESET_KEY)||"null");
-    if(mr&&mr.date===cfrTodayKey&&Number.isFinite(Number(mr.baseline))) manualReset={baseline:Math.max(0,Number(mr.baseline))};
-    else if(mr) localStorage.removeItem(CFR_MANUAL_RESET_KEY);
+    if(mr&&mr.date===cfrTodayKey&&Number.isFinite(Number(mr.baseline))){
+      const revision=(Array.isArray(batches)?batches:[]).map(b=>String(b?.time||"")+"|"+String(b?.name||"")).join(";");
+      manualReset={baseline:Math.max(0,Number(mr.baseline)),revision:String(mr.revision||"")};
+      // A new parcel-file upload means the operation data has changed. Release
+      // the manual-reset lock and immediately recalculate CFR from the new data.
+      if(manualReset.revision && revision!==manualReset.revision){
+        cfrPeak=clearFloorCurrentPct;
+        manualReset=null;
+        try{localStorage.removeItem(CFR_MANUAL_RESET_KEY);}catch(e){}
+      }
+    }else if(mr) localStorage.removeItem(CFR_MANUAL_RESET_KEY);
   }catch(e){manualReset=null;}
   if(manualReset){
     if(clearFloorCurrentPct>manualReset.baseline){
