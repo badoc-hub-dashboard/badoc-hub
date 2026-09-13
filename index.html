@@ -4945,6 +4945,50 @@ async function saveBatches(){
 }
 function saveTownSettings(){localStorage.setItem("pr_towns",JSON.stringify(towns))}
 function norm(s){return String(s??"").trim().replace(/\s+/g," ").toUpperCase()}
+
+/* v274 Phase 1 performance cache: normalize frequently-used parcel fields once per row.
+   The cache is WeakMap-backed, so it does not prevent old upload rows from being
+   garbage-collected. No business rules are changed here; this only avoids repeating
+   the same Object.keys/normalization/SPX-TN scans across dashboard modules. */
+const BADOC_ROW_META=new WeakMap();
+const BADOC_INDEX_CACHE=new WeakMap();
+const BADOC_STATUS_KEYS=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status","Parcel Status","Delivery Status","Current Status"];
+const BADOC_SPX_KEYS=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID","SPX Tracking Number","SPX Tracking No","SPX Tracking No.","SPX TN No","SPX TN Number"];
+function badocRowMeta(r){
+  if(!r||typeof r!=="object")return {town:"",station:"",destination:"",status:"",tn:""};
+  const hit=BADOC_ROW_META.get(r);
+  if(hit)return hit;
+  let tn="";
+  for(const v of Object.values(r)){
+    const x=String(v??"").trim().replace(/^['\"]+|['\"]+$/g,"");
+    if(/^SPEPH[A-Z0-9]+$/i.test(x)){tn=norm(x);break;}
+  }
+  if(!tn){for(const k of BADOC_SPX_KEYS){const v=String(r?.[k]??"").trim();if(v){tn=norm(v);break;}}}
+  let status="";
+  for(const k of BADOC_STATUS_KEYS){if(Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()){status=norm(r[k]);break;}}
+  if(!status){const k=Object.keys(r).find(x=>/status/i.test(x));if(k)status=norm(r[k]);}
+  const meta={
+    town:norm(r?.["Town Name"]??r?.["Town"]??r?.["town"]??""),
+    station:norm(r?.["Current Station"]??""),
+    destination:norm(r?.["Destination Station"]??""),
+    status,
+    tn
+  };
+  BADOC_ROW_META.set(r,meta);
+  return meta;
+}
+window.__badocRowMeta=badocRowMeta;
+function badocRowIndex(rows){
+  const list=Array.isArray(rows)?rows:[];
+  const cached=BADOC_INDEX_CACHE.get(list);
+  if(cached)return cached;
+  const index={all:new Set(list),town:new Map(),station:new Map(),status:new Map(),destination:new Map(),tn:new Map()};
+  const add=(map,key,r)=>{if(!key)return;let set=map.get(key);if(!set){set=new Set();map.set(key,set);}set.add(r);};
+  for(const r of list){const m=badocRowMeta(r);add(index.town,m.town,r);add(index.station,m.station,r);add(index.status,m.status,r);add(index.destination,m.destination,r);if(m.tn)index.tn.set(m.tn,r);}
+  BADOC_INDEX_CACHE.set(list,index);
+  return index;
+}
+window.__badocRowIndex=badocRowIndex;
 function flat(list){return list.filter(x=>x[0]).map(x=>x[0])}
 function allowedMap(){let m={};flat(towns.badoc).forEach(x=>m[norm(x)]="Badoc");flat(towns.pinili).forEach(x=>m[norm(x)]="Pinili");return m}
 function parseCSV(text){
@@ -4957,18 +5001,7 @@ function parseCSV(text){
  let headers=(rows.shift()||[]).map(x=>x.trim());
  return rows.filter(r=>r.some(x=>String(x).trim()!=="")).map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]??""])));
 }
-function spxTN(r){
-  // IMPORTANT: SPEPH is a valid SPX tracking-number format in the parcel exports.
-  // Check EVERY cell FIRST. Do not let another populated tracking-number column
-  // hide the SPEPH value. This is what is compared against Google Sheet Column F.
-  for(const v of Object.values(r||{})){
-    const x=String(v??"").trim().replace(/^['\"]+|['\"]+$/g,"");
-    if(/^SPEPH[A-Z0-9]+$/i.test(x)) return norm(x);
-  }
-  const keys=["SPX TN","SLS Tracking Number","SPX TN/Tracking Number","Tracking Number","Order ID","SPX Tracking Number","SPX Tracking No","SPX Tracking No.","SPX TN No","SPX TN Number"];
-  for(const k of keys){const v=String(r?.[k]??"").trim();if(v)return norm(v);}
-  return "";
-}
+function spxTN(r){return badocRowMeta(r).tn}
 
 const EXCEPTION_TN_KEY="badoc_exception_tracking_numbers_v1";
 
@@ -5080,23 +5113,18 @@ function mergeAllBatches(){
 function classify(rows){
  const map=allowedMap(), valid=[],mis=[];
  for(const r of rows){
-  if(norm(r["Destination Station"])!=="BADOC HUB") continue;
-  const cs=norm(r["Current Station"]);
+  const meta=badocRowMeta(r);
+  if(meta.destination!=="BADOC HUB") continue;
+  const cs=meta.station;
   if(!["BADOC HUB","SOC 6","CAGAYAN DC"].includes(cs)) continue;
-  const town=norm(r["Town Name"]); if(map[town]) valid.push({...r,_area:map[town]}); else mis.push({...r,_area:"Misrouted"});
+  const town=meta.town; if(map[town]) valid.push({...r,_area:map[town]}); else mis.push({...r,_area:"Misrouted"});
  }
  return {valid,mis};
 }
-function counts(rows){let c={};rows.forEach(r=>c[norm(r["Town Name"])]=(c[norm(r["Town Name"])]||0)+1);return c}
+function counts(rows){let c={};rows.forEach(r=>{const town=badocRowMeta(r).town;if(town)c[town]=(c[town]||0)+1});return c}
 const HOLD_HISTORY_KEY="badoc_hold_history_v2";
 function normalizeParcelStatus(v){return norm(v).replace(/[_-]+/g," ").replace(/\s+/g," ")}
-function parcelStatus(r){
-  const keys=["Status","Parcel Status","Delivery Status","Current Status","Parcel Status To","Status To","TO Status","To Status","Status To (Current)"];
-  const allowed=v=>{const st=normalizeParcelStatus(v);return ["RECEIVED","LMHUB RECEIVED","DELIVERED","DELIVERING","ONHOLD","ON HOLD","LMHUB ONHOLD","LMHUB ON HOLD","ASSIGNED","LMHUB ASSIGNED","ASSIGNING","LMHUB ASSIGNING"].includes(st)};
-  for(const k of keys){if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()&&allowed(r[k]))return normalizeParcelStatus(r[k]);}
-  for(const k of Object.keys(r||{})){if(/status/i.test(k)&&String(r[k]??"").trim()&&allowed(r[k]))return normalizeParcelStatus(r[k]);}
-  return "";
-}
+function parcelStatus(r){return badocRowMeta(r).status}
 function loadHoldHistory(){
   let set=new Set();
   try{const saved=JSON.parse(localStorage.getItem(HOLD_HISTORY_KEY)||"[]");if(Array.isArray(saved))set=new Set(saved.map(x=>norm(x)).filter(Boolean));}catch{}
@@ -5117,10 +5145,10 @@ function townStatusCounts(rows){
   const out={};
   const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
   rows.forEach(r=>{
-    const town=norm(r["Town Name"]);
+    const meta=badocRowMeta(r),town=meta.town;
     if(!town)return;
     if(!out[town])out[town]={received:0,delivered:0,delivering:0,hold:0,assigned:0,assigning:0};
-    const st=parcelStatus(r),tn=spxTN(r);
+    const st=meta.status,tn=meta.tn;
     const isSheetHold=!!tn&&liveHold.has(normJoin(tn));
     const isReceived=st==="RECEIVED"||st==="LMHUB RECEIVED";
     // Parcel Count ON-HOLD is sourced ONLY from the Google Sheet Column F.
@@ -5847,27 +5875,30 @@ function selectedValues(id){
   const el=$(id); if(!el)return [];
   return [...el.selectedOptions].map(o=>String(o.value||"").trim()).filter(Boolean);
 }
-function recordStatusValue(r){
-  const keys=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status","Parcel Status","Delivery Status","Current Status"];
-  for(const k of keys){
-    if(r&&Object.prototype.hasOwnProperty.call(r,k)&&String(r[k]??"").trim()) return String(r[k]).trim();
-  }
-  const key=Object.keys(r||{}).find(k=>/status/i.test(k));
-  return key?String(r[key]??"").trim():"";
-}
+function recordStatusValue(r){return badocRowMeta(r).status}
 function recordMatches(rows,q,filters,ignore){
-  return rows.filter(r=>{
-    if(q){
-      const searchable=[
-        r["SLS Tracking Number"],r["Order ID"],r["Town Name"],r["SPX TN"],
-        r["SPX TN/Tracking Number"],r["Tracking Number"],r["Current Station"],
-        r["Destination Station"],r["Status"],r["Zone"]
-      ].map(norm);
-      if(!searchable.some(x=>x.includes(q)))return false;
+  const list=Array.isArray(rows)?rows:[];
+  if(!q){
+    const idx=badocRowIndex(list);
+    let sets=[];
+    if(ignore!=="town"&&filters.town.length)sets.push(new Set(filters.town.flatMap(v=>[...(idx.town.get(norm(v))||[])])));
+    if(ignore!=="station"&&filters.station.length)sets.push(new Set(filters.station.flatMap(v=>[...(idx.station.get(norm(v))||[])])));
+    if(ignore!=="status"&&filters.status.length)sets.push(new Set(filters.status.flatMap(v=>[...(idx.status.get(norm(v))||[])])));
+    if(sets.length){
+      sets.sort((a,b)=>a.size-b.size);
+      return [...sets[0]].filter(r=>sets.every(set=>set.has(r)));
     }
-    if(ignore!=="town"&&filters.town.length&&!filters.town.includes(String(r["Town Name"]??"").trim()))return false;
-    if(ignore!=="station"&&filters.station.length&&!filters.station.includes(String(r["Current Station"]??"").trim()))return false;
-    if(ignore!=="status"&&filters.status.length&&!filters.status.includes(recordStatusValue(r)))return false;
+    return list;
+  }
+  return list.filter(r=>{
+    const meta=badocRowMeta(r);
+    const searchable=[r["SLS Tracking Number"],r["Order ID"],r["Town Name"],r["SPX TN"],
+      r["SPX TN/Tracking Number"],r["Tracking Number"],r["Current Station"],
+      r["Destination Station"],r["Status"],r["Zone"],meta.tn].map(norm);
+    if(!searchable.some(x=>x.includes(q)))return false;
+    if(ignore!=="town"&&filters.town.length&&!filters.town.some(v=>norm(v)===meta.town))return false;
+    if(ignore!=="station"&&filters.station.length&&!filters.station.some(v=>norm(v)===meta.station))return false;
+    if(ignore!=="status"&&filters.status.length&&!filters.status.some(v=>norm(v)===meta.status))return false;
     return true;
   });
 }
@@ -6291,7 +6322,7 @@ function renderRiderPerformance(){
   $("riderPerformanceStatus").textContent=`PARCEL COUNT • ${rows.length.toLocaleString()} unique uploaded parcels • ${items.length.toLocaleString()} riders shown`;
 }
 $("riderPerformanceSearch")?.addEventListener("input",renderRiderPerformance);
-function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",dailyPickup:"Pickup",dailyPerformance:"Performance",dailyRiderPerformance:"Rider Performance",dailyConsolidated:"Consolidated",dailyEod:"EOD Data",ridersData:"Riders Data",dailyHistory:"Daily History",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management");if(p==="dailyRiderPerformance")renderRiderPerformance()}
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",dailyPickup:"Pickup",dailyPerformance:"Performance",dailyRiderPerformance:"Rider Performance",dailyConsolidated:"Consolidated",dailyEod:"EOD Data",ridersData:"Riders Data",dailyHistory:"Daily History",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management");if(p==="dailyPerformance")window.__badocInitDailyPerformance?.();if(p==="dailyPickup")window.__badocInitDailyPickup?.();if(p==="dailyConsolidated")window.__badocInitConsolidated?.();if(p==="linehaul")renderLinehaul();if(p==="dailyRiderPerformance")renderRiderPerformance()}
 $("parcelIncomingVolumeBtn")?.addEventListener("click",()=>{
   const next=!parcelIncomingEnabled();
   try{localStorage.setItem(PARCEL_INCOMING_KEY,next?"1":"0")}catch(e){}
@@ -7185,7 +7216,7 @@ function renderLinehaulKpis(){
   set("lhKpiTotal",incomingTotal);
   set("lhKpiDoid",doid);
 }
-function renderLinehaul(){
+function renderLinehaulCore(){
   renderLinehaulTownDashboard();
   renderLinehaulKpis();
   const body=$("linehaulBody");
@@ -7419,6 +7450,11 @@ function renderLinehaul(){
     return;
   }
   body.innerHTML=rows.join("");
+}
+function renderLinehaul(){
+  const page=document.getElementById("linehaul");
+  if(page && !page.classList.contains("active")) return;
+  renderLinehaulCore();
 }
 $("linehaulCsvFile")?.addEventListener("change",async e=>{
   const f=e.target.files?.[0];if(!f)return;
@@ -8428,9 +8464,9 @@ window.updateOperationProgress=function(){
     const key=Object.keys(r||{}).find(k=>/parcel\s*status\s*to|status\s*to|to\s*status/i.test(k));
     return key?String(r[key]??"").trim():"";
   };
-  const station=r=>norm((r&&r["Current Station"])||"");
-  const destination=r=>norm((r&&r["Destination Station"])||"");
-  const status=r=>norm(statusTo(r));
+  const station=r=>badocRowMeta(r).station;
+  const destination=r=>badocRowMeta(r).destination;
+  const status=r=>badocRowMeta(r).status;
   const statusKey=v=>String(v??"").toUpperCase().replace(/[\s\-_\.]/g,"");
   const tnKey=v=>norm(v).replace(/[\s\-_.]/g,"");
   const now=new Date(), mins=now.getHours()*60+now.getMinutes();
@@ -9466,7 +9502,10 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     }
   }
 
+  let started=false;
   function init(){
+    if(started)return;
+    started=true;
     $("performanceRefreshBtn")?.addEventListener("click",load);
     $("performanceSearch")?.addEventListener("input",render);
     $("performanceDateFilter")?.addEventListener("change",render);
@@ -9475,8 +9514,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     setInterval(load,REFRESH_MS);
   }
 
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
-  else init();
+  window.__badocInitDailyPerformance=init;
 })();
 </script>
 
@@ -9651,7 +9689,10 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
 
+  let started=false;
   function init(){
+    if(started)return;
+    started=true;
     $("pickupRefreshBtn")?.addEventListener("click",load);
     $("pickupSearch")?.addEventListener("input",render);
     $("pickupDateFilter")?.addEventListener("change",render);
@@ -9660,8 +9701,7 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     setInterval(load,REFRESH_MS);
   }
 
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
-  else init();
+  window.__badocInitDailyPickup=init;
 })();
 </script>
 
@@ -9808,9 +9848,15 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
     script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?gid='+GID+'&tqx='+encodeURIComponent('out:json;responseHandler:'+cb)+'&headers=0&tq='+encodeURIComponent('select *')+'&_ts='+Date.now();
     document.body.appendChild(script);
   }
-  document.getElementById('consolidatedRefreshBtn')?.addEventListener('click',load);
-  load();
-  setInterval(load,REFRESH_MS);
+  let started=false;
+  function init(){
+    if(started)return;
+    started=true;
+    document.getElementById('consolidatedRefreshBtn')?.addEventListener('click',load);
+    load();
+    setInterval(load,REFRESH_MS);
+  }
+  window.__badocInitConsolidated=init;
 })();
 </script>
 <style>
