@@ -6578,7 +6578,15 @@ $("backup").onclick=()=>download("parcel-dashboard-backup.json",JSON.stringify({
 $("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);towns=x.towns;batches=x.batches;current=batches[0]||null;saveTownSettings();render();alert("Backup restored.")}catch(err){alert("Invalid backup file.")}};r.readAsText(f)};
 $("resetClearFloorRate").onclick=()=>{
   if(!confirm("Reset today's Clear Floor Rate to 0%?\n\nThis will only reset the regular CFR peak for the current day. It will not delete parcel data or reset CFR1."))return;
-  try{localStorage.removeItem("badoc_cfr_peak_v2");}catch(e){}
+  try{
+    const key="badoc_cfr_peak_v2";
+    const current=JSON.parse(localStorage.getItem(key)||"null");
+    const baseline=(current&&Number.isFinite(Number(current.value)))?Number(current.value):0;
+    const d=new Date();
+    const date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+    localStorage.setItem(key,JSON.stringify({date,value:0}));
+    localStorage.setItem("badoc_cfr_manual_reset_v1",JSON.stringify({date,baseline,at:Date.now()}));
+  }catch(e){}
   if(window.__badocCfrMidnightTimer){clearTimeout(window.__badocCfrMidnightTimer);window.__badocCfrMidnightTimer=null;}
   try{window.updateOperationProgress?.();}catch(e){}
   alert("Today's Clear Floor Rate has been reset to 0%.");
@@ -8673,7 +8681,27 @@ window.updateOperationProgress=function(){
     if(saved&&saved.date===cfrTodayKey&&Number.isFinite(Number(saved.value))) cfrPeak=Math.max(0,Number(saved.value));
     else localStorage.removeItem(CFR_PEAK_KEY);
   }catch(e){cfrPeak=0;}
-  if(clearFloorCurrentPct>cfrPeak)cfrPeak=clearFloorCurrentPct;
+  // Manual reset lock: after a manual reset, do not immediately rebuild the
+  // old peak from the unchanged current status.  The lock is released only
+  // when the current CFR rises above the pre-reset baseline.
+  const CFR_MANUAL_RESET_KEY="badoc_cfr_manual_reset_v1";
+  let manualReset=null;
+  try{
+    const mr=JSON.parse(localStorage.getItem(CFR_MANUAL_RESET_KEY)||"null");
+    if(mr&&mr.date===cfrTodayKey&&Number.isFinite(Number(mr.baseline))) manualReset={baseline:Math.max(0,Number(mr.baseline))};
+    else if(mr) localStorage.removeItem(CFR_MANUAL_RESET_KEY);
+  }catch(e){manualReset=null;}
+  if(manualReset){
+    if(clearFloorCurrentPct>manualReset.baseline){
+      cfrPeak=clearFloorCurrentPct;
+      manualReset=null;
+      try{localStorage.removeItem(CFR_MANUAL_RESET_KEY);}catch(e){}
+    }else{
+      cfrPeak=0;
+    }
+  }else if(clearFloorCurrentPct>cfrPeak){
+    cfrPeak=clearFloorCurrentPct;
+  }
   try{localStorage.setItem(CFR_PEAK_KEY,JSON.stringify({date:cfrTodayKey,value:cfrPeak}));}catch(e){}
   const clear=document.getElementById("opClearFloorRate");if(clear)clear.textContent=cfrPeak.toFixed(1)+"%";
   // Schedule a hard local-midnight reset once per page load.  The normal
