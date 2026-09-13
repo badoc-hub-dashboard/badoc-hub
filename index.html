@@ -4059,6 +4059,73 @@ html{
 #townPrintPreview .town-row,
 #townPrintArea .town-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important}
 </style>
+<style>
+.daily-history-page{min-height:280px}
+.daily-history-page .area-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.daily-history-date-wrap{min-width:220px}
+.daily-history-date-wrap label{display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:#8fa0ad;text-transform:uppercase;letter-spacing:.05em}
+.daily-history-picker{position:relative;width:100%}
+.daily-history-picker input{width:100%;min-height:40px;padding:9px 38px 9px 11px}
+.daily-history-picker-toggle{position:absolute;right:0;top:0;width:40px;height:40px;border:0;background:transparent;color:#8fa8b7;font-size:17px;cursor:pointer}
+.daily-history-picker.open .daily-history-picker-toggle{color:#69e5ff}
+.daily-history-date-menu{display:none;position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:10050;max-height:240px;overflow:auto;padding:5px;border:1px solid rgba(75,211,255,.30);border-radius:10px;background:#07131b;box-shadow:0 12px 30px rgba(0,0,0,.65),0 0 18px rgba(35,190,255,.08)}
+.daily-history-picker.open .daily-history-date-menu{display:block}
+.daily-history-date-option,.daily-history-date-empty{display:block;width:100%;padding:10px 11px;border-radius:7px;font-size:11px;text-align:left}
+.daily-history-date-option{border:1px solid transparent;background:transparent;color:#c9d5dc;cursor:pointer}
+.daily-history-date-option:hover,.daily-history-date-option.active{background:#102a3a;border-color:#1b718e;color:#69e5ff}
+.daily-history-date-empty{color:#8fa0ad;text-align:center}
+.daily-history-dashboard{margin-top:16px;border:1px solid rgba(75,211,255,.16);border-radius:14px;padding:16px;min-height:220px;background:rgba(8,15,20,.5)}
+.daily-history-empty{min-height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;color:#8fa0ad}
+.daily-history-empty strong{font-size:14px;color:#c9d5dc}
+.daily-history-empty span{font-size:11px}
+.daily-history-snapshot{display:flex;flex-direction:column;gap:12px}
+.daily-history-block{border:1px solid rgba(75,211,255,.14);border-radius:11px;background:rgba(4,10,14,.48);padding:12px}
+.daily-history-block-title{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#69e5ff;margin-bottom:9px}
+.daily-history-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.daily-history-performance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.daily-history-performance .daily-history-metric:last-child{grid-column:span 1}
+.daily-history-operations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.daily-history-metric{border:1px solid rgba(143,160,173,.12);border-radius:9px;padding:9px;background:rgba(8,15,20,.5);min-width:0}
+.daily-history-metric strong{display:block;font-size:18px;line-height:1.1;color:#d8e3e8}
+.daily-history-metric span{display:block;margin-top:4px;font-size:8px;font-weight:700;color:#8fa0ad;text-transform:uppercase;letter-spacing:.05em}
+.daily-history-riders{display:flex;flex-direction:column;gap:6px}
+.daily-history-rider-section{padding:0;overflow:hidden}
+.daily-history-rider-section > summary{list-style:none;cursor:pointer;padding:12px;margin:0}
+.daily-history-rider-section > summary::-webkit-details-marker{display:none}
+.daily-history-rider-section > summary:after{content:"›";float:right;font-size:16px;color:#69e5ff;transform:rotate(90deg);transition:transform .15s ease}
+.daily-history-rider-section:not([open]) > summary:after{transform:rotate(0deg)}
+.daily-history-rider-section > .daily-history-riders{padding:0 12px 12px}
+.daily-history-town{border:1px solid rgba(143,160,173,.12);border-radius:9px;overflow:hidden;background:rgba(8,15,20,.4)}
+.daily-history-town summary{cursor:pointer;list-style:none;padding:10px 12px;font-size:10px;font-weight:800;color:#c9d5dc;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between}
+.daily-history-town summary::-webkit-details-marker{display:none}
+.daily-history-town summary:after{content:"›";font-size:16px;color:#69e5ff;transform:rotate(90deg);transition:transform .15s ease}
+.daily-history-town:not([open]) summary:after{transform:rotate(0deg)}
+.daily-history-town-body{padding:0 8px 8px}
+.daily-history-town-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.daily-history-town-grid .daily-history-metric{padding:8px}
+.daily-history-town-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(143,160,173,.12)}
+.daily-history-town-label{font-size:9px;font-weight:800;color:#8fa0ad;text-transform:uppercase;letter-spacing:.06em;flex:0 0 auto}
+.daily-history-rider-name{font-size:10px;font-weight:700;color:#d8e5ec;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.daily-history-town-names{display:flex;flex-wrap:wrap;gap:4px;padding:7px 10px 0}
+.daily-history-town-names span{font-size:9px;color:#aebdc6;background:rgba(143,160,173,.08);border:1px solid rgba(143,160,173,.12);border-radius:4px;padding:3px 5px}
+.daily-history-town-count-layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.daily-history-town-count-layout .daily-history-town{min-width:0}
+
+.daily-history-town-grid .daily-history-metric strong{font-size:15px}
+@media(max-width:700px){
+  .daily-history-page .area-head{align-items:stretch}
+  .daily-history-date-wrap{width:100%;min-width:0}
+  .daily-history-dashboard{padding:12px}
+  .daily-history-town-count-layout{grid-template-columns:1fr}
+}
+
+</style>
+
+<style id="v215-rider-town-success-rate">
+.daily-history-rider-section .daily-history-town-header{align-items:center}
+.daily-history-rider-section .daily-history-town-label{font-size:12px;color:#dce8ee;text-transform:none;letter-spacing:0}
+.daily-history-rider-section .daily-history-town-title{padding:0;font-size:15px;text-align:right}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
@@ -4082,6 +4149,7 @@ html{
         <button type="button" data-page="dailyEod"><span class="sub-ico">•</span> EOD Data</button>
       </div>
     </div>
+    <button data-page="dailyHistory"><span class="ico">◷</span> Daily History</button>
     <button data-page="ridersData"><span class="ico">♙</span> Riders Data</button>
     <button data-page="kpi"><span class="ico">▣</span> KPI</button>
     <button data-page="instructions"><span class="ico">☷</span> Instructions</button>
@@ -4214,9 +4282,11 @@ html{
     
   </div>
 </div>
+
+
 </section>
 
-  <section id="dashboard" class="page">
+<section id="dashboard" class="page">
     <div class="parcel-source-row">
       <div class="section upload-section parcel-upload-inline">
         <div class="upload-label">DATA SOURCE</div>
@@ -4364,6 +4434,33 @@ html{
       <table class="data-table" id="ridersTable"><thead></thead><tbody></tbody></table>
     </div>
     <div class="hint" id="ridersHint" style="margin-top:8px">Loaded from the uploaded rider data file.</div>
+  </div>
+</section>
+<section id="dailyHistory" class="page">
+  <div class="section daily-history-page">
+    <div class="area-head">
+      <div>
+        <h2>Daily History</h2>
+        <div class="hint">Today is live. Previous dates are frozen daily snapshots.</div>
+      </div>
+      <div class="daily-history-date-wrap">
+        <label for="dailyHistoryDateSearch">Captured Date</label>
+        <div class="daily-history-picker" id="dailyHistoryPicker">
+          <input id="dailyHistoryDateSearch" type="search" autocomplete="off" placeholder="Search captured date…" aria-label="Search captured date" aria-expanded="false" aria-controls="dailyHistoryDateMenu">
+          <button type="button" class="daily-history-picker-toggle" id="dailyHistoryDateToggle" aria-label="Open captured date list" aria-expanded="false">⌄</button>
+          <div class="daily-history-date-menu" id="dailyHistoryDateMenu" role="listbox" aria-label="Captured dates">
+            <div class="daily-history-date-empty">No captured dates yet</div>
+          </div>
+          <select id="dailyHistoryDate" tabindex="-1" aria-hidden="true" style="display:none"></select>
+        </div>
+      </div>
+    </div>
+    <div class="daily-history-dashboard" id="dailyHistoryDashboard">
+      <div class="daily-history-empty">
+        <strong>No daily snapshot selected</strong>
+        <span>Captured daily data will appear here.</span>
+      </div>
+    </div>
   </div>
 </section>
 <section id="kpi" class="page">
@@ -6036,7 +6133,7 @@ function renderRiderPerformance(){
   $("riderPerformanceStatus").textContent=`PARCEL COUNT • ${rows.length.toLocaleString()} unique uploaded parcels • ${items.length.toLocaleString()} riders shown`;
 }
 $("riderPerformanceSearch")?.addEventListener("input",renderRiderPerformance);
-function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",dailyPickup:"Pickup",dailyPerformance:"Performance",dailyRiderPerformance:"Rider Performance",dailyConsolidated:"Consolidated",dailyEod:"EOD Data",ridersData:"Riders Data",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management");if(p==="dailyRiderPerformance")renderRiderPerformance()}
+function showPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));const page=$(p);if(page)page.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.page===p));const titles={homeDashboard:"Dashboard",dashboard:"Parcel Count",kpi:"KPI",records:"Parcel Records",linehaul:"Linehaul Task",misrouted:"Misrouted Parcels",dailyPickup:"Pickup",dailyPerformance:"Performance",dailyRiderPerformance:"Rider Performance",dailyConsolidated:"Consolidated",dailyEod:"EOD Data",ridersData:"Riders Data",dailyHistory:"Daily History",instructions:"Instructions",settings:"Settings"};$("pageTitle").textContent=titles[p]||p.replace(/^\w/,c=>c.toUpperCase()).replace("Towns","Town Management");if(p==="dailyRiderPerformance")renderRiderPerformance()}
 $("parcelIncomingVolumeBtn")?.addEventListener("click",()=>{
   const next=!parcelIncomingEnabled();
   try{localStorage.setItem(PARCEL_INCOMING_KEY,next?"1":"0")}catch(e){}
@@ -7275,6 +7372,7 @@ linehaulTasks=[];renderLinehaul();setTimeout(()=>window.updateOperationProgress?
   <button type="button" data-mobile-page="dashboard"><span class="mobile-ico">▦</span>Parcel Count</button>
   <button type="button" data-mobile-page="linehaul"><span class="mobile-ico">⇄</span>Linehaul Task</button>
   <button type="button" id="mobileDailyDataToggle" class="mobile-daily-toggle" aria-expanded="false"><span class="mobile-ico">▤</span>Daily Data</button>
+  <button type="button" data-mobile-page="dailyHistory"><span class="mobile-ico">◷</span>Daily History</button>
   <button type="button" data-mobile-page="kpi"><span class="mobile-ico">▣</span>KPI</button>
   <button type="button" data-mobile-page="instructions"><span class="mobile-ico">☷</span>Instructions</button>
   <button type="button" data-mobile-page="settings"><span class="mobile-ico">⚙</span>Settings</button>
@@ -10061,6 +10159,17 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
         if(localMarker!==today)try{localStorage.setItem(RESET_MARKER_LOCAL,today)}catch(e){}
         return;
       }
+      // v206: capture the exact live projected dashboard state BEFORE any reset.
+      // Daily History is stored in shared cloud storage so every device sees the same snapshot.
+      if(typeof window.__badocCaptureDailyHistory==="function"){
+        try{
+          const operationalDate=dayKey(new Date(now.getTime()-24*60*60*1000));
+          await window.__badocCaptureDailyHistory("pre-reset",operationalDate);
+        }catch(e){
+          console.warn("Daily History pre-reset capture failed; reset aborted:",e);
+          return;
+        }
+      }
       // Clear the authoritative cloud upload/linehaul first. This prevents a
       // realtime pull from restoring yesterday's data after the local clear.
       if(typeof window.__badocClearAllSharedData==="function"){
@@ -10187,6 +10296,30 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
     if(!overlay)return;
     overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");
   }
+  function showBelow90RidersPopup(){
+    const s=window.__badocDailyHistoryCurrentSnapshot||{};
+    const groups=Array.isArray(s.riderPerformance)?s.riderPerformance:[];
+    const below=groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90);
+    closeBadocDetailPopup();
+    const overlay=document.createElement("div");
+    overlay.id="badocDetailOverlay";
+    overlay.className="badoc-detail-overlay";
+    const body=below.length?`<div class="daily-history-below90-list">${below.map(g=>{
+      const rider=escH(String(g.rider||"").trim());
+      const area=escH(String(g.area||g.label||"").trim());
+      const sr=n(g.successRate).toFixed(1);
+      const srClass=riderRateClass(g.successRate,true);
+      const vehicle=escH(String(g.vehicleType||"—"));
+      const towns=Array.isArray(g.townDetails)?g.townDetails.map(t=>escH(t.town||"")).filter(Boolean):[];
+      return `<div class="daily-history-below90-row"><button type="button" class="daily-history-below90-rider-link" data-below90-rider="${rider}">${rider}</button><strong class="${srClass}">${sr}%</strong></div>`;
+    }).join("")}</div>`:`<div class="badoc-detail-empty">No riders below 90% success rate.</div>`;
+    overlay.innerHTML=`<div class="badoc-detail-modal" role="dialog" aria-modal="true" aria-label="Riders below 90 percent success rate"><div class="badoc-detail-head"><h3>Riders Below 90% Success Rate</h3><button type="button" class="badoc-detail-close" aria-label="Close">×</button></div><div class="badoc-detail-body"><div class="badoc-detail-count">${below.length} rider${below.length===1?"":"s"}</div>${body}</div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".badoc-detail-close").onclick=closeBadocDetailPopup;
+    overlay.addEventListener("click",e=>{if(e.target===overlay)closeBadocDetailPopup()});
+    document.addEventListener("keydown",function escClose(e){if(e.key==="Escape"){closeBadocDetailPopup();document.removeEventListener("keydown",escClose)}});
+  }
+
   document.addEventListener("click",e=>{
     if(e.target.closest("#incomingVolumeCard"))openForecastDetails();
     if(e.target.closest("#forecastDetailClose"))closeForecastDetails();
@@ -10697,6 +10830,873 @@ document.getElementById("eodRefreshBtn")?.addEventListener("click",load);load();
   else init();
 })();
 </script>
+
+<script id="daily-history-mini-dashboard">
+(function(){
+  const host=document.getElementById("dailyHistoryDashboard");
+  if(!host)return;
+  function metric(label){return `<div class="daily-history-metric"><strong>—</strong><span>${label}</span></div>`;}
+  function riderNameFor(key,index){
+    try{
+      const notes=typeof getTownNotes==="function"?getTownNotes(key):[];
+      return String(notes[index]||"").trim();
+    }catch(e){return ""}
+  }
+  function groupLayout(){
+    const result=[];
+    try{
+      [["badoc","BADOC"],["pinili","PINILI"]].forEach(([key,label])=>{
+        const groups=typeof getTownLayout==="function"?getTownLayout(key):[];
+        groups.forEach((group,index)=>result.push({key,label,group,index,rider:riderNameFor(key,index)}));
+      });
+    }catch(e){}
+    return result;
+  }
+  function renderRiderGroups(){
+    const groups=groupLayout();
+    if(!groups.length)return '<div class="daily-history-empty"><strong>No town groups configured</strong><span>Town Counts positions will appear here.</span></div>';
+    return groups.map(g=>`
+      <div class="daily-history-town">
+        <div class="daily-history-town-header">
+          <div class="daily-history-town-label">${esc(g.label)}</div>
+          <div class="daily-history-rider-name">${g.rider?esc(g.rider):'No rider selected'}</div>
+        </div>
+        <div class="daily-history-town-names">${g.group.map(n=>`<span>${esc(n)}</span>`).join('')}</div>
+        <div class="daily-history-town-body">
+          <div class="daily-history-town-grid">
+            ${metric("Delivered")}
+            ${metric("On Hold")}
+            ${metric("Total")}
+            ${metric("SR %")}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  window.renderDailyHistory=function(){
+    host.innerHTML=`
+      <div class="daily-history-snapshot">
+        <div class="daily-history-block">
+          <div class="daily-history-block-title">Metrics</div>
+          <div class="daily-history-metrics">
+            ${metric("Total Volume")}
+            ${metric("Delivered")}
+            ${metric("On Hold")}
+          </div>
+        </div>
+        <div class="daily-history-block">
+          <div class="daily-history-block-title">Total Riders</div>
+          <div class="daily-history-performance">
+            ${metric("Success Rate %")}
+            ${metric("3WC Riders")}
+            ${metric("2WH Riders")}
+            ${metric("Flexi Riders")}
+            ${metric("Total Riders")}
+          </div>
+        </div>
+        <div class="daily-history-block">
+          <div class="daily-history-operations">
+            ${metric("Misrouted")}
+            ${metric("Exemptions")}
+          </div>
+        </div>
+        <details class="daily-history-block daily-history-rider-section">
+          <summary class="daily-history-block-title">Rider Performance</summary>
+          <div class="daily-history-riders daily-history-town-count-layout">
+            ${renderRiderGroups()}
+          </div>
+        </details>
+      </div>`;
+  };
+})();
+</script>
+
+<script id="daily-history-searchable-date-picker">
+(function(){
+  const picker=document.getElementById("dailyHistoryPicker");
+  const input=document.getElementById("dailyHistoryDateSearch");
+  const toggle=document.getElementById("dailyHistoryDateToggle");
+  const menu=document.getElementById("dailyHistoryDateMenu");
+  const select=document.getElementById("dailyHistoryDate");
+  if(!picker||!input||!toggle||!menu||!select)return;
+
+  let dates=[];
+
+  function formatDate(value){
+    const raw=String(value||"").trim();
+    if(!raw)return "";
+    const d=new Date(raw+"T00:00:00");
+    if(Number.isNaN(d.getTime()))return raw;
+    return d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+  }
+
+  function getDates(){
+    const source=window.__badocDailyHistoryDates;
+    if(Array.isArray(source))return source.map(x=>String(x||"").trim()).filter(Boolean);
+    return [...select.options].map(o=>String(o.value||"").trim()).filter(Boolean);
+  }
+
+  function syncSelect(){
+    const current=select.value;
+    select.innerHTML="";
+    dates.forEach(date=>{
+      const o=document.createElement("option");
+      o.value=date;
+      o.textContent=formatDate(date);
+      select.appendChild(o);
+    });
+    if(current&&dates.includes(current))select.value=current;
+  }
+
+  function render(filter){
+    const q=String(filter||"").trim().toLowerCase();
+    const filtered=dates.filter(date=>{
+      const label=formatDate(date);
+      return !q||date.toLowerCase().includes(q)||label.toLowerCase().includes(q);
+    });
+    menu.innerHTML="";
+    if(!filtered.length){
+      const empty=document.createElement("div");
+      empty.className="daily-history-date-empty";
+      empty.textContent=dates.length?"No matching captured dates":"No captured dates yet";
+      menu.appendChild(empty);
+      return;
+    }
+    filtered.forEach(date=>{
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="daily-history-date-option";
+      b.setAttribute("role","option");
+      b.dataset.value=date;
+      b.textContent=formatDate(date);
+      if(select.value===date)b.classList.add("active");
+      b.addEventListener("click",function(){
+        select.value=date;
+        input.value=formatDate(date);
+        close();
+        select.dispatchEvent(new Event("change",{bubbles:true}));
+        if(typeof window.renderDailyHistory==="function")window.renderDailyHistory(date);
+      });
+      menu.appendChild(b);
+    });
+  }
+
+  function open(){
+    dates=getDates();
+    syncSelect();
+    render(input.value);
+    picker.classList.add("open");
+    input.setAttribute("aria-expanded","true");
+    toggle.setAttribute("aria-expanded","true");
+  }
+
+  function close(){
+    picker.classList.remove("open");
+    input.setAttribute("aria-expanded","false");
+    toggle.setAttribute("aria-expanded","false");
+  }
+
+  toggle.addEventListener("click",function(e){
+    e.stopPropagation();
+    picker.classList.contains("open")?close():open();
+  });
+  input.addEventListener("focus",open);
+  input.addEventListener("click",function(e){e.stopPropagation();open();});
+  input.addEventListener("input",function(){
+    if(!picker.classList.contains("open"))open();
+    render(input.value);
+  });
+  select.addEventListener("change",function(){
+    if(this.value)input.value=formatDate(this.value);
+    render("");
+  });
+  document.addEventListener("click",function(e){if(!picker.contains(e.target))close();});
+
+  window.refreshDailyHistoryDatePicker=function(){
+    dates=getDates();
+    syncSelect();
+    render(input.value);
+  };
+
+  dates=getDates();
+  syncSelect();
+  render("");
+})();
+</script>
+
+
+<style id="v212-daily-history-rider-rate-colors">
+.daily-history-rider-section .daily-history-metric.daily-history-rider-name--low strong{color:#ff5f56!important}
+.daily-history-rider-section .daily-history-metric.daily-history-rider-name--warn strong{color:#ff9f43!important}
+.daily-history-rider-section .daily-history-metric.daily-history-rider-name--good strong{color:#4cd964!important}
+</style>
+<style id="v209-daily-history-rider-flat">
+.daily-history-rider-section .daily-history-town-title{
+  display:block;
+  padding:10px 12px;
+  font-weight:800;
+  color:inherit;
+}
+.daily-history-rider-section .daily-history-town{
+  border:1px solid rgba(70,180,220,.25);
+  border-radius:10px;
+  overflow:hidden;
+}
+</style>
+
+<style id="v210-rider-performance-areas">
+.daily-history-rider-areas{display:flex;flex-direction:column;gap:14px}
+.daily-history-rider-area{border:1px solid rgba(70,180,220,.22);border-radius:12px;padding:10px;background:rgba(0,20,30,.16)}
+.daily-history-rider-area-title{font-size:13px;font-weight:900;letter-spacing:.08em;margin:0 0 8px;color:#dce8ee}
+.daily-history-rider-area .daily-history-town-count-layout{margin:0}
+.daily-history-rider-area .daily-history-town-title{display:block}
+</style>
+
+<style id="badoc-v215-rider-layout">
+.daily-history-rider-card{border:1px solid rgba(65,202,255,.18);border-radius:16px;margin:10px 0;overflow:hidden;background:rgba(4,14,20,.55)}
+.daily-history-rider-card-header{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.daily-history-rider-card-header .daily-history-town-title{font-size:22px;font-weight:800;line-height:1.2}
+.daily-history-rider-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.daily-history-rider-towns{padding:4px 10px 10px}
+.daily-history-rider-towns .daily-history-town{border:0;border-bottom:1px solid rgba(255,255,255,.06);border-radius:0;margin:0;padding:12px 4px}
+.daily-history-rider-towns .daily-history-town:last-child{border-bottom:0}
+.daily-history-rider-towns .daily-history-town-label{font-size:16px;font-weight:800;margin-bottom:8px;color:#dbe8ef}
+@media(max-width:560px){.daily-history-rider-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<style id="badoc-v221-below90-operation">
+.daily-history-below90-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid #1c2833}.daily-history-below90-row:last-child{border-bottom:0}.daily-history-below90-row>strong:first-child{color:#edf3f8}.daily-history-below90-row>strong:last-child{white-space:nowrap}.daily-history-below90-rider,.daily-history-below90-info,.daily-history-below90-towns{display:none}
+.daily-history-below90-card{cursor:pointer;position:relative;display:flex;align-items:center;gap:8px;min-height:0;white-space:nowrap;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.daily-history-below90-card:hover{transform:translateY(-1px);border-color:rgba(255,120,90,.5);box-shadow:0 0 0 1px rgba(255,120,90,.12)}
+.daily-history-below90-card:active{transform:translateY(0)}
+.daily-history-below90-card.is-disabled{cursor:default;opacity:.62}
+.daily-history-below90-card.is-disabled:hover{transform:none;border-color:inherit;box-shadow:none}
+.daily-history-below90-card .daily-history-below90-hint{display:none}.daily-history-below90-card strong{margin:0}.daily-history-below90-card>span{margin:0}
+.daily-history-rider-card.daily-history-below90-target{scroll-margin-top:90px}
+</style>
+<!-- v210: live Daily History + separated Rider Performance areas -->
+<!-- v218: color town-level SR % by success-rate threshold -->
+
+<style id="badoc-v216-compact-rider-performance">
+/* Compact Rider Performance: keep the assigned-rider grouping, but fit more towns on screen. */
+.daily-history-rider-areas{gap:8px}
+.daily-history-rider-area{padding:7px;border-radius:10px}
+.daily-history-rider-area-title{font-size:11px;margin:0 0 5px}
+.daily-history-rider-area .daily-history-town-count-layout{gap:6px}
+.daily-history-rider-card{border-radius:11px;margin:5px 0}
+.daily-history-rider-card-header{padding:9px 10px 7px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.daily-history-rider-card-header .daily-history-town-title{font-size:16px;line-height:1.1;padding:0;min-width:0}
+.daily-history-rider-summary{display:flex;gap:5px;margin-top:0;flex:0 0 auto}
+.daily-history-rider-summary .daily-history-metric{min-width:58px;padding:5px 6px}
+.daily-history-rider-summary .daily-history-metric strong{font-size:13px}
+.daily-history-rider-summary .daily-history-metric span{font-size:7px}
+.daily-history-rider-towns{padding:2px 7px 5px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:9px}
+.daily-history-rider-towns .daily-history-town{padding:7px 2px;border-bottom:1px solid rgba(255,255,255,.06)}
+.daily-history-rider-towns .daily-history-town:nth-last-child(-n+2){border-bottom:0}
+.daily-history-rider-towns .daily-history-town-label{font-size:11px;margin-bottom:4px;line-height:1.15}
+.daily-history-rider-towns .daily-history-town-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.daily-history-rider-towns .daily-history-town-grid .daily-history-metric{padding:4px 3px;min-width:0}
+.daily-history-rider-towns .daily-history-town-grid .daily-history-metric strong{font-size:11px}
+.daily-history-rider-towns .daily-history-town-grid .daily-history-metric span{font-size:6px;white-space:nowrap}
+@media(max-width:560px){
+  .daily-history-rider-area .daily-history-town-count-layout{grid-template-columns:1fr}
+  .daily-history-rider-card-header{align-items:flex-start}
+  .daily-history-rider-summary .daily-history-metric{min-width:52px}
+  .daily-history-rider-towns{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+<style id="badoc-v225-detail-popup-css">
+.daily-history-clickable{cursor:pointer;transition:transform .12s ease,border-color .12s ease}.daily-history-clickable:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28)}
+.badoc-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px}.badoc-detail-modal{width:min(760px,96vw);max-height:88vh;background:#080c11;border:1px solid #2c3947;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.65);overflow:hidden;display:flex;flex-direction:column}.badoc-detail-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #24303b}.badoc-detail-head h3{margin:0;font-size:16px}.badoc-detail-close{border:0;background:transparent;color:inherit;font-size:24px;cursor:pointer;line-height:1}.badoc-detail-body{padding:12px 16px;overflow:auto}.badoc-detail-count{font-size:12px;opacity:.72;margin-bottom:10px}.badoc-detail-table{width:100%;border-collapse:collapse;font-size:12px}.badoc-detail-table th,.badoc-detail-table td{padding:8px;border-bottom:1px solid #202a34;text-align:left;vertical-align:top}.badoc-detail-table th{font-size:10px;opacity:.65;text-transform:uppercase}.badoc-detail-empty{padding:20px;text-align:center;opacity:.65}
+</style>
+<script id="badoc-v206-cloud-daily-history">
+(function(){
+  if(window.__badocV206DailyHistory)return;
+  window.__badocV206DailyHistory=true;
+
+  const BUCKET="exported-files";
+  const PREFIX="daily-history/";
+  const SNAPSHOT_VERSION="v225";
+  let historyClient=null;
+
+  function cfg(){
+    return window.BADOC_SHARED_CONFIG||{};
+  }
+  function client(){
+    if(historyClient)return historyClient;
+    const c=cfg();
+    if(!window.supabase||!c.url||!c.key)throw new Error("Cloud sync is not configured");
+    historyClient=window.supabase.createClient(c.url,c.key,{
+      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+    });
+    return historyClient;
+  }
+  function storage(){return client().storage.from(BUCKET)}
+  function dayKey(d=new Date()){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function clean(v){return String(v??"").trim()}
+  function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+  function pct(a,b){return b?n(a)/n(b)*100:0}
+  function escH(v){return clean(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+  function statusOf(r){
+    const keys=["Parcel Status To","Status To","TO Status","To Status","Status To (Current)","Status","Parcel Status","Delivery Status","Current Status"];
+    for(const k of keys)if(r&&Object.prototype.hasOwnProperty.call(r,k)&&clean(r[k]))return clean(r[k]);
+    const k=Object.keys(r||{}).find(x=>/status/i.test(x));
+    return k?clean(r[k]):"";
+  }
+  function statusNorm(v){return clean(v).toUpperCase().replace(/[_-]+/g," ").replace(/\s+/g," ")}
+  function statusCounts(rows){
+    const out={received:0,delivered:0,delivering:0,hold:0};
+    (rows||[]).forEach(r=>{
+      const s=statusNorm(statusOf(r));
+      if(s==="RECEIVED"||s==="LMHUB RECEIVED")out.received++;
+      else if(s==="DELIVERED")out.delivered++;
+      else if(s==="DELIVERING")out.delivering++;
+      else if(s==="ONHOLD"||s==="ON HOLD"||s==="LMHUB ONHOLD"||s==="LMHUB ON HOLD")out.hold++;
+    });
+    return out;
+  }
+  function selectedRider(key,index){
+    try{return clean((typeof getTownNotes==="function"?getTownNotes(key):[])[index]||"")}catch(e){return ""}
+  }
+  function layoutSnapshot(){
+    const out=[];
+    [["badoc","BADOC"],["pinili","PINILI"]].forEach(([key,label])=>{
+      let groups=[];
+      try{groups=typeof getTownLayout==="function"?getTownLayout(key):[]}catch(e){}
+      groups.forEach((group,index)=>{
+        const rider=selectedRider(key,index);
+        let riderRecord=null;
+        try{
+          const rk=r=>clean(r["Driver Name"]).toUpperCase().replace(/[\s_-]+/g,"");
+          const target=rider.toUpperCase().replace(/[\s_-]+/g,"");
+          riderRecord=(Array.isArray(ridersData)?ridersData:[]).find(r=>rk(r)===target)||null;
+        }catch(e){}
+        const vehicle=clean(riderRecord?.["Vehicle Type"]);
+        const is3wc=vehicle.toUpperCase().replace(/[\s_-]+/g,"")==="3WC";
+        const is2wh=vehicle.toUpperCase().replace(/[\s_-]+/g,"")==="2WH";
+        const isFlex=/FLEXI|FLEX/i.test(vehicle);
+        out.push({area:key.toUpperCase(),label,position:index+1,towns:(group||[]).map(clean).filter(Boolean),rider,riderId:clean(riderRecord?.["Rider ID"]||riderRecord?.["ID"]),vehicleType:vehicle,is3wc,is2wh,isFlex});
+      });
+    });
+    return out;
+  }
+  function buildSnapshot(date){
+    const rows=typeof getParcelCountRows==="function"?getParcelCountRows():[];
+    const mis=Array.isArray(current?.mis)?current.mis:[];
+    const incomingEnabled=typeof parcelIncomingEnabled==="function"&&parcelIncomingEnabled();
+    const incoming= incomingEnabled&&typeof getParcelIncomingLinehaul==="function"
+      ? getParcelIncomingLinehaul()
+      : {total:0,townCounts:{}};
+
+    const areaRows={
+      Badoc:rows.filter(r=>r?._area==="Badoc"),
+      Pinili:rows.filter(r=>r?._area==="Pinili")
+    };
+    const allStatus=statusCounts(rows);
+    const delivered=allStatus.delivered;
+    const onHold=allStatus.hold;
+    const statusDen=allStatus.received+allStatus.delivered+allStatus.delivering+allStatus.hold;
+    const totalVolume=rows.length+n(incoming.total);
+    const riderGroups=layoutSnapshot();
+
+    let three=0,two=0,flex=0;
+    riderGroups.forEach(g=>{if(g.is3wc)three++;if(g.is2wh)two++;if(g.isFlex)flex++});
+
+    const groupDetails=riderGroups.map(g=>{
+      const groupRows=[];
+      (g.towns||[]).forEach(t=>{
+        areaRows[g.label==="BADOC"?"Badoc":"Pinili"].forEach(r=>{
+          if(clean(r["Town Name"]).toUpperCase()===clean(t).toUpperCase())groupRows.push(r);
+        });
+      });
+      const sc=statusCounts(groupRows);
+      const total=groupRows.length;
+      const townDetails=(g.towns||[]).map(town=>{
+        const townRows=areaRows[g.label==="BADOC"?"Badoc":"Pinili"].filter(r=>clean(r["Town Name"]).toUpperCase()===clean(town).toUpperCase());
+        const ts=statusCounts(townRows);
+        const townTotal=townRows.length;
+        const townDen=ts.received+ts.delivered+ts.delivering+ts.hold;
+        return {town:clean(town),delivered:ts.delivered,onHold:ts.hold,delivering:ts.delivering,received:ts.received,total:townTotal,successRate:pct(ts.delivered,townDen)};
+      });
+      return {...g,delivered:sc.delivered,onHold:sc.hold,delivering:sc.delivering,received:sc.received,total,
+        successRate:pct(sc.delivered,sc.received+sc.delivered+sc.delivering+sc.hold),
+        townDetails,
+        fleetProductivity:g.is3wc||g.is2wh?pct(sc.delivered+sc.delivering+sc.hold,40):0};
+    });
+
+    return {
+      version:SNAPSHOT_VERSION,
+      date,
+      capturedAt:new Date().toISOString(),
+      captureReason:"pre-reset",
+      source:{
+        parcelCount:"Current Parcel Count dataset (merged uploaded parcel CSVs)",
+        linehaul:incomingEnabled?"Current Linehaul Task dataset":"Not included (incoming linehaul disabled)",
+        riders:"Current Riders Data",
+        townCounts:"Current Town Counts layout and parcel statuses",
+        riderPositions:"Current Town Counts rider selections/positions",
+        misrouted:"Current Parcel Count misrouted rows",
+        exemptions:"Current exception/exemption tracking list"
+      },
+      metrics:{
+        totalVolume,delivered,onHold,
+        successRate:pct(delivered,statusDen),
+        threeWcRiders:three,
+        twoWhRiders:two,
+        flexiRiders:flex,
+        totalRiders:three+two+flex,
+        misrouted:mis.length,
+        exemptions:Array.isArray(exceptionTrackingNumbers)?exceptionTrackingNumbers.length:0
+      },
+      misroutedDetails:mis.map(r=>({
+        tracking:clean(r?.["SLS Tracking Number"]||r?.["SLS Tracking"]||r?.["SPX TN"]||r?.["Tracking Number"]||r?.["Order ID"]||""),
+        orderId:clean(r?.["Order ID"]||""),
+        town:clean(r?.["Town Name"]||r?.["Town"]||""),
+        currentStation:clean(r?.["Current Station"]||""),
+        status:statusOf(r)
+      })),
+      exemptionDetails:(Array.isArray(exceptionTrackingNumbers)?exceptionTrackingNumbers:[]).map(clean).filter(Boolean),
+      riderPerformance:groupDetails,
+      townCounts:{
+        Badoc:areaRows.Badoc.map(r=>clean(r["Town Name"])).filter(Boolean).reduce((m,t)=>(m[t]=(m[t]||0)+1,m),{}),
+        Pinili:areaRows.Pinili.map(r=>clean(r["Town Name"])).filter(Boolean).reduce((m,t)=>(m[t]=(m[t]||0)+1,m),{})
+      },
+      rawState:{
+        linehaulIncluded:incomingEnabled,
+        incomingTotal:n(incoming.total),
+        incomingTownCounts:incoming.townCounts||{}
+      }
+    };
+  }
+
+  async function saveSnapshot(snapshot,markFinal=false){
+    const path=PREFIX+snapshot.date+".json";
+    const blob=new Blob([JSON.stringify(snapshot)],{type:"application/json"});
+    const r=await storage().upload(path,blob,{contentType:"application/json",upsert:true,cacheControl:"0"});
+    if(r.error)throw new Error(r.error.message||"Daily History cloud save failed");
+    // Only the final pre-reset capture marks the date as finalized. Live
+    // captures must never prevent the 2 AM reset from running.
+    if(markFinal){
+      try{localStorage.setItem("badoc_daily_history_last_saved_v210",snapshot.date)}catch(e){}
+    }
+    return true;
+  }
+
+  async function listSnapshots(){
+    const r=await storage().list(PREFIX,{limit:1000,sortBy:{column:"name",order:"desc"}});
+    if(r.error)throw new Error(r.error.message||"Daily History list failed");
+    return (r.data||[]).map(x=>clean(x.name)).filter(x=>/^\d{4}-\d{2}-\d{2}\.json$/.test(x)).map(x=>x.slice(0,-5)).sort().reverse();
+  }
+
+  async function loadSnapshot(date){
+    if(!date)return null;
+    const r=await storage().download(PREFIX+date+".json");
+    if(r.error){
+      if(/not found|404|object not found/i.test(r.error.message||""))return null;
+      throw new Error(r.error.message||"Daily History download failed");
+    }
+    return JSON.parse(await r.data.text());
+  }
+
+  function metricCard(label,value,extraClass=""){
+    return `<div class="daily-history-metric ${escH(extraClass)}"><strong>${escH(value)}</strong><span>${escH(label)}</span></div>`;
+  }
+
+  function riderRateClass(rate,hasRider){
+    if(!hasRider)return "";
+    const p=n(rate);
+    if(p<=0)return "";
+    if(p>=95)return "daily-history-rider-name--good";
+    if(p>=90)return "daily-history-rider-name--warn";
+    return "daily-history-rider-name--low";
+  }
+
+  function renderSnapshot(s){
+    const host=document.getElementById("dailyHistoryDashboard");
+    if(!host)return;
+
+    // Preserve the user's open/closed state while the live Daily History
+    // renderer refreshes every second. Without this, clicking Rider
+    // Performance would immediately collapse again on the next refresh.
+    const openState={
+      riderSection:!!host.querySelector(".daily-history-rider-section")?.open
+    };
+
+    if(!s){
+      host.innerHTML='<div class="daily-history-empty"><strong>No daily snapshot selected</strong><span>Captured daily data will appear here.</span></div>';
+      window.__badocDailyHistoryCurrentSnapshot=null;
+      return;
+    }
+    window.__badocDailyHistoryCurrentSnapshot=s;
+    const m=s.metrics||{};
+    const groups=Array.isArray(s.riderPerformance)?s.riderPerformance:[];
+    host.innerHTML=`
+      <div class="daily-history-snapshot">
+        <div class="daily-history-block">
+          <div class="daily-history-metrics">
+            ${metricCard("Total Volume",n(m.totalVolume).toLocaleString())}
+            ${metricCard("Delivered",n(m.delivered).toLocaleString())}
+            ${metricCard("On Hold",n(m.onHold).toLocaleString())}
+            ${metricCard("Success Rate %",n(m.successRate).toFixed(1)+"%")}
+          </div>
+        </div>
+        <div class="daily-history-block">
+          <div class="daily-history-operations">
+            <div class="daily-history-metric daily-history-clickable" data-action="daily-history-misrouted" role="button" tabindex="0" aria-label="View misrouted parcels"><strong>${n(m.misrouted)}</strong><span>Misrouted</span></div>
+            <div class="daily-history-metric daily-history-clickable" data-action="daily-history-exemptions" role="button" tabindex="0" aria-label="View exemptions"><strong>${n(m.exemptions)}</strong><span>Exemptions</span></div>
+            <div class="daily-history-metric daily-history-below90-card ${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"":"is-disabled"}" data-action="daily-history-below90" role="button" tabindex="${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"0":"-1"}" aria-label="${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"Go to riders below 90 percent success rate":"No riders below 90 percent success rate"}">
+              <strong>${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length}</strong>
+              <span>‹90% succes rate</span>
+              <div class="daily-history-below90-hint">${groups.filter(g=>String(g.rider||"").trim() && n(g.successRate)<90).length?"Tap to view riders":"No riders below 90%"}</div>
+            </div>
+          </div>
+        </div>
+        <div class="daily-history-block">
+          <div class="daily-history-block-title">Total Riders</div>
+          <div class="daily-history-performance">
+            ${metricCard("3WC Riders",n(m.threeWcRiders))}
+            ${metricCard("2WH Riders",n(m.twoWhRiders))}
+            ${metricCard("Flexi Riders",n(m.flexiRiders))}
+            ${metricCard("Total Riders",n(m.totalRiders))}
+          </div>
+        </div>
+        <details class="daily-history-block daily-history-rider-section">
+          <summary class="daily-history-block-title">Rider Performance</summary>
+          <div class="daily-history-rider-areas">
+            ${["BADOC","PINILI"].map(area=>{
+              const areaGroups=groups.filter(g=>String(g.area||g.label||"").toUpperCase()===area);
+              return `
+                <section class="daily-history-rider-area">
+                  <div class="daily-history-rider-area-title">${area}</div>
+                  <div class="daily-history-riders daily-history-town-count-layout">
+                    ${areaGroups.length?areaGroups.map(g=>{
+                      const riderName=String(g.rider||"").trim();
+                      const riderDisplay=riderName||"No rider selected";
+                      const riderClass=riderRateClass(g.successRate,!!riderName);
+                      const towns=Array.isArray(g.townDetails)&&g.townDetails.length?g.townDetails:[{town:"No town",delivered:0,onHold:0,total:0,successRate:0}];
+                      const isBelow90=!!riderName && n(g.successRate)<90;
+                      const riderTargetId=isBelow90?`daily-history-below90-rider-${groups.indexOf(g)}`:"";
+                      const riderCardClass=isBelow90?"daily-history-below90-target":"";
+                      const riderIdAttr=riderTargetId?` id="${riderTargetId}"`:"";
+                      return `
+                        <div class="daily-history-rider-card ${riderCardClass}" data-rider-name="${escH(riderName)}"${riderIdAttr}>
+                          <div class="daily-history-rider-card-header">
+                            <div class="daily-history-town-title">${escH(riderDisplay)}</div>
+                            <div class="daily-history-rider-summary">${metricCard("SR %",n(g.successRate).toFixed(1)+"%",riderClass)} ${metricCard("Vehicle",g.vehicleType||"—")}</div>
+                          </div>
+                          <div class="daily-history-rider-towns">
+                            ${towns.map(t=>`
+                              <div class="daily-history-town">
+                                <div class="daily-history-town-label">${escH(t.town)}</div>
+                                <div class="daily-history-town-body">
+                                  <div class="daily-history-town-grid">
+                                    ${metricCard("Delivered",n(t.delivered))}
+                                    ${metricCard("On Hold",n(t.onHold))}
+                                    ${metricCard("Total",n(t.total))}
+                                    ${metricCard("SR %",n(t.successRate).toFixed(1)+"%",riderRateClass(t.successRate,true))}
+                                  </div>
+                                </div>
+                              </div>`).join("")}
+                          </div>
+                        </div>`;
+                    }).join(""):'<div class="daily-history-empty">No rider positions configured.</div>'}
+                  </div>
+                </section>`;
+            }).join("")}
+          </div>
+        </details>
+        <div class="daily-history-block">
+          <div class="daily-history-block-title">Snapshot Source</div>
+          <div class="hint">Captured ${escH(s.capturedAt||"")} • Saved to cloud before reset.</div>
+        </div>
+      </div>`;
+
+    // Restore only the main Rider Performance disclosure state.
+    // Individual rider names/positions are plain rows and are never collapsible.
+    const riderSection=host.querySelector(".daily-history-rider-section");
+    if(riderSection)riderSection.open=openState.riderSection;
+  }
+
+  function todayDate(){
+    return dayKey(new Date());
+  }
+
+  function mergeHistoryDates(cloudDates){
+    const today=todayDate();
+    const all=[today,...(Array.isArray(cloudDates)?cloudDates:[])].filter(Boolean);
+    return [...new Set(all)].sort().reverse();
+  }
+
+  function putLiveDateInPicker(date){
+    const select=document.getElementById("dailyHistoryDate");
+    if(!select)return;
+    const current=select.value;
+    const dates=mergeHistoryDates(window.__badocDailyHistoryDates||[]);
+    if(!dates.includes(date))dates.unshift(date);
+    window.__badocDailyHistoryDates=mergeHistoryDates(dates);
+    select.innerHTML=window.__badocDailyHistoryDates.map(d=>`<option value="${escH(d)}">${escH(d)}</option>`).join("");
+    select.value=current&&window.__badocDailyHistoryDates.includes(current)?current:date;
+    const input=document.getElementById("dailyHistoryDateSearch");
+    if(input&&select.value===date)input.value=new Date(date+"T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+    if(typeof window.refreshDailyHistoryDatePicker==="function")window.refreshDailyHistoryDatePicker();
+  }
+
+  async function refreshDates(){
+    const today=todayDate();
+    try{
+      const cloudDates=await listSnapshots();
+      const dates=mergeHistoryDates(cloudDates);
+      window.__badocDailyHistoryDates=dates;
+      const select=document.getElementById("dailyHistoryDate");
+      if(select){
+        const currentValue=select.value;
+        select.innerHTML=dates.map(d=>`<option value="${escH(d)}">${escH(d)}</option>`).join("");
+        if(currentValue&&dates.includes(currentValue))select.value=currentValue;
+        else if(dates.includes(today))select.value=today;
+        else if(dates.length)select.value=dates[0];
+      }
+      return dates;
+    }catch(e){
+      console.warn("Daily History cloud list:",e);
+      const dates=mergeHistoryDates([]);
+      window.__badocDailyHistoryDates=dates;
+      putLiveDateInPicker(today);
+      return dates;
+    }
+  }
+
+  async function refreshSelected(){
+    const select=document.getElementById("dailyHistoryDate");
+    const date=select?.value;
+    if(!date)return;
+    if(date===todayDate()){
+      try{renderSnapshot(buildSnapshot(date));}catch(e){console.warn("Daily History live render:",e);}
+      return;
+    }
+    try{renderSnapshot(await loadSnapshot(date));}
+    catch(e){console.warn("Daily History cloud load:",e);}
+  }
+
+  window.__badocCaptureDailyHistory=async function(reason="pre-reset",date=dayKey(new Date())){
+    try{
+      const snapshot=buildSnapshot(date);
+      snapshot.captureReason=reason;
+      await saveSnapshot(snapshot,reason==="pre-reset");
+      await refreshDates();
+      const select=document.getElementById("dailyHistoryDate");
+      if(select)select.value=date;
+      renderSnapshot(snapshot);
+      console.log("BADOC Daily History captured in cloud:",date);
+      return snapshot;
+    }catch(e){
+      console.warn("BADOC Daily History capture failed:",e);
+      throw e;
+    }
+  };
+
+  window.__badocRefreshDailyHistory=async function(){
+    const dates=await refreshDates();
+    if(dates.length)await refreshSelected();
+    else if(typeof window.renderDailyHistory==="function")window.renderDailyHistory();
+  };
+
+  // Replace the placeholder renderer with the cloud-backed renderer.
+  window.renderDailyHistory=async function(date){
+    try{
+      const target=date||todayDate();
+      if(target===todayDate()){
+        putLiveDateInPicker(target);
+        renderSnapshot(buildSnapshot(target));
+        return;
+      }
+      renderSnapshot(await loadSnapshot(target));
+    }catch(e){console.warn("Daily History render:",e);}
+  };
+
+  function closeBadocDetailPopup(){
+    const x=document.getElementById("badocDetailOverlay"); if(x)x.remove();
+  }
+  function showBadocDetailPopup(type){
+    const s=window.__badocDailyHistoryCurrentSnapshot||{};
+    const rows=type==="misrouted"?(Array.isArray(s.misroutedDetails)?s.misroutedDetails:[]):(Array.isArray(s.exemptionDetails)?s.exemptionDetails:[]);
+    closeBadocDetailPopup();
+    const overlay=document.createElement("div"); overlay.id="badocDetailOverlay"; overlay.className="badoc-detail-overlay";
+    const title=type==="misrouted"?"Misrouted Parcels":"Exemptions";
+    let body="";
+    if(type==="misrouted") body=rows.length?`<table class="badoc-detail-table"><thead><tr><th>Tracking</th><th>Order ID</th><th>Town</th><th>Current Station</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escH(r.tracking)}</td><td>${escH(r.orderId)}</td><td>${escH(r.town)}</td><td>${escH(r.currentStation)}</td><td>${escH(r.status)}</td></tr>`).join("")}</tbody></table>`:`<div class="badoc-detail-empty">No misrouted parcels.</div>`;
+    else body=rows.length?`<table class="badoc-detail-table"><thead><tr><th>#</th><th>Tracking Number</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escH(r)}</td></tr>`).join("")}</tbody></table>`:`<div class="badoc-detail-empty">No exemptions.</div>`;
+    overlay.innerHTML=`<div class="badoc-detail-modal" role="dialog" aria-modal="true" aria-label="${title}"><div class="badoc-detail-head"><h3>${title}</h3><button type="button" class="badoc-detail-close" aria-label="Close">×</button></div><div class="badoc-detail-body"><div class="badoc-detail-count">${rows.length.toLocaleString()} item${rows.length===1?"":"s"}</div>${body}</div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".badoc-detail-close").onclick=closeBadocDetailPopup;
+    overlay.addEventListener("click",e=>{if(e.target===overlay)closeBadocDetailPopup()});
+    document.addEventListener("keydown",function escClose(e){if(e.key==="Escape"){closeBadocDetailPopup();document.removeEventListener("keydown",escClose)}});
+  }
+
+  function goToDailyHistoryRider(riderName){
+    const name=String(riderName||"").trim();
+    if(!name)return;
+    const section=document.querySelector("#dailyHistory .daily-history-rider-section");
+    if(section)section.open=true;
+    const cards=Array.from(document.querySelectorAll("#dailyHistory .daily-history-rider-card[data-rider-name]"));
+    const card=cards.find(el=>String(el.getAttribute("data-rider-name")||"").trim().toLowerCase()===name.toLowerCase());
+    if(card){
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      card.classList.add("daily-history-below90-target");
+      setTimeout(()=>card.classList.remove("daily-history-below90-target"),1800);
+    }
+  }
+
+  function showBelow90RidersPopupLive(){
+    const s=window.__badocDailyHistoryCurrentSnapshot||{};
+    const groups=Array.isArray(s.riderPerformance)?s.riderPerformance:[];
+    const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+    const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));
+    const rateClass=v=>{const p=num(v);if(p<=0)return "";if(p>=95)return "daily-history-rider-name--good";if(p>=90)return "daily-history-rider-name--warn";return "daily-history-rider-name--low"};
+    const below=groups.filter(g=>String(g.rider||"").trim() && num(g.successRate)<90);
+    const old=document.getElementById("badocBelow90Overlay"); if(old)old.remove();
+    const overlay=document.createElement("div");
+    overlay.id="badocBelow90Overlay";
+    overlay.className="badoc-detail-overlay";
+    const body=below.length?`<div class="daily-history-below90-list">${below.map(g=>{
+      const rider=esc(String(g.rider||"").trim());
+      const area=esc(String(g.area||g.label||"").trim());
+      const sr=num(g.successRate).toFixed(1);
+      const vehicle=esc(String(g.vehicleType||"—"));
+      const towns=Array.isArray(g.townDetails)?g.townDetails.map(t=>esc(t.town||"")).filter(Boolean):[];
+      return `<div class="daily-history-below90-row"><button type="button" class="daily-history-below90-rider-link" data-below90-rider="${rider}">${rider}</button><strong class="${rateClass(g.successRate)}">${sr}%</strong></div>`;
+    }).join("")}</div>`:`<div class="badoc-detail-empty">No riders below 90% success rate.</div>`;
+    overlay.innerHTML=`<div class="badoc-detail-modal" role="dialog" aria-modal="true" aria-label="Riders below 90 percent success rate"><div class="badoc-detail-head"><h3>Riders Below 90% Success Rate</h3><button type="button" class="badoc-detail-close" aria-label="Close">×</button></div><div class="badoc-detail-body"><div class="badoc-detail-count">${below.length} rider${below.length===1?"":"s"}</div>${body}</div></div>`;
+    document.body.appendChild(overlay);
+    const close=()=>{overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");setTimeout(()=>overlay.remove(),120)};
+    overlay.querySelector(".badoc-detail-close").onclick=close;
+    overlay.addEventListener("click",e=>{if(e.target===overlay)close()});
+    overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");
+  }
+
+  document.addEventListener("click",e=>{
+    const riderLink=e.target?.closest?.("[data-below90-rider]");
+    if(riderLink){
+      e.preventDefault();
+      const name=riderLink.getAttribute("data-below90-rider")||"";
+      const overlay=document.getElementById("badocBelow90Overlay");
+      if(overlay)overlay.remove();
+      goToDailyHistoryRider(name);
+      return;
+    }
+    const detail=e.target?.closest?.('[data-action="daily-history-misrouted"],[data-action="daily-history-exemptions"]');
+    if(detail){showBadocDetailPopup(detail.dataset.action.endsWith("misrouted")?"misrouted":"exemptions");return;}
+    const card=e.target?.closest?.('[data-action="daily-history-below90"]');
+    if(!card || card.classList.contains("is-disabled"))return;
+    showBelow90RidersPopupLive();
+  });
+  document.addEventListener("keydown",e=>{
+    const detail=e.target?.closest?.('[data-action="daily-history-misrouted"],[data-action="daily-history-exemptions"]');
+    if(detail && (e.key==="Enter"||e.key===" ")){e.preventDefault();showBadocDetailPopup(detail.dataset.action.endsWith("misrouted")?"misrouted":"exemptions");return;}
+    if((e.key!=="Enter"&&e.key!==" ")||!e.target?.matches?.('[data-action="daily-history-below90"]'))return;
+    e.preventDefault();
+    e.target.click();
+  });
+
+  document.addEventListener("change",e=>{
+    if(e.target?.id==="dailyHistoryDate")refreshSelected();
+  });
+
+  // Patch the existing 2:00 AM reset so the snapshot is saved FIRST.
+  // If the app was closed at 2:00 AM, this still captures the shared/local
+  // state when the reset routine runs after the app is opened.
+  const patchReset=()=>{
+    if(window.__badocV206ResetPatched)return true;
+    const script=document.getElementById("badoc-daily-operational-reset");
+    if(!script)return false;
+    // The original reset is enclosed in an IIFE, so use a capture-phase hook
+    // on the reset marker upload instead of relying on an inaccessible function.
+    if(window.__badocV206StorageHook)return true;
+    window.__badocV206StorageHook=true;
+    return true;
+  };
+  patchReset();
+
+  // Intercept the reset marker upload: this occurs only after shared data has
+  // been cleared in v205, so it cannot be used as the pre-reset hook. Instead,
+  // install a beforeunload-safe timer that captures once the 2 AM window opens.
+  // The actual v206 reset patch below is injected by replacing the original
+  // clear call when the script text is loaded.
+  const originalText=scriptText();
+  function scriptText(){
+    try{return document.getElementById("badoc-daily-operational-reset")?.textContent||""}catch(e){return ""}
+  }
+
+  // LIVE DAILY HISTORY: today's entry continuously mirrors the same projected
+  // state used by the dashboard. It is cloud-backed, so all devices see the
+  // latest live snapshot. Live writes do NOT finalize the date.
+  let liveWriteBusy=false, liveLastSignature="", liveLastCloudWrite=0;
+
+  async function liveDailyHistoryTick(){
+    const d=todayDate();
+    try{
+      // TODAY IS ALWAYS LIVE. Never require a previously captured cloud file.
+      // Render first so Daily History still works even when cloud storage is
+      // temporarily unavailable.
+      const snapshot=buildSnapshot(d);
+      snapshot.captureReason="live";
+      putLiveDateInPicker(d);
+      const select=document.getElementById("dailyHistoryDate");
+      if(!select||select.value===d)renderSnapshot(snapshot);
+
+      // Cloud persistence is throttled. The UI remains live every tick while
+      // cloud writes happen periodically and the 2 AM final capture is exact.
+      const signature=JSON.stringify(snapshot);
+      const nowMs=Date.now();
+      if(signature===liveLastSignature || liveWriteBusy || nowMs-liveLastCloudWrite<30000)return;
+      liveWriteBusy=true;
+      try{
+        await saveSnapshot(snapshot,false);
+        liveLastSignature=signature;
+        liveLastCloudWrite=Date.now();
+      }catch(e){
+        console.warn("Daily History live cloud save:",e);
+      }finally{
+        liveWriteBusy=false;
+      }
+    }catch(e){console.warn("Daily History live sync:",e)}
+  }
+
+  // Capture immediately and keep today's Daily History as a live mirror.
+  // The display does not depend on cloud connectivity.
+  setTimeout(()=>{
+    liveDailyHistoryTick();
+    setInterval(liveDailyHistoryTick,1000);
+  },1200);
+
+  // Final pre-reset capture. This is the authoritative last write before the
+  // operational reset and is the only write that marks the date finalized.
+  let lastAttempt="";
+  async function preResetTick(){
+    const now=new Date();
+    if(now.getHours()!==2)return;
+    // At 2:00 AM the operational day that just ended is yesterday.
+    const d=dayKey(new Date(now.getTime()-24*60*60*1000));
+    const resetDay=dayKey(now);
+    if(lastAttempt===resetDay)return;
+    const saved=clean(localStorage.getItem("badoc_daily_history_last_saved_v210"));
+    if(saved===d){lastAttempt=resetDay;return;}
+    lastAttempt=resetDay;
+    try{await window.__badocCaptureDailyHistory("pre-reset",d)}catch(e){lastAttempt=""}
+  }
+  setTimeout(()=>{preResetTick();setInterval(preResetTick,1000)},1200);
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    setTimeout(()=>window.__badocRefreshDailyHistory?.(),700);
+  });
+})();
+</script>
+
+
+<style id="badoc-v234-below90-rider-links">
+.daily-history-below90-rider-link{border:0;background:none;padding:0;margin:0;color:#edf3f8;font:inherit;font-weight:800;text-align:left;cursor:pointer;text-decoration:none}
+.daily-history-below90-rider-link:hover{text-decoration:underline}
+.daily-history-below90-rider-link:focus-visible{outline:2px solid #41caff;outline-offset:3px;border-radius:4px}
+</style>
 </body>
 
 <style>
