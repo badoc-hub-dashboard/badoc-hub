@@ -5477,12 +5477,15 @@ function renderTownGrid(id,list,rows,extraCounts={}){
       const scanned=groupDelivered+groupDelivering+groupHold;
       const productivityRiders=isProductivityRider?1:0;
       const productivityScanned=isProductivityRider?scanned:0;
-      const fpPercent=productivityRiders?((productivityScanned/(productivityRiders*40))*100):0;
+      const editableFleetProductivity=Number(localStorage.getItem("badoc_fleet_productivity_v1"));
+      const fpTarget=Number.isFinite(editableFleetProductivity)&&editableFleetProductivity>0?editableFleetProductivity:0;
+      // 2WH/3WC only: grouped town total volume ÷ editable Fleet Productivity target × 100.
+      const fpPercent=(productivityRiders&&fpTarget>0)?((total/fpTarget)*100):0;
       const fpText=fpPercent%1===0?fpPercent.toFixed(0):fpPercent.toFixed(1);
       const groupFpEl=document.createElement("span");
       groupFpEl.className="town-card-fleet-productivity";
       groupFpEl.textContent=`FP ${fpText}%`;
-      groupFpEl.title=`Fleet Productivity: ${fpText}% (Scanned by 3WC/2WH riders ${productivityScanned} ÷ (${productivityRiders} 3WC/2WH rider × 40 target) × 100; Flexi excluded)`;
+      groupFpEl.title=`Fleet Productivity: ${fpText}% (${total.toLocaleString()} grouped-town volume ÷ editable Fleet Productivity target ${fpTarget} × 100; 2WH/3WC only, Flexi excluded)`;
       const groupSrEl=document.createElement("span");
       groupSrEl.className="town-card-success-rate";
       groupSrEl.textContent=`SR ${groupSrText}%`;
@@ -5500,7 +5503,7 @@ function renderTownGrid(id,list,rows,extraCounts={}){
         const statusTotal=ts.received+ts.delivered+ts.delivering+ts.hold;
         const successRate=statusTotal?((ts.delivered/statusTotal)*100):0;
         const srText=successRate%1===0?successRate.toFixed(0):successRate.toFixed(1);
-        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="town-statuses" aria-label="Received ${ts.received}, Delivered ${ts.delivered}, Delivering ${ts.delivering}, Hold ${ts.hold}, Success Rate ${srText}%"><span class="town-status received" title="Received">R ${ts.received}</span><span class="town-status delivered" title="Delivered">D ${ts.delivered}</span><span class="town-status delivering" title="Delivering">DV ${ts.delivering}</span><span class="town-status hold" title="On Hold">H ${ts.hold}</span><span class="town-status success-rate" title="Success Rate">SR ${srText}%</span><span class="count" title="Total">${c[townKey]||0}</span></span>`;
+        r.innerHTML=`<span class="town"><span class="town-drag-handle">⋮⋮</span>${esc(name)}</span><span class="town-statuses" aria-label="Received ${ts.received}, Delivering ${ts.delivering}, Delivered ${ts.delivered}, Hold ${ts.hold}, Success Rate ${srText}%"><span class="town-status received" title="Received">R ${ts.received}</span><span class="town-status delivering" title="Delivering">D ${ts.delivering}</span><span class="town-status delivered" title="Delivered">DV ${ts.delivered}</span><span class="town-status hold" title="On Hold">H ${ts.hold}</span><span class="town-status success-rate" title="Success Rate">SR ${srText}%</span><span class="count" title="Total">${c[townKey]||0}</span></span>`;
 
         r.addEventListener("click",e=>{
           e.preventDefault();
@@ -8854,25 +8857,17 @@ window.updateOperationProgress=function(){
   };
   setText("opCfr1Scanned",window.__badocCfr1Details.scannedCount);
   setText("opCfr1Total",window.__badocCfr1Details.totalCount);
-  // ON-HOLD source: ONLY live Google Sheet Column F, matched to uploaded SPX TNs.
-  // The uploaded row status itself is never used to create an H.
-  const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
+  // ON-HOLD source for the operational card: use the ACTUAL parcel status
+  // in the uploaded file.  Google Sheet Column F is not required for this
+  // dashboard card.  Normalize spaces/underscores/hyphens so ON HOLD, ONHOLD,
+  // ON_HOLD and LMHUB ON HOLD variants are recognized consistently.
   let onHold=0;
-  // Match Google Sheet Column F against ALL uploaded parcel rows, not only
-  // rows that pass the dashboard station/day filters.
-  // This ensures a valid GSheet SPX TN such as SPEPH065700458049 is still
-  // recognized even if its uploaded row has a different station/status.
-  const uploadedParcelRows=allRows.filter(r=>!isExceptionRow(r));
-  uploadedParcelRows.forEach(r=>{
-    const tn=spxTN(r);
-    if(tn && liveHold.has(normJoin(tn))) onHold++;
+  todayRows.forEach(r=>{
+    const s=statusKey(statusTo(r));
+    if(s==="ONHOLD" || s==="LMHUBONHOLD") onHold++;
   });
   counts.ONHOLD=onHold;
   setText("opOnHold",onHold);
-  // Keep the exact GSheet TNs that are not present in the currently loaded parcel files.
-  const uploadedTNKeys=new Set(uploadedParcelRows.map(r=>normJoin(spxTN(r))).filter(Boolean));
-  const rawHoldTNs=Array.isArray(window.__badocLiveHoldRawTNs)?window.__badocLiveHoldRawTNs:[];
-  window.__badocUnmatchedHoldTNs=rawHoldTNs.filter(v=>{const k=normJoin(v);return k&&!uploadedTNKeys.has(k);});
 
   // Unscanned: Today's Volume minus Delivering, Delivered and On-Hold.
   const unscanned=Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0)-onHold);
