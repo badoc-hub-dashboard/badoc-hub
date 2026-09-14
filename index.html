@@ -28,7 +28,8 @@
 .badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:700}.badge.good{background:#12351f;color:#75e5a0}.badge.bad{background:#3a1515;color:#ff8888}
 .history{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.batch{background:#131313;border:1px solid #222;border-radius:10px;padding:13px}.batch b{display:block;margin-bottom:6px}.batch small{color:var(--muted)}.batch .actions{margin-top:10px;display:flex;gap:6px}
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.listbox{max-height:450px;overflow:auto}.town-edit{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1e1e1e}.town-edit span{font-size:12px}.town-edit button{background:none;border:0;color:#777;cursor:pointer}.town-edit button:hover{color:#f66}
-.mobilebar{display:none}
+/* Collapsible side menu */
+.side{transition:width .2s ease,padding .2s ease;padding-top:22px;z-index:20}.side-collapse-btn{position:fixed;top:36px;left:213px;right:auto;width:24px;height:24px;border:1px solid #1B303C;border-radius:50%;background:#080808;color:#19C2FF;cursor:pointer;font-size:18px;line-height:20px;z-index:30}.side-collapse-btn:hover{border-color:#19C2FF;background:#0B1820;box-shadow:0 0 12px rgba(0,168,255,.18)}.main{transition:margin-left .2s ease,width .2s ease}.app.side-collapsed .side{width:68px;padding-left:8px;padding-right:8px}.app.side-collapsed .main{margin-left:68px;width:calc(100% - 68px)}.app.side-collapsed .brand{font-size:0;text-align:center;padding-left:0;padding-right:0}.app.side-collapsed .brand:after{content:"BH";font-size:15px;font-weight:800;color:#19C2FF}.app.side-collapsed .nav button{font-size:0;text-align:center;padding-left:5px;padding-right:5px}.app.side-collapsed .nav .ico{font-size:15px;width:auto}.app.side-collapsed .side-collapse-btn{left:56px;right:auto}.app.side-collapsed .side-collapse-btn{transform:none}.app.side-collapsed .side-collapse-btn{font-size:0}.app.side-collapsed .side-collapse-btn:after{content:"›";font-size:18px}.mobilebar{display:none}
 @media(max-width:900px){.side{width:118px;padding:15px 8px}.brand{font-size:15px;text-align:center;padding:4px 2px 20px;white-space:nowrap}.brand:before{display:none}.brand small{display:none}.nav button{font-size:10px;text-align:left;padding:10px 7px;white-space:nowrap}.nav .ico{font-size:15px;width:20px}.main{margin-left:118px;width:calc(100% - 118px);padding:20px 14px}.kpis{grid-template-columns:repeat(2,1fr)}.town-grid{grid-template-columns:1fr}.town-column{gap:9px}.settings-grid{grid-template-columns:1fr}}
 @media(max-width:550px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px}.kpi .num{font-size:29px}.main{padding:14px}.top{margin-bottom:15px}.title h1{font-size:20px}.toolbar input{min-width:100%;}}
 
@@ -4318,12 +4319,117 @@ html{
 .town-rider-dropdown[style*="display: block"]{display:block!important;visibility:visible!important;opacity:1!important;}
 .town-zone-dropdown,.town-rider-dropdown{pointer-events:auto;}
 </style>
+<style id="v310-sidebar-toggle-fix">
+.side-collapse-btn{position:fixed!important;right:auto!important;z-index:10000!important;}
+</style>
+<style id="v313-sidebar-toggle-position">
+/* Keep the sidebar toggle beside the BADOC HUB brand. */
+.side-collapse-btn{
+  position:absolute!important;
+  top:18px!important;
+  left:145px!important;
+  right:auto!important;
+  transform:none!important;
+  z-index:10000!important;
+}
+.app.side-collapsed .side-collapse-btn{left:56px!important;}
+@media(max-width:900px){
+  .side-collapse-btn{left:145px!important;}
+  .app.side-collapsed .side-collapse-btn{left:56px!important;}
+}
+</style>
+
+<style id="v314-sidebar-toggle-final">
+/* Final sidebar toggle placement: directly beside BADOC HUB. */
+.side-collapse-btn{
+  position:absolute!important;
+  top:16px!important;
+  left:214px!important;
+  right:auto!important;
+  width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  transform:none!important;
+  z-index:10001!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  left:40px!important;
+  top:16px!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{left:105px!important;top:14px!important;}
+  .app.side-collapsed .side-collapse-btn{left:40px!important;top:14px!important;}
+}
+</style>
+
+<style id="v317-sidebar-toggle-theme">
+/* Sidebar toggle: attached to the right edge of the menu and matched to the app theme. */
+.side-collapse-btn{
+  position:fixed!important;
+  top:18px!important;
+  left:224px!important;
+  right:auto!important;
+  width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #1B303C!important;
+  border-left-color:#243F4D!important;
+  border-radius:0 8px 8px 0!important;
+  background:linear-gradient(180deg,#0a141c,#070b10)!important;
+  color:#19C2FF!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.45),0 0 12px rgba(0,168,255,.08)!important;
+  font-size:0!important;
+  line-height:1!important;
+  z-index:10001!important;
+  transform:none!important;
+}
+.side-collapse-btn::before{
+  content:'☰';
+  display:block;
+  font-size:15px;
+  font-weight:800;
+  line-height:1;
+  color:#19C2FF;
+  text-shadow:0 0 9px rgba(0,168,255,.20);
+}
+.side-collapse-btn:hover{
+  background:linear-gradient(180deg,#0d1c26,#091119)!important;
+  border-color:#19C2FF!important;
+  box-shadow:0 5px 16px rgba(0,0,0,.5),0 0 15px rgba(0,168,255,.16)!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  left:67px!important;
+  top:18px!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{left:117px!important;top:15px!important;}
+  .app.side-collapsed .side-collapse-btn{left:67px!important;top:15px!important;}
+}
+</style>
+
+<style id="v322-sidebar-toggle-middle">
+/* v322: when the sidebar is collapsed, keep the expand toggle vertically centered. */
+.app.side-collapsed .side-collapse-btn{
+  top:50%!important;
+  transform:translateY(-50%)!important;
+}
+@media(max-width:900px){
+  .app.side-collapsed .side-collapse-btn{
+    top:50%!important;
+    transform:translateY(-50%)!important;
+  }
+}
+</style>
 </head>
 <body data-app-version="6.0" data-app-version="5.0">
 
 
 <div class="app">
-<aside class="side">
+<aside class="side"><button id="sideCollapseBtn" class="side-collapse-btn" type="button" aria-label="Collapse menu" title="Collapse menu">‹</button>
   <div class="brand">BADOC HUB<small></small></div>
   <nav class="nav">
     <button class="active" data-page="homeDashboard"><span class="ico">▣</span> Dashboard</button>
@@ -9494,9 +9600,18 @@ setInterval(()=>window.updateOperationProgress?.(),30000);
         if(typeof window.showPage==="function"){
           window.showPage(btn.getAttribute("data-page"));
         }
-        nav.classList.add("open");
-        toggle.setAttribute("aria-expanded","true");
+        nav.classList.remove("open");
+        nav.classList.add("flyout-dismissed");
+        toggle.setAttribute("aria-expanded","false");
       });
+    });
+
+    nav.addEventListener("mouseenter",function(){
+      nav.classList.remove("flyout-dismissed");
+    });
+
+    toggle.addEventListener("click",function(){
+      nav.classList.remove("flyout-dismissed");
     });
   }
 
@@ -12184,6 +12299,43 @@ body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
 .daily-history-below90-rider-link:hover{text-decoration:underline}
 .daily-history-below90-rider-link:focus-visible{outline:2px solid #41caff;outline-offset:3px;border-radius:4px}
 </style>
+
+<script>
+(function(){
+  const app=document.querySelector('.app');
+  const btn=document.getElementById('sideCollapseBtn');
+  if(!app||!btn)return;
+  const key='badoc_side_collapsed_v1';
+  let collapsed=false;
+  try{collapsed=localStorage.getItem(key)==='1'}catch(e){}
+  const apply=()=>{
+    app.classList.toggle('side-collapsed',collapsed);
+    btn.setAttribute('aria-label',collapsed?'Expand menu':'Collapse menu');
+    btn.title=collapsed?'Expand menu':'Collapse menu';
+
+  };
+  btn.addEventListener('click',()=>{collapsed=!collapsed;try{localStorage.setItem(key,collapsed?'1':'0')}catch(e){}apply()});
+  apply();
+})();
+</script>
+
+<style id="v319-collapsed-daily-data-hover">
+/* v319: Daily Data flyout when the sidebar is collapsed. */
+.app.side-collapsed .nav{overflow:visible!important;}
+.app.side-collapsed .daily-data-nav{position:relative!important;width:100%!important;}
+.app.side-collapsed .daily-data-toggle{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:42px!important;font-size:0!important;text-align:center!important;padding:0!important;margin:2px 0!important;white-space:nowrap!important;}
+.app.side-collapsed .daily-data-toggle .ico{font-size:15px!important;width:auto!important;flex:0 0 auto!important;}
+.app.side-collapsed .daily-data-toggle .daily-data-chevron{display:none!important;}
+.app.side-collapsed .daily-data-submenu{position:absolute!important;left:calc(100% + 6px)!important;top:0!important;width:190px!important;min-width:190px!important;padding:6px!important;margin:0!important;display:none!important;background:#0b1118!important;border:1px solid #1d3342!important;border-radius:9px!important;box-shadow:0 12px 28px rgba(0,0,0,.55),0 0 18px rgba(0,168,255,.08)!important;z-index:10050!important;}
+.app.side-collapsed .daily-data-nav:not(.flyout-dismissed):hover .daily-data-submenu,
+.app.side-collapsed .daily-data-nav:not(.flyout-dismissed):focus-within .daily-data-submenu,
+.app.side-collapsed .daily-data-nav:not(.flyout-dismissed).open .daily-data-submenu{display:block!important;}
+.app.side-collapsed .daily-data-nav.flyout-dismissed .daily-data-submenu{display:none!important;}
+.app.side-collapsed .daily-data-submenu button{display:flex!important;align-items:center!important;width:100%!important;height:36px!important;font-size:12px!important;line-height:1.2!important;text-align:left!important;padding:8px 10px!important;margin:1px 0!important;border-radius:6px!important;color:#aebbc5!important;background:transparent!important;box-shadow:none!important;white-space:nowrap!important;}
+.app.side-collapsed .daily-data-submenu button:hover,
+.app.side-collapsed .daily-data-submenu button.active{background:rgba(0,168,255,.12)!important;color:#fff!important;box-shadow:inset 2px 0 #19C2FF!important;}
+.app.side-collapsed .daily-data-submenu .sub-ico{display:inline-block!important;width:14px!important;margin-right:7px!important;color:#19C2FF!important;font-size:11px!important;}
+</style>
 </body>
 
 <style>
@@ -13048,3 +13200,262 @@ body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
   setInterval(fixDailyHistoryScroll,2000);
 })();
 </script>
+<style id="v315-sidebar-toggle-fix">
+/* Keep the toggle fully inside the sidebar so overflow/scrolling cannot clip it. */
+.side-collapse-btn{
+  left:183px!important;
+  top:16px!important;
+  width:34px!important;
+  height:34px!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  left:32px!important;
+  top:16px!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{left:76px!important;top:14px!important;}
+  .app.side-collapsed .side-collapse-btn{left:32px!important;top:14px!important;}
+}
+</style>
+
+<style id="v316-sidebar-toggle-style">
+/* v316: Sidebar toggle styled like a compact bottom hamburger button. */
+.side-collapse-btn{
+  position:fixed!important;
+  left:0!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:0!important;
+  width:73px!important;
+  height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-top:1px solid #34404d!important;
+  border-right:1px solid #34404d!important;
+  border-radius:0!important;
+  background:#1c252f!important;
+  color:#dce8f0!important;
+  font-size:0!important;
+  line-height:40px!important;
+  text-align:center!important;
+  transform:none!important;
+  box-shadow:none!important;
+  z-index:10001!important;
+}
+.side-collapse-btn:hover{
+  background:#25313d!important;
+  border-top-color:#4a5c6d!important;
+  border-right-color:#4a5c6d!important;
+  box-shadow:none!important;
+}
+.side-collapse-btn::after{
+  content:'☰';
+  display:inline-block;
+  font-size:16px;
+  line-height:40px;
+  color:#e8f1f6;
+  transform:scaleX(1.05);
+}
+.app.side-collapsed .side-collapse-btn{
+  left:0!important;
+  top:auto!important;
+  bottom:0!important;
+  width:68px!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{left:0!important;top:auto!important;bottom:0!important;width:73px!important;height:40px!important;}
+  .app.side-collapsed .side-collapse-btn{left:0!important;top:auto!important;bottom:0!important;width:68px!important;}
+}
+</style>
+<style id="v318-sidebar-toggle-clean">
+/* Clean sidebar toggle: anchored to the sidebar itself, not the viewport. */
+.side{position:fixed;overflow:visible;}
+.side-collapse-btn{
+  position:absolute!important;
+  top:16px!important;
+  right:10px!important;
+  left:auto!important;
+  width:34px!important;
+  height:34px!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #1B303C!important;
+  border-radius:8px!important;
+  background:#080f15!important;
+  color:#19C2FF!important;
+  box-shadow:0 0 10px rgba(0,168,255,.08)!important;
+  font-size:0!important;
+  line-height:1!important;
+  z-index:10002!important;
+  transform:none!important;
+}
+.side-collapse-btn::before{
+  content:"";
+  display:block;
+  width:16px;
+  height:2px;
+  border-radius:2px;
+  background:#19C2FF;
+  box-shadow:0 5px 0 #19C2FF,0 10px 0 #19C2FF;
+}
+.side-collapse-btn:hover{
+  background:#0d1820!important;
+  border-color:#19C2FF!important;
+  box-shadow:0 0 14px rgba(0,168,255,.16)!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  right:8px!important;
+  left:auto!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{top:14px!important;right:8px!important;}
+  .app.side-collapsed .side-collapse-btn{right:8px!important;}
+}
+</style>
+<style id="v321-sidebar-toggle-bottom">
+/* v321: move sidebar collapse toggle to the bottom-right of the sidebar. */
+.side{position:fixed!important;overflow:visible!important;}
+.side-collapse-btn{
+  position:absolute!important;
+  top:auto!important;
+  right:0!important;
+  bottom:0!important;
+  left:auto!important;
+  width:44px!important;
+  height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid #1B303C!important;
+  border-right:0!important;
+  border-bottom:0!important;
+  border-radius:8px 0 0 0!important;
+  background:#0b151d!important;
+  color:#19C2FF!important;
+  box-shadow:0 0 12px rgba(0,168,255,.08)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  z-index:10002!important;
+}
+.side-collapse-btn::before{
+  content:""!important;
+  display:block!important;
+  width:16px!important;
+  height:2px!important;
+  border-radius:2px!important;
+  background:#19C2FF!important;
+  box-shadow:0 5px 0 #19C2FF,0 10px 0 #19C2FF!important;
+}
+.side-collapse-btn:hover{
+  background:#10202b!important;
+  border-color:#19C2FF!important;
+  box-shadow:0 0 16px rgba(0,168,255,.15)!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  right:0!important;
+  bottom:0!important;
+  width:40px!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{right:0!important;bottom:0!important;width:44px!important;height:40px!important;}
+  .app.side-collapsed .side-collapse-btn{right:0!important;bottom:0!important;width:40px!important;}
+}
+</style>
+<style id="v325-sidebar-toggle-centered-bottom">
+/* v325: center the sidebar collapse/expand button at the bottom of the side menu. */
+.side{position:fixed!important;overflow:visible!important;}
+.side-collapse-btn{
+  position:absolute!important;
+  top:auto!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:0!important;
+  transform:translateX(-50%)!important;
+  width:52px!important;
+  height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid #1B303C!important;
+  border-bottom:0!important;
+  border-radius:8px 8px 0 0!important;
+  background:#0b151d!important;
+  color:#19C2FF!important;
+  box-shadow:0 0 12px rgba(0,168,255,.08)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  z-index:10002!important;
+}
+.side-collapse-btn:hover{
+  background:#10202b!important;
+  border-color:#19C2FF!important;
+  box-shadow:0 0 16px rgba(0,168,255,.15)!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  left:50%!important;
+  right:auto!important;
+  bottom:0!important;
+  width:46px!important;
+  transform:translateX(-50%)!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{
+    left:50%!important;
+    right:auto!important;
+    bottom:0!important;
+    width:46px!important;
+    height:40px!important;
+    transform:translateX(-50%)!important;
+  }
+  .app.side-collapsed .side-collapse-btn{
+    left:50%!important;
+    right:auto!important;
+    bottom:0!important;
+    width:42px!important;
+    transform:translateX(-50%)!important;
+  }
+}
+</style>
+<style id="v326-sidebar-toggle-position">
+/* v326: expanded sidebar = bottom-right; collapsed sidebar = bottom-center. */
+.side-collapse-btn{
+  position:absolute!important;
+  top:auto!important;
+  right:0!important;
+  left:auto!important;
+  bottom:0!important;
+  transform:none!important;
+  width:44px!important;
+  height:40px!important;
+  border-radius:8px 0 0 0!important;
+}
+.app.side-collapsed .side-collapse-btn{
+  left:50%!important;
+  right:auto!important;
+  bottom:0!important;
+  width:46px!important;
+  transform:translateX(-50%)!important;
+  border-radius:8px 8px 0 0!important;
+}
+@media(max-width:900px){
+  .side-collapse-btn{
+    right:0!important;
+    left:auto!important;
+    bottom:0!important;
+    width:44px!important;
+    height:40px!important;
+    transform:none!important;
+  }
+  .app.side-collapsed .side-collapse-btn{
+    left:50%!important;
+    right:auto!important;
+    bottom:0!important;
+    width:42px!important;
+    transform:translateX(-50%)!important;
+  }
+}
+</style>
