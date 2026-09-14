@@ -9092,17 +9092,25 @@ window.updateOperationProgress=function(){
   };
   setText("opCfr1Scanned",window.__badocCfr1Details.scannedCount);
   setText("opCfr1Total",window.__badocCfr1Details.totalCount);
-  // ON-HOLD source for the operational card: use the ACTUAL parcel status
-  // in the uploaded file.  Google Sheet Column F is not required for this
-  // dashboard card.  Normalize spaces/underscores/hyphens so ON HOLD, ONHOLD,
-  // ON_HOLD and LMHUB ON HOLD variants are recognized consistently.
+  // ON-HOLD source for the operational card: ONLY live Google Sheet Column F.
+  // A parcel is On Hold when its SPX TN appears in the live GSheet Column F.
+  // The uploaded parcel status is NOT used to create On-Hold here.
+  const liveHold=(window.__badocLiveHoldTNs instanceof Set)?window.__badocLiveHoldTNs:new Set();
+  const holdKey=window.__badocHoldKey||normJoin;
   let onHold=0;
-  todayRows.forEach(r=>{
-    const s=statusKey(statusTo(r));
-    if(s==="ONHOLD" || s==="LMHUBONHOLD") onHold++;
+  const uploadedParcelRows=todayRows.filter(r=>!isExceptionRow(r));
+  uploadedParcelRows.forEach(r=>{
+    const tn=spxTN(r);
+    if(tn && liveHold.has(holdKey(tn))) onHold++;
   });
   counts.ONHOLD=onHold;
   setText("opOnHold",onHold);
+
+  // Keep a diagnostic list of GSheet Column F TNs not present in the uploaded
+  // parcel population. This does not affect the On-Hold count.
+  const uploadedTNKeys=new Set(uploadedParcelRows.map(r=>holdKey(spxTN(r))).filter(Boolean));
+  const rawHoldTNs=Array.isArray(window.__badocLiveHoldRawTNs)?window.__badocLiveHoldRawTNs:[];
+  window.__badocUnmatchedHoldTNs=rawHoldTNs.filter(v=>{const k=holdKey(v);return k&&!uploadedTNKeys.has(k);});
 
   // Unscanned: Today's Volume minus Delivering, Delivered and On-Hold.
   const unscanned=Math.max(0,todayVolume-(counts.DELIVERING||0)-(counts.DELIVERED||0)-onHold);
