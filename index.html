@@ -4743,6 +4743,7 @@ html{
         <div style="display:flex;align-items:center;gap:8px">
           <input id="dailyHistoryDate" type="date" aria-label="Select Daily History date" title="Select Daily History date" style="flex:1;min-width:0">
           <button type="button" class="btn" id="dailyHistoryRefreshBtn" title="Refresh Daily History">↻ Refresh</button>
+      <button id="dailyHistoryCaptureBtn" type="button" class="btn">⬆ Capture Now</button>
         </div>
       </div>
     </div>
@@ -12191,101 +12192,6 @@ body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
     try{return document.getElementById("badoc-daily-operational-reset")?.textContent||""}catch(e){return ""}
   }
 
-  // LIVE DAILY HISTORY: today's entry continuously mirrors the same projected
-  // state used by the dashboard. It is cloud-backed, so all devices see the
-  // latest live snapshot. Live writes do NOT finalize the date.
-  let liveWriteBusy=false, liveLastSignature="", liveLastCloudWrite=0;
-
-  async function liveDailyHistoryTick(){
-    const d=todayDate();
-    try{
-      // TODAY IS ALWAYS LIVE. Never require a previously captured cloud file.
-      // Render first so Daily History still works even when cloud storage is
-      // temporarily unavailable.
-      const snapshot=buildSnapshot(d);
-      snapshot.captureReason="live";
-      putLiveDateInPicker(d);
-      const input=document.getElementById("dailyHistoryDate");
-      if(!input||input.value===d)renderSnapshot(snapshot);
-
-      // Cloud persistence is throttled. The UI remains live every tick while
-      // cloud writes happen periodically and the 2 AM final capture is exact.
-      const signature=JSON.stringify({...snapshot,capturedAt:""});
-      const nowMs=Date.now();
-      if(signature===liveLastSignature || liveWriteBusy || nowMs-liveLastCloudWrite<30000)return;
-      liveWriteBusy=true;
-      try{
-        await saveSnapshot(snapshot,false);
-        liveLastSignature=signature;
-        liveLastCloudWrite=Date.now();
-      }catch(e){
-        console.warn("Daily History live cloud save:",e);
-      }finally{
-        liveWriteBusy=false;
-      }
-    }catch(e){console.warn("Daily History live sync:",e)}
-  }
-
-  // Keep the visible Daily History live without hammering cloud storage.
-  // Cloud snapshots are captured once every hour, on the hour. The same
-  // date file is updated, so the latest hourly snapshot represents today.
-  let hourlyCaptureKey="";
-  async function hourlyDailyHistoryTick(){
-    const now=new Date();
-    const hourKey=dayKey(now)+"-"+String(now.getHours()).padStart(2,"0");
-    if(hourlyCaptureKey===hourKey)return;
-    hourlyCaptureKey=hourKey;
-    try{await window.__badocCaptureDailyHistory("hourly",dayKey(now));}
-    catch(e){hourlyCaptureKey="";console.warn("Daily History hourly capture failed:",e)}
-  }
-
-  setTimeout(()=>{
-    liveDailyHistoryTick();
-    hourlyDailyHistoryTick();
-    setInterval(liveDailyHistoryTick,30000);
-    setInterval(hourlyDailyHistoryTick,60000);
-  },1200);
-
-  // Safety capture: save yesterday while the operational day's data is still
-  // loaded. The exact 2 AM pre-reset capture below remains authoritative.
-  // This protects against a brief cloud/network failure exactly at 2:00 AM.
-  // Pre-reset protection: build and persist yesterday's snapshot repeatedly
-  // during the final hour before the 2 AM operational reset. This is more
-  // reliable than a single exact-time capture and ensures the latest good
-  // snapshot is already in cloud storage before reset begins.
-  let safetyCaptureKey="";
-  async function safetyPreResetTick(){
-    const now=new Date();
-    if(now.getHours()!==1)return;
-    // Capture at 1:50, 1:55 and 1:59 (local time).
-    const minute=now.getMinutes();
-    if(minute!==50 && minute!==55 && minute!==59)return;
-    const d=dayKey(new Date(now.getTime()-24*60*60*1000));
-    const key=d+"-"+minute;
-    if(safetyCaptureKey===key)return;
-    safetyCaptureKey=key;
-    try{await window.__badocCaptureDailyHistory("pre-reset-safety",d)}
-    catch(e){safetyCaptureKey="";console.warn("Daily History safety capture failed:",e)}
-  }
-  setTimeout(()=>{safetyPreResetTick();setInterval(safetyPreResetTick,1000)},1200);
-
-  // Final pre-reset capture. This is the authoritative last write before the
-  // operational reset and is the only write that marks the date finalized.
-  let lastAttempt="";
-  async function preResetTick(){
-    const now=new Date();
-    if(now.getHours()!==2)return;
-    // At 2:00 AM the operational day that just ended is yesterday.
-    const d=dayKey(new Date(now.getTime()-24*60*60*1000));
-    const resetDay=dayKey(now);
-    if(lastAttempt===resetDay)return;
-    const saved=clean(localStorage.getItem("badoc_daily_history_last_saved_v210"));
-    if(saved===d){lastAttempt=resetDay;return;}
-    lastAttempt=resetDay;
-    try{await window.__badocCaptureDailyHistory("pre-reset",d)}catch(e){lastAttempt=""}
-  }
-  setTimeout(()=>{preResetTick();setInterval(preResetTick,30000)},1200);
-
   document.addEventListener("DOMContentLoaded",()=>{
     const refreshBtn=document.getElementById("dailyHistoryRefreshBtn");
     refreshBtn?.addEventListener("click",async()=>{
@@ -12296,7 +12202,24 @@ body{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
       try{await window.__badocRefreshDailyHistory?.();}
       finally{refreshBtn.disabled=false;refreshBtn.textContent=old;}
     });
-    setTimeout(()=>window.__badocRefreshDailyHistory?.(),700);
+    const captureBtn=document.getElementById("dailyHistoryCaptureBtn");
+    captureBtn?.addEventListener("click",async()=>{
+      if(captureBtn.disabled)return;
+      const old=captureBtn.textContent;
+      captureBtn.disabled=true;
+      captureBtn.textContent="⬆ Capturing…";
+      try{
+        const d=todayDate();
+        await window.__badocCaptureDailyHistory?.("manual",d);
+        captureBtn.textContent="✓ Captured";
+        setTimeout(()=>{captureBtn.textContent=old;captureBtn.disabled=false;},1400);
+      }catch(e){
+        console.warn("Daily History manual capture failed:",e);
+        captureBtn.textContent="✕ Capture Failed";
+        setTimeout(()=>{captureBtn.textContent=old;captureBtn.disabled=false;},1800);
+      }
+    });
+        setTimeout(()=>window.__badocRefreshDailyHistory?.(),700);
   });
 })();
 </script>
